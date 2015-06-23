@@ -1,0 +1,1624 @@
+<ROM>
+
+<e>$048244: ; x20444					; jump to overworld controls
+
+5C 08 80 90 EA 22 00 A2 04 A9 FF 8D 68 0F 9C 69 0F 9C 6A 0F 9C 6B 0F 9C 6C 0F 9C 6D 0F 9C F7 1D
+
+5C 08 80 90		JML $908008
+EA				NOP
+22 00 A2 04		JSL $04A200
+A9 FF			LDA #$FF			; \ set pointer to unused state
+8D 68 0F		STA $0F68			; /
+9C 69 0F		STZ $0F69
+9C 6A 0F		STZ $0F6A			; \ clear precise timer
+9C 6B 0F		STZ $0F6B			; |
+9C 6C 0F		STZ $0F6C			; /
+9C 6D 0F		STZ $0F6D			; clear precise timer lock
+9C F7 1D		STZ $1DF7			; clear star road warp speed
+
+</e>
+<e>$04A200: ; x22400					; overworld controls
+
+DA 9C 6E 0F 9C 6F 0F A9 70 8D 70 0F AD B2 0D F0 01 6B AD A8 0D 29 20 F0 1B AD BA 0D 1A 1A C9 02 F0 FA C9 0C D0 02 A9 00 8D C7 13 8D BA 0D 8D EF 1F EE C1 0D AD A8 0D 29 10 F0 11 A5 19 1A C9 04 D0 02 A9 00 85 19 8D EE 1F 8D B8 0D AD 4E 14 D0 16 AD F7 1D D0 11 AD A6 0D 29 10 F0 0A A9 1C 8D FC 1D A9 20 8D 00 01 FA 6B
+
+DA				PHX
+9C 6E 0F		STZ $0F6E			; \	clear save pointer
+9C 6F 0F		STZ $0F6F			; |
+A9 70			LDA #$70			; |
+8D 70 0F		STA $0F70			; /
+AD B2 0D		LDA $0DB2			; \
+F0 01			BEQ testL			; | If in 2-player mode
+6B				RTL					; / return
+
+				testL:
+
+AD A8 0D		LDA $0DA8			; \
+29 20			AND #$20			; |	If pressing L
+F0 1B			BEQ testR			; |
+AD BA 0D		LDA $0DBA			; |	increment Yoshi color
+									; |
+				loopA:				; |
+1A				INC A				; |		00 = none
+1A				INC A				; |		04 = yellow
+C9 02			CMP #$02			; |		06 = blue
+F0 FA			BEQ loopA			; |		08 = red
+C9 0C			CMP #$0C			; |		0A = green
+D0 02			BNE skip0A			; |
+A9 00			LDA #$00			; |
+				skip0A:				; |
+8D C7 13		STA $13C7			; |
+8D BA 0D		STA $0DBA			; |
+8D EF 1F		STA $1FEF			; |
+EE C1 0D		INC $0DC1			; / Let Yoshi live!
+
+				testR:
+
+AD A8 0D		LDA $0DA8			; \
+29 10			AND #$10			; | If pressing R
+F0 11			BEQ testStart		; |
+A5 19			LDA $19				; | increment Mario powerup
+1A				INC A				; |		00 = small
+C9 04			CMP #$04			; |		01 = big
+D0 02			BNE skip0B			; |		02 = cape
+A9 00			LDA #$00			; |		03 = fire
+				skip0B:				; |
+85 19			STA $19				; |
+8D EE 1F		STA $1FEE			; |
+8D B8 0D		STA $0DB8			; /
+
+				testStart:
+				
+AD 4E 14		LDA $144E			; \ If Mario is facing forward
+D0 16			BNE	exit			; |
+AD F7 1D		LDA $1DF7			; | and he's not warping off a star road
+D0 11			BNE	exit			; /
+AD A6 0D		LDA $0DA6			; \
+29 10			AND #$10			; | If pressing start
+F0 0A			BEQ exit			; |
+A9 1C			LDA #$1C			; | Play sound effect
+8D FC 1D		STA $1DFC			; |
+A9 20			LDA #$20			; |	load menu screen
+8D 00 01		STA $0100			; /
+
+				exit:
+				
+FA				PLX
+6B				RTL
+
+</e>
+<e>$049E69: ; x22069					; instant star road warp
+
+A9 FF 8D F7 1D EA EA EA EA EA EA EA EA EA EA
+
+A9 FF			LDA #$FF
+8D F7 1D		STA $1DF7
+EA EA EA EA		NOP NOP NOP NOP
+EA EA EA EA		NOP NOP NOP NOP
+EA EA			NOP NOP
+
+</e>
+<e>$0084F1: ; x006F1					; stripe image pointers for menu
+
+38 19 7E 0F 91 14 24 91 14 39 91 14 4E 91 14 63 91 14 78 91 14 8D 91 14 A2 91 14 B7 91 14 CC 91 14 E1 91 14 F6 91 14 0B 92 14 20 92 14 35 92 14 4A 92 14 5F 92 14 74 92 14 89 92 14 9E 92 14 B3 92 14 C8 92 14 DD 92 14 F2 92 14 07 93 14 1A 93 14 33 93 14 4C 93 14 65 93 14 7E 93 14 97 93 14 B0 93 14 C9 93 14 DC 93 14 F5 93 14 0E 94 14 27 94 14 40 94 14 59 94 14 72 94 14 8B 94 14 A4 94 14 B7 94 14 C4 94 14 D7 94 14
+
+38 19 7E		.tw $7E1938			; 21 = dynamic stripe image (numbers)
+0F 91 14		.tw $14910F			; 24 = yellow ! off
+24 91 14		.tw $149124			; 27 = yellow ! on
+39 91 14		.tw $149139			; 2A = green ! off
+4E 91 14		.tw $14914E			; 2D = green ! on
+63 91 14		.tw $149163			; 30 = red ! off
+78 91 14		.tw $149178			; 33 = red ! on
+8D 91 14		.tw $14918D			; 36 = blue ! off
+A2 91 14		.tw $1491A2			; 39 = blue ! on
+B7 91 14		.tw $1491B7			; 3C = special not beat
+CC 91 14		.tw $1491CC			; 3F = special beaten
+E1 91 14		.tw $1491E1			; 42 = yoshi none
+F6 91 14		.tw $1491F6			; 45 = yoshi yellow
+0B 92 14		.tw $14920B			; 48 = yoshi blue
+20 92 14		.tw $149220			; 4B = yoshi red
+35 92 14		.tw $149236			; 4E = yoshi green
+4A 92 14		.tw $14924A			; 51 = powerup small
+5F 92 14		.tw $14925F			; 54 = powerup big
+74 92 14		.tw $149274			; 57 = powerup cape
+89 92 14		.tw $149289			; 5A = powerup fire
+9E 92 14		.tw $14929E			; 5D = item box none
+B3 92 14		.tw $1492B3			; 60 = item box mushroom
+C8 92 14		.tw $1492C8			; 63 = item box flower
+DD 92 14		.tw $1492DD			; 66 = item box star
+F2 92 14		.tw $1492F2			; 69 = item box feather
+07 93 14		.tw $149307			; 6C = yellow ! arrows erase top
+1A 93 14		.tw $14931A			; 6F = green ! arrows erase top
+33 93 14		.tw $149333			; 72 = red ! arrows erase top
+4C 93 14		.tw $14934C			; 75 = blue ! arrows erase top
+65 93 14		.tw $149365			; 78 = special arrows erase top
+7E 93 14		.tw $14937E			; 7B = yoshi arrows erase top
+97 93 14		.tw $149397			; 7E = powerup arrows erase top
+B0 93 14		.tw $1493B0			; 81 = item box arrows erase top
+C9 93 14		.tw $1493C9			; 84 = save arrow erase top
+DC 93 14		.tw $1493DC			; 87 = cancel arrow erase top
+F5 93 14		.tw $1493F5			; 8A = yellow ! arrows erase bottom
+0E 94 14		.tw $14940E			; 8D = green ! arrows erase bottom
+27 94 14		.tw $149427			; 90 = red ! arrows erase bottom
+40 94 14		.tw $149440			; 93 = blue ! arrows erase bottom
+59 94 14		.tw $149459			; 96 = special arrows erase bottom
+72 94 14		.tw $149472			; 99 = yoshi arrows erase bottom
+8B 94 14		.tw $14948B			; 9C = powerup arrows erase bottom
+A4 94 14		.tw $1494A4			; 9F = item box arrows erase bottom
+B7 94 14		.tw $1494B7			; A2 = save arrow erase bottom
+C4 94 14		.tw $1494C4			; A5 = cancel arrow erase bottom
+D7 94 14		.tw $1494D7			; A8 = all static text + backgrounds
+
+</e>
+<e>$00933F: ; x0153F					; new game modes
+
+AC FF 87 A0 6F 9F BE A1 B8 FF 8E 96 D5 96 9C A5 B8 FF 49 A2 6F 9F 50 97 59 97 6F 9F 10 95 6F 9F FD 94 6F 9F 83 95 6F 9F AB 95 6F 9F B0 FF 6F 9F B4 FF
+
+AC FF			.dw $FFAC           ; GM0B = TmpFade (yoshi level)
+87 A0			.dw $A087           ; 0C - 
+6F 9F			.dw $9F6F           ; 0D - 
+BE A1			.dw $A1BE           ; 0E - 
+B8 FF			.dw $FFB8			; GM0F = TmpFade
+8E 96			.dw $968E			; 10
+D5 96			.dw $96D5			; 11
+9C A5			.dw $A59C			; 12
+B8 FF			.dw $FFB8			; GM13 = TmpFade
+49 A2			.dw $A249           ; GM14 = level
+6F 9F			.dw $9F6F           ; 15
+50 97			.dw $9750           ; 16
+59 97			.dw $9759           ; 17
+6F 9F			.dw $9F6F           ; 18
+10 95			.dw $9510           ; 19
+6F 9F			.dw $9F6F           ; 1A
+FD 94			.dw $94FD           ; 1B
+6F 9F			.dw $9F6F           ; 1C
+83 95			.dw $9583           ; 1D
+6F 9F			.dw $9F6F           ; 1E
+AB 95			.dw $95AB           ; 1F
+6F 9F			.dw $9F6F           ; 20
+B0 FF			.dw $FFB0			; GM21 = Load menu
+6F 9F			.dw $9F6F			; GM22 = Fade to menu
+B4 FF			.dw $FFB4			; GM23 = Menu
+
+</e>
+<e>$00FFAC: ; x081AC					; new game mode pointers
+
+5C 00 E0 14 5C 00 80 14 5C 00 80 15 22 E0 A0 14 5C 37 9F 00
+
+5C 00 E0 14		JML $14E000
+5C 00 80 14		JML $148000
+5C 00 80 15		JML $158000
+22 E0 A0 14		JSL $14A0E0
+5C 37 9F 00		JML $009F37
+
+</e>
+<e>$149000: ; xA1200					; stripe image for menu
+
+50 C3 00 1D 18 3D 44 3D 4B 3D 4B 3D 4E 3D 56 3D 1F 3D 1A 3D 1F 3D 01 3D 4B 3D 4E 3D 42 3D 4A 3D 52 3D 51 03 00 1D 1F 3D 06 3D 51 3D 44 3D 44 3D 4D 3D 1F 3D 1A 3D 1F 3D 01 3D 4B 3D 4E 3D 42 3D 4A 3D 52 3D 51 43 00 1D 1F 3D 1F 3D 1F 3D 11 3D 44 3D 43 3D 1F 3D 1A 3D 1F 3D 01 3D 4B 3D 4E 3D 42 3D 4A 3D 52 3D 51 83 00 1D 1F 3D 1F 3D 01 3D 4B 3D 54 3D 44 3D 1F 3D 1A 3D 1F 3D 01 3D 4B 3D 4E 3D 42 3D 4A 3D 52 3D 51 C3 00 1D 1F 3D 1F 3D 12 3D 4F 3D 44 3D 42 3D 48 3D 40 3D 4B 3D 1F 3D 16 3D 4E 3D 51 3D 4B 3D 43 3D 52 0A 00 0F 1F 3D 1F 3D 1F 3D 18 3D 4E 3D 52 3D 47 3D 48 3D 52 4A 00 0F 1F 3D 0F 3D 4E 3D 56 3D 44 3D 51 3D 54 3D 4F 3D 52 8A 00 0F 08 3D 53 3D 44 3D 4C 3D 1F 3D 01 3D 4E 3D 57 3D 52 CA 00 0F 1F 3D 1F 3D 1F 3D 1F 3D 12 3D 40 3D 55 3D 44 3D 53 0A 00 0F 1F 3D 1F 3D 02 3D 40 3D 4D 3D 42 3D 44 3D 4B 3D FF 50 D4 00 0F 1F 3D 1F 3D 1F 3D 4E 3D 45 3D 45 3D 1F 3D 1F 3D FF 50 D4 00 0F 1F 3D 1F 3D 1F 3D 4E 3D 4D 3D 1F 3D 1F 3D 1F 3D FF 51 14 00 0F 1F 3D 1F 3D 1F 3D 4E 3D 45 3D 45 3D 1F 3D 1F 3D FF 51 14 00 0F 1F 3D 1F 3D 1F 3D 4E 3D 4D 3D 1F 3D 1F 3D 1F 3D FF 51 54 00 0F 1F 3D 1F 3D 1F 3D 4E 3D 45 3D 45 3D 1F 3D 1F 3D FF 51 54 00 0F 1F 3D 1F 3D 1F 3D 4E 3D 4D 3D 1F 3D 1F 3D 1F 3D FF 51 94 00 0F 1F 3D 1F 3D 1F 3D 4E 3D 45 3D 45 3D 1F 3D 1F 3D FF 51 94 00 0F 1F 3D 1F 3D 1F 3D 4E 3D 4D 3D 1F 3D 1F 3D 1F 3D FF 51 D4 00 0F 4D 3D 4E 3D 53 3D 1F 3D 41 3D 44 3D 40 3D 53 3D FF 51 D4 00 0F 1F 3D 41 3D 44 3D 40 3D 53 3D 44 3D 4D 3D 1F 3D FF 52 14 00 0F 1F 3D 1F 3D 4D 3D 4E 3D 4D 3D 44 3D 1F 3D 1F 3D FF 52 14 00 0F 1F 3D 58 3D 44 3D 4B 3D 4B 3D 4E 3D 56 3D 1F 3D FF 52 14 00 0F 1F 3D 1F 3D 41 3D 4B 3D 54 3D 44 3D 1F 3D 1F 3D FF 52 14 00 0F 1F 3D 1F 3D 1F 3D 51 3D 44 3D 43 3D 1F 3D 1F 3D FF 52 14 00 0F 1F 3D 1F 3D 46 3D 51 3D 44 3D 44 3D 4D 3D 1F 3D FF 52 54 00 0F 1F 3D 1F 3D 52 3D 4C 3D 40 3D 4B 3D 4B 3D 1F 3D FF 52 54 00 0F 1F 3D 1F 3D 1F 3D 41 3D 48 3D 46 3D 1F 3D 1F 3D FF 52 54 00 0F 1F 3D 1F 3D 42 3D 40 3D 4F 3D 44 3D 1F 3D 1F 3D FF 52 54 00 0F 1F 3D 1F 3D 45 3D 48 3D 51 3D 44 3D 1F 3D 1F 3D FF 52 94 00 0F 1F 3D 1F 3D 4D 3D 4E 3D 4D 3D 44 3D 1F 3D 1F 3D FF 52 94 00 0F 4C 3D 54 3D 52 3D 47 3D 51 3D 4E 3D 4E 3D 4C 3D FF 52 94 00 0F 1F 3D 45 3D 4B 3D 4E 3D 56 3D 44 3D 51 3D 1F 3D FF 52 94 00 0F 1F 3D 1F 3D 52 3D 53 3D 40 3D 51 3D 1F 3D 1F 3D FF 52 94 00 0F 1F 3D 45 3D 44 3D 40 3D 53 3D 47 3D 44 3D 51 3D FF 50 D3 00 01 96 3C 50 DC 00 01 96 3C 53 13 00 01 1F 3D FF 51 13 00 01 96 3C 51 1C 00 01 96 3C 50 D3 00 01 1F 3D 50 DC 00 01 1F 3D FF 51 53 00 01 96 3C 51 5C 00 01 96 3C 51 13 00 01 1F 3D 51 1C 00 01 1F 3D FF 51 93 00 01 96 3C 51 9C 00 01 96 3C 51 53 00 01 1F 3D 51 5C 00 01 1F 3D FF 51 D3 00 01 96 3C 51 DC 00 01 96 3C 51 93 00 01 1F 3D 51 9C 00 01 1F 3D FF 52 13 00 01 96 3C 52 1C 00 01 96 3C 51 D3 00 01 1F 3D 51 DC 00 01 1F 3D FF 52 53 00 01 96 3C 52 5C 00 01 96 3C 52 13 00 01 1F 3D 52 1C 00 01 1F 3D FF 52 93 00 01 96 3C 52 9C 00 01 96 3C 52 53 00 01 1F 3D 52 5C 00 01 1F 3D FF 52 D3 00 01 96 3C 52 93 00 01 1F 3D 52 9C 00 01 1F 3D FF 53 13 00 01 96 3C 52 D3 00 01 1F 3D 51 13 00 01 1F 3D 51 1C 00 01 1F 3D FF 50 D3 00 01 96 3C 50 DC 00 01 96 3C 51 13 00 01 1F 3D 51 1C 00 01 1F 3D FF 51 13 00 01 96 3C 51 1C 00 01 96 3C 51 53 00 01 1F 3D 51 5C 00 01 1F 3D FF 51 53 00 01 96 3C 51 5C 00 01 96 3C 51 93 00 01 1F 3D 51 9C 00 01 1F 3D FF 51 93 00 01 96 3C 51 9C 00 01 96 3C 51 D3 00 01 1F 3D 51 DC 00 01 1F 3D FF 51 D3 00 01 96 3C 51 DC 00 01 96 3C 52 13 00 01 1F 3D 52 1C 00 01 1F 3D FF 52 13 00 01 96 3C 52 1C 00 01 96 3C 52 53 00 01 1F 3D 52 5C 00 01 1F 3D FF 52 53 00 01 96 3C 52 5C 00 01 96 3C 52 93 00 01 1F 3D 52 9C 00 01 1F 3D FF 52 93 00 01 96 3C 52 9C 00 01 96 3C 52 D3 00 01 1F 3D FF 52 D3 00 01 96 3C 53 13 00 01 1F 3D FF 53 13 00 01 96 3C 50 D3 00 01 1F 3D 50 DC 00 01 1F 3D FF 50 A2 40 36 1F 3D 50 C2 40 36 1F 3D 50 E2 40 36 1F 3D 51 02 40 36 1F 3D 51 22 40 36 1F 3D 51 42 40 36 1F 3D 51 62 40 36 1F 3D 51 82 40 36 1F 3D 51 A2 40 36 1F 3D 51 C2 40 36 1F 3D 51 E2 40 36 1F 3D 52 02 40 36 1F 3D 52 22 40 36 1F 3D 52 42 40 36 1F 3D 52 62 40 36 1F 3D 52 82 40 36 1F 3D 52 A2 40 36 1F 3D 52 C2 40 36 1F 3D 52 E2 40 36 1F 3D 53 02 40 36 1F 3D 53 22 40 36 1F 3D 50 C3 00 1D 18 3D 44 3D 4B 3D 4B 3D 4E 3D 56 3D 1F 3D 1A 3D 1F 3D 01 3D 4B 3D 4E 3D 42 3D 4A 3D 52 3D 51 03 00 1D 1F 3D 06 3D 51 3D 44 3D 44 3D 4D 3D 1F 3D 1A 3D 1F 3D 01 3D 4B 3D 4E 3D 42 3D 4A 3D 52 3D 51 43 00 1D 1F 3D 1F 3D 1F 3D 11 3D 44 3D 43 3D 1F 3D 1A 3D 1F 3D 01 3D 4B 3D 4E 3D 42 3D 4A 3D 52 3D 51 83 00 1D 1F 3D 1F 3D 01 3D 4B 3D 54 3D 44 3D 1F 3D 1A 3D 1F 3D 01 3D 4B 3D 4E 3D 42 3D 4A 3D 52 3D 51 C3 00 1D 1F 3D 1F 3D 12 3D 4F 3D 44 3D 42 3D 48 3D 40 3D 4B 3D 1F 3D 16 3D 4E 3D 51 3D 4B 3D 43 3D 52 0A 00 0F 1F 3D 1F 3D 1F 3D 18 3D 4E 3D 52 3D 47 3D 48 3D 52 4A 00 0F 1F 3D 0F 3D 4E 3D 56 3D 44 3D 51 3D 54 3D 4F 3D 52 8A 00 0F 08 3D 53 3D 44 3D 4C 3D 1F 3D 01 3D 4E 3D 57 3D 52 CA 00 0F 1F 3D 1F 3D 1F 3D 1F 3D 12 3D 40 3D 55 3D 44 3D 53 0A 00 0F 1F 3D 1F 3D 02 3D 40 3D 4D 3D 42 3D 44 3D 4B 3D 52 E3 00 03 60 3D 61 3D 53 03 00 03 62 3D 63 3D FF
+
+50 C3 00 1D
+18 3D 44 3D 4B 3D 4B 3D 4E 3D 56 3D 1F 3D 1A 3D 1F 3D 01 3D 4B 3D 4E 3D 42 3D 4A 3D 52 3D
+51 03 00 1D
+1F 3D 06 3D 51 3D 44 3D 44 3D 4D 3D 1F 3D 1A 3D 1F 3D 01 3D 4B 3D 4E 3D 42 3D 4A 3D 52 3D
+51 43 00 1D
+1F 3D 1F 3D 1F 3D 11 3D 44 3D 43 3D 1F 3D 1A 3D 1F 3D 01 3D 4B 3D 4E 3D 42 3D 4A 3D 52 3D
+51 83 00 1D
+1F 3D 1F 3D 01 3D 4B 3D 54 3D 44 3D 1F 3D 1A 3D 1F 3D 01 3D 4B 3D 4E 3D 42 3D 4A 3D 52 3D
+51 C3 00 1D
+1F 3D 1F 3D 12 3D 4F 3D 44 3D 42 3D 48 3D 40 3D 4B 3D 1F 3D 16 3D 4E 3D 51 3D 4B 3D 43 3D
+52 0A 00 0F
+1F 3D 1F 3D 1F 3D 18 3D 4E 3D 52 3D 47 3D 48 3D
+52 4A 00 0F
+1F 3D 0F 3D 4E 3D 56 3D 44 3D 51 3D 54 3D 4F 3D
+52 8A 00 0F
+08 3D 53 3D 44 3D 4C 3D 1F 3D 01 3D 4E 3D 57 3D
+52 CA 00 0F
+1F 3D 1F 3D 1F 3D 1F 3D 12 3D 40 3D 55 3D 44 3D
+53 0A 00 0F
+1F 3D 1F 3D 02 3D 40 3D 4D 3D 42 3D 44 3D 4B 3D
+FF
+
+50 D4 00 0F
+1F 3D 1F 3D 1F 3D 4E 3D 45 3D 45 3D 1F 3D 1F 3D
+FF
+
+50 D4 00 0F
+1F 3D 1F 3D 1F 3D 4E 3D 4D 3D 1F 3D 1F 3D 1F 3D
+FF
+
+51 14 00 0F
+1F 3D 1F 3D 1F 3D 4E 3D 45 3D 45 3D 1F 3D 1F 3D
+FF
+
+51 14 00 0F
+1F 3D 1F 3D 1F 3D 4E 3D 4D 3D 1F 3D 1F 3D 1F 3D
+FF
+
+51 54 00 0F
+1F 3D 1F 3D 1F 3D 4E 3D 45 3D 45 3D 1F 3D 1F 3D
+FF
+
+51 54 00 0F
+1F 3D 1F 3D 1F 3D 4E 3D 4D 3D 1F 3D 1F 3D 1F 3D
+FF
+
+51 94 00 0F
+1F 3D 1F 3D 1F 3D 4E 3D 45 3D 45 3D 1F 3D 1F 3D
+FF
+
+51 94 00 0F
+1F 3D 1F 3D 1F 3D 4E 3D 4D 3D 1F 3D 1F 3D 1F 3D
+FF
+
+51 D4 00 0F
+4D 3D 4E 3D 53 3D 1F 3D 41 3D 44 3D 40 3D 53 3D
+FF
+
+51 D4 00 0F
+1F 3D 41 3D 44 3D 40 3D 53 3D 44 3D 4D 3D 1F 3D
+FF
+
+52 14 00 0F
+1F 3D 1F 3D 4D 3D 4E 3D 4D 3D 44 3D 1F 3D 1F 3D
+FF
+
+52 14 00 0F
+1F 3D 58 3D 44 3D 4B 3D 4B 3D 4E 3D 56 3D 1F 3D
+FF
+
+52 14 00 0F
+1F 3D 1F 3D 41 3D 4B 3D 54 3D 44 3D 1F 3D 1F 3D
+FF
+
+52 14 00 0F
+1F 3D 1F 3D 1F 3D 51 3D 44 3D 43 3D 1F 3D 1F 3D
+FF
+
+52 14 00 0F
+1F 3D 1F 3D 46 3D 51 3D 44 3D 44 3D 4D 3D 1F 3D
+FF
+
+52 54 00 0F
+1F 3D 1F 3D 52 3D 4C 3D 40 3D 4B 3D 4B 3D 1F 3D
+FF
+
+52 54 00 0F
+1F 3D 1F 3D 1F 3D 41 3D 48 3D 46 3D 1F 3D 1F 3D
+FF
+
+52 54 00 0F
+1F 3D 1F 3D 42 3D 40 3D 4F 3D 44 3D 1F 3D 1F 3D
+FF
+
+52 54 00 0F
+1F 3D 1F 3D 45 3D 48 3D 51 3D 44 3D 1F 3D 1F 3D
+FF
+
+52 94 00 0F
+1F 3D 1F 3D 4D 3D 4E 3D 4D 3D 44 3D 1F 3D 1F 3D
+FF
+
+52 94 00 0F
+4C 3D 54 3D 52 3D 47 3D 51 3D 4E 3D 4E 3D 4C 3D
+FF
+
+52 94 00 0F
+1F 3D 45 3D 4B 3D 4E 3D 56 3D 44 3D 51 3D 1F 3D
+FF
+
+52 94 00 0F
+1F 3D 1F 3D 52 3D 53 3D 40 3D 51 3D 1F 3D 1F 3D
+FF
+
+52 94 00 0F
+1F 3D 45 3D 44 3D 40 3D 53 3D 47 3D 44 3D 51 3D
+FF
+
+50 D3 00 01
+96 3C
+50 DC 00 01
+96 3C
+53 13 00 01
+1F 3D
+FF
+
+51 13 00 01
+96 3C
+51 1C 00 01
+96 3C
+50 D3 00 01
+1F 3D
+50 DC 00 01
+1F 3D
+FF
+
+51 53 00 01
+96 3C
+51 5C 00 01
+96 3C
+51 13 00 01
+1F 3D
+51 1C 00 01
+1F 3D
+FF
+
+51 93 00 01
+96 3C
+51 9C 00 01
+96 3C
+51 53 00 01
+1F 3D
+51 5C 00 01
+1F 3D
+FF
+
+51 D3 00 01
+96 3C
+51 DC 00 01
+96 3C
+51 93 00 01
+1F 3D
+51 9C 00 01
+1F 3D
+FF
+
+52 13 00 01
+96 3C
+52 1C 00 01
+96 3C
+51 D3 00 01
+1F 3D
+51 DC 00 01
+1F 3D
+FF
+
+52 53 00 01
+96 3C
+52 5C 00 01
+96 3C
+52 13 00 01
+1F 3D
+52 1C 00 01
+1F 3D
+FF
+
+52 93 00 01
+96 3C
+52 9C 00 01
+96 3C
+52 53 00 01
+1F 3D
+52 5C 00 01
+1F 3D
+FF
+
+52 D3 00 01
+96 3C
+52 93 00 01
+1F 3D
+52 9C 00 01
+1F 3D
+FF
+
+53 13 00 01
+96 3C
+52 D3 00 01
+1F 3D
+51 13 00 01
+1F 3D
+51 1C 00 01
+1F 3D
+FF
+
+50 D3 00 01
+96 3C
+50 DC 00 01
+96 3C
+51 13 00 01
+1F 3D
+51 1C 00 01
+1F 3D
+FF
+
+51 13 00 01
+96 3C
+51 1C 00 01
+96 3C
+51 53 00 01
+1F 3D
+51 5C 00 01
+1F 3D
+FF
+
+51 53 00 01
+96 3C
+51 5C 00 01
+96 3C
+51 93 00 01
+1F 3D
+51 9C 00 01
+1F 3D
+FF
+
+51 93 00 01
+96 3C
+51 9C 00 01
+96 3C
+51 D3 00 01
+1F 3D
+51 DC 00 01
+1F 3D
+FF
+
+51 D3 00 01
+96 3C
+51 DC 00 01
+96 3C
+52 13 00 01
+1F 3D
+52 1C 00 01
+1F 3D
+FF
+
+52 13 00 01
+96 3C
+52 1C 00 01
+96 3C
+52 53 00 01
+1F 3D
+52 5C 00 01
+1F 3D
+FF
+
+52 53 00 01
+96 3C
+52 5C 00 01
+96 3C
+52 93 00 01
+1F 3D
+52 9C 00 01
+1F 3D
+FF
+
+52 93 00 01
+96 3C
+52 9C 00 01
+96 3C
+52 D3 00 01
+1F 3D
+FF
+
+52 D3 00 01
+96 3C
+53 13 00 01
+1F 3D
+FF
+
+53 13 00 01
+96 3C
+50 D3 00 01
+1F 3D
+50 DC 00 01
+1F 3D
+FF
+
+50 A2 40 36
+1F 3D
+50 C2 40 36
+1F 3D
+50 E2 40 36
+1F 3D
+51 02 40 36
+1F 3D
+51 22 40 36
+1F 3D
+51 42 40 36
+1F 3D
+51 62 40 36
+1F 3D
+51 82 40 36
+1F 3D
+51 A2 40 36
+1F 3D
+51 C2 40 36
+1F 3D
+51 E2 40 36
+1F 3D
+52 02 40 36
+1F 3D
+52 22 40 36
+1F 3D
+52 42 40 36
+1F 3D
+52 62 40 36
+1F 3D
+52 82 40 36
+1F 3D
+52 A2 40 36
+1F 3D
+52 C2 40 36
+1F 3D
+52 E2 40 36
+1F 3D
+53 02 40 36
+1F 3D
+53 22 40 36
+1F 3D
+50 C3 00 1D
+18 3D 44 3D 4B 3D 4B 3D 4E 3D 56 3D 1F 3D 1A 3D 1F 3D 01 3D 4B 3D 4E 3D 42 3D 4A 3D 52 3D
+51 03 00 1D
+1F 3D 06 3D 51 3D 44 3D 44 3D 4D 3D 1F 3D 1A 3D 1F 3D 01 3D 4B 3D 4E 3D 42 3D 4A 3D 52 3D
+51 43 00 1D
+1F 3D 1F 3D 1F 3D 11 3D 44 3D 43 3D 1F 3D 1A 3D 1F 3D 01 3D 4B 3D 4E 3D 42 3D 4A 3D 52 3D
+51 83 00 1D
+1F 3D 1F 3D 01 3D 4B 3D 54 3D 44 3D 1F 3D 1A 3D 1F 3D 01 3D 4B 3D 4E 3D 42 3D 4A 3D 52 3D
+51 C3 00 1D
+1F 3D 1F 3D 12 3D 4F 3D 44 3D 42 3D 48 3D 40 3D 4B 3D 1F 3D 16 3D 4E 3D 51 3D 4B 3D 43 3D
+52 0A 00 0F
+1F 3D 1F 3D 1F 3D 18 3D 4E 3D 52 3D 47 3D 48 3D
+52 4A 00 0F
+1F 3D 0F 3D 4E 3D 56 3D 44 3D 51 3D 54 3D 4F 3D
+52 8A 00 0F
+08 3D 53 3D 44 3D 4C 3D 1F 3D 01 3D 4E 3D 57 3D
+52 CA 00 0F
+1F 3D 1F 3D 1F 3D 1F 3D 12 3D 40 3D 55 3D 44 3D
+53 0A 00 0F
+1F 3D 1F 3D 02 3D 40 3D 4D 3D 42 3D 44 3D 4B 3D
+52 E3 00 03
+60 3D 61 3D
+53 03 00 03
+62 3D 63 3D
+FF
+
+</e>
+<e>$148000: ; xA0200					; GM21 = Load menu
+
+A5 15 29 20 F0 03 EE 69 0F A9 09 8D FB 1D AD 27 1F D0 03 9C 5F 0F 80 05 29 01 8D 5F 0F AD 28 1F D0 03 9C 5E 0F 80 05 29 01 8D 5E 0F AD 29 1F D0 03 9C 61 0F 80 05 29 01 8D 61 0F AD 2A 1F D0 03 9C 60 0F 80 05 29 01 8D 60 0F AD EB 1E 2A 29 00 2A 8D 62 0F AD BA 0D 4A F0 01 3A 8D 63 0F A5 19 8D 64 0F AD C2 0D 8D 65 0F 9C 66 0F 9C 67 0F AD 68 0F C9 FF D0 02 A9 09 48 C9 09 D0 06 A9 A8 85 12 80 3D C9 08 D0 06 A9 8A 85 12 80 33 AE 69 0F E0 00 F0 11 AA BD 5E 0F 5A A8 22 00 85 15 7A A9 21 85 12 80 1B AA BF 22 81 15 DD 5E 0F 70 11 30 0F BF 56 82 15 18 7D 5E 0F AA BF 60 82 15 85 12 68 3A 8D 68 0F C9 FF D0 06 9C 68 0F EE 00 01 5C 94 84 00
+
+A5 15			LDA $15				; \
+29 20			AND #$20			; | If holding select
+F0 03			BEQ begin			; | 
+EE 69 0F		INC $0F69			; / Go to numbers mode
+
+				begin:
+A9 09			LDA #$09
+8D FB 1D		STA $1DFB
+AD 27 1F		LDA $1F27			; \
+D0 03			BNE #$03			; |
+9C 5F 0F		STZ $0F5F			; |
+80 05			BRA #$05			; |
+29 01			LDA #$01			; |
+8D 5F 0F		STA $0F5F			; | Load switch block statuses
+AD 28 1F		LDA $1F28			; |
+D0 03			BNE #$03			; |
+9C 5E 0F		STZ $0F5E			; |
+80 05			BRA #$05			; |
+29 01			LDA #$01			; |
+8D 5E 0F		STA $0F5E			; |
+AD 29 1F		LDA $1F29			; |
+D0 03			BNE #$03			; |
+9C 61 0F		STZ $0F61			; |
+80 05			BRA #$05			; |
+29 01			LDA #$01			; |
+8D 61 0F		STA $0F61			; |
+AD 2A 1F		LDA $1F2A			; |
+D0 03			BNE #$03			; |
+9C 60 0F		STZ $0F60			; |
+80 05			BRA #$05			; |
+29 01			LDA #$01			; |
+8D 60 0F		STA $0F60			; /
+AD EB 1E		LDA $1EEB			; \	Load special world effects
+2A				ROL A				; |
+29 00			AND #$00			; |
+2A				ROL A				; |
+8D 62 0F		STA $0F62			; /
+AD BA 0D		LDA $0DBA			; \	Load Yoshi color
+4A				LSR A				; |
+F0 01			BEQ #$01			; |
+3A				DEC A				; |
+8D 63 0F		STA $0F63			; /
+A5 19			LDA $19				; \	Load Mario powerup
+8D 64 0F		STA $0F64			; /
+AD C2 0D		LDA $0DC2			; \	Load item box
+8D 65 0F		STA $0F65			; /
+9C 66 0F		STZ $0F66			; Set save to 00
+9C 67 0F		STZ $0F67			; Set cancel to 00
+
+AD 68 0F		LDA $0F68
+C9 FF			CMP #$FF
+D0 02			BNE beginLoad
+A9 09			LDA #$09
+
+				beginLoad:
+48				PHA
+
+				testStatic:
+C9 09			CMP #$09
+D0 06			BNE testArrow
+A9 A8			LDA #$A8			; draw static text
+85 12			STA $12
+80 3D			BRA finishDraw
+				
+				testArrow:
+C9 08			CMP #$08
+D0 06			BNE drawOption
+				...
+A9 8A			LDA #$8A			; draw initial arrows
+85 12			STA $12
+80 33			BRA finishDraw
+				
+				drawOption:
+AE 69 0F		LDX $0F69
+E0 00			CPX #$00
+F0 11			BEQ drawTxtStripe
+AA				TAX
+BD 5E 0F		LDA $0F5E,X
+5A				PHY
+A8				TAY
+22 00 85 15		JSL $158500
+7A				PLY
+A9 21			LDA #$21
+85 12			STA $12
+80 1B			BRA finishDraw
+
+				drawTxtStripe:
+AA				TAX
+BF 22 81 15		LDA MINSELECTION,X	; \ if option has no string associated with it
+DD 5E 0F		CMP $0F5E,X			; |
+70 11			BVS finishDraw		; | skip it
+30 0F			BMI finishDraw		; /
+BF 56 82 15		LDA TABLEOFFSET,X	; \ draw each option
+18				CLC					; |
+7D 5E 0F		ADC $0F5E,X			; |
+AA				TAX					; |
+BF 60 82 15		LDA STRIPEIMGIDX,X	; |
+85 12			STA $12				; /
+				
+				finishDraw:
+68				PLA
+3A				DEC A
+8D 68 0F		STA $0F68
+				
+C9 FF			CMP #$FF
+D0 06			BNE return
+
+9C 68 0F		STZ $0F68			; Set cursor to 00
+EE 00 01		INC $0100			; Go to next game mode
+
+				return:
+
+5C 94 84 00		JML $008494
+
+</e>
+<e>$158000: ; xA8200					; GM23 = Menu
+
+8B 4B AB E6 14 AD A6 0D 29 20 F0 08 A9 18 8D 00 01 4C E3 80 AD A6 0D 29 08 F0 10 AD 68 0F 3A C9 FF D0 02 A9 09 8D 68 0F 4C E3 80 AD A6 0D 29 04 F0 10 AD 68 0F 1A C9 0A D0 02 29 00 8D 68 0F 4C E3 80 AD A6 0D 29 02 D0 06 A5 17 29 20 F0 0E AE 68 0F DE 5E 0F A9 00 20 F1 80 4C E3 80 AD A6 0D 29 01 D0 06 A5 17 29 10 F0 0E AE 68 0F FE 5E 0F A9 01 20 F1 80 4C E3 80 AD A6 0D 29 90 D0 07 AD A8 0D 29 80 F0 13 AD 68 0F 89 08 F0 0C 29 01 F0 0B A9 0B 8D 00 01 4C E3 80 4C E8 80 AD 5F 0F 8D 27 1F AD 5E 0F 8D 28 1F AD 61 0F 8D 29 1F AD 60 0F 8D 2A 1F AD 62 0F 18 6A 6A 8D EB 1E AD 63 0F F0 01 1A 0A 8D C7 13 8D EF 1F EE C1 0D AD 64 0F 8D EE 1F 85 19 AD 65 0F 8D F0 1F 8D C2 0D A9 0B 8D 00 01 A9 06 8D FC 1D 20 00 82 AB 5C 94 84 00 5A BC 5E 0F C2 10 5A 48 AD 69 0F F0 05 BD 2C 81 80 03 BD 22 81 C2 20 29 FF 00 C3 02 E2 30 10 0D 7A D0 05 9D 5E 0F 80 03 9E 5E 0F 80 01 7A 7A 7A 7A 60 01 01 01 01 01 04 03 04 00 00 01 01 01 01 01 FF FF FF 00 00
+
+8B				PHB
+4B				PHK
+AB				PLB
+E6 14			INC $14
+
+				testSelect:
+AD A6 0D		LDA $0DA6
+29 20			AND #$20			; select
+F0 08			BEQ testUp
+				
+A9 18			LDA #$18
+8D 00 01		STA $0100
+4C E3 80		JMP Quit
+
+				testUp:
+AD A6 0D		LDA $0DA6
+29 08			AND #$08			; up
+F0 10			BEQ testDown
+
+AD 68 0F		LDA $0F68
+3A				DEC A
+C9 FF			CMP #$FF
+D0 02			BNE #$02
+A9 09			LDA #$09
+8D 68 0F		STA $0F68
+4C E3 80		JMP Quit
+
+				testDown:
+AD A6 0D		LDA $0DA6
+29 04			AND #$04			; down
+F0 10			BEQ testLeft
+
+AD 68 0F		LDA $0F68
+1A				INC A
+C9 0A			CMP #$0A
+D0 02			BNE #$02
+29 00			AND #$00
+8D 68 0F		STA $0F68
+4C E3 80		JMP Quit
+
+				testLeft:
+AD A6 0D		LDA $0DA6
+29 02			AND #$02			; left
+D0 06			BNE goLeft
+A5 17			LDA $17
+29 20			AND #$20
+F0 0E			BEQ testRight
+
+				goLeft:
+AE 68 0F		LDX $0F68
+DE 5E 0F		DEC $0F5E,X
+A9 00			LDA #$00
+20 F0 80		JSR CheckBounds
+4C E3 80		JMP Quit
+
+				testRight:
+AD A6 0D		LDA $0DA6
+29 01			AND #$01			; right
+D0 06			BNE goRight
+A5 17			LDA $17
+29 10			AND #$10
+F0 0E			BEQ testSelect
+
+				goRight:
+AE 68 0F		LDX $0F68
+FE 5E 0F		INC $0F5E,X
+A9 01			LDA #$01
+20 F0 80		JSR CheckBounds
+4C E3 80		JMP Quit
+
+				testSelect:
+AD A6 0D		LDA $0DA6
+29 90			AND #$90			; start / B
+D0 07			BNE whichSelect
+AD A8 0D		LDA $0DA8
+29 80			AND #$80			; / A
+F0 13			BEQ neverMind
+
+				whichSelect:
+AD 68 0F		LDA $0F68			; \
+89 08			BIT #$08			; | only if on save or cancel button
+F0 0C			BEQ neverMind		; /
+29 01			AND #$01			; \ cancel
+F0 0B			BEQ saveNQuit		; /
+A9 0B			LDA #$0B			; \	load overworld
+8D 00 01		STA $0100			; /
+4C E3 80		JMP Quit
+				
+				neverMind:
+4C E8 80		JMP QuitNoSound
+				
+				saveNQuit:
+AD 5F 0F		LDA $0F5F			; \
+8D 27 1F		STA $1F27			; | Save switch block statuses
+AD 5E 0F		LDA $0F5E			; |
+8D 28 1F		STA $1F28			; |
+AD 61 0F		LDA $0F61			; |
+8D 29 1F		STA $1F29			; |
+AD 60 0F		LDA $0F60			; |
+8D 2A 1F		STA $1F2A			; /
+AD 62 0F		LDA $0F62			; \	Save special world effects
+18				CLC					; |
+6A				ROR A				; |
+6A				ROR A				; |
+8D EB 1E		STA $1EEB			; /
+AD 63 0F		LDA $0F63			; \	Save Yoshi color
+F0 01			BEQ #$01			; |
+1A				INC A				; |
+0A				ASL A				; |
+8D C7 13		STA $13C7			; |
+8D EF 1F		STA $1FEF			; |
+EE C1 0D		INC $0DC1			; / Let Yoshi live!
+AD 64 0F		LDA $0F64			; \	Save Mario powerup
+8D EE 1F		STA $1FEE			; |
+85 19			STA $19				; /
+AD 65 0F		LDA $0F65			; \	Save item box
+8D F0 1F		STA $1FF0			; |
+8D C2 0D		STA $0DC2			; /
+A9 0B			LDA #$0B			; \	load overworld
+8D 00 01		STA $0100			; /
+				
+				Quit:
+A9 06			LDA #$06			; \ play sound effect
+8D FC 1D		STA $1DFC			; /
+
+				QuitNoSound:
+20 00 82		JSR $8200			; graphics
+AB				PLB					; \ return
+5C 94 84 00		JML $008494			; / ;xa82ca
+
+				CheckBounds:
+5A				PHY
+BC 5E 0F		LDY $0F5E,X
+C2 10			REP #$10					; 16-bit index
+5A				PHY
+48				PHA
+AD 69 0F		LDA $0F69
+F0 05			BEQ #$05
+BD 2C 81		LDA MINSELECTION2,X
+80 03			BRA #$03
+BD 22 81		LDA MINSELECTION,X
+C2 20			REP #$20					; 16-bit accum
+29 FF 00		AND #$00FF
+C3 02			CMP $02,S
+E2 30			SEP #$30					; 8-bit accum and index
+10 0D			BPL #$0D
+7A				PLY
+D0 05			BNE #$05
+9D 5E 0F		STA $0F5E,X
+80 03			BRA #$03
+9E 5E 0F		STZ $0F5E,X
+80 01			BRA #$01
+7A				PLY
+7A				PLY
+7A				PLY
+7A				PLY
+60				RTS
+
+				MINSELECTION:
+01 01 01 01		.db #$01,#$01,#$01,#$01		; \ table for maximum values for each selection
+01 04 03 04		.db #$01,#$04,#$03,#$04		; | 
+00 00			.db #$00,#$00				; /
+
+				MINSELECTION2:
+01 01 01 01		.db #$01,#$01,#$01,#$01		; \ table for maximum values for each selection when in numbers mode
+01 FF FF FF		.db #$01,#$FF,#$FF,#$FF		; | 
+00 00			.db #$00,#$00				; /
+
+</e>
+<e>$158200: ; xA8400					; Menu graphics
+
+AD A6 0D 29 03 D0 06 A5 17 29 30 F0 28 AD 69 0F F0 12 AE 68 0F BD 5E 0F 5A A8 22 00 85 15 7A A9 21 85 12 60 AE 68 0F BD 56 82 18 7D 5E 0F AA BD 60 82 85 12 60 AD A6 0D 29 04 F0 09 AE 68 0F BD 7A 82 85 12 60 AD A6 0D 29 08 D0 01 60 AE 68 0F BD 84 82 85 12 60 00 02 04 06 08 0A 0F 13 18 19 24 27 2A 2D 30 33 36 39 3C 3F 42 45 48 4B 4E 51 54 57 5A 5D 60 63 66 69 00 00 6C 6F 72 75 78 7B 7E 81 84 87 8A 8D 90 93 96 99 9C 9F A2 A5
+
+				testLR:
+AD A6 0D		LDA $0DA6
+29 03			AND #$03			; left / right
+D0 06			BNE goLR
+A5 17			LDA $17
+29 30			AND #$30
+F0 28			BEQ testDown
+
+				goLR:
+AD 69 0F		LDA $0F69
+F0 12			BEQ drawTxtStripe
+AE 68 0F		LDX $0F68
+BD 5E 0F		LDA $0F5E,X
+5A				PHY
+A8				TAY
+22 00 85 15		JSL $158500
+7A				PLY
+A9 21			LDA #$21
+85 12			STA $12
+60				RTS
+
+				drawTxtStripe:
+AE 68 0F		LDX $0F68
+BD 56 82		LDA TABLEOFFSET,X
+18				CLC
+7D 5E 0F		ADC $0F5E,X
+AA				TAX
+BD 60 82		LDA STRIPEIMGIDX,X
+85 12			STA $12				
+60				RTS
+				
+				testDown:
+AD A6 0D		LDA $0DA6
+29 04			AND #$04			; down
+F0 09			BEQ testUp
+				...
+AE 68 0F		LDX $0F68
+BD 7A 82		LDA ARROWDOWNIDX,X
+85 12			STA $12
+60				RTS
+				
+				testUp:
+AD A6 0D		LDA $0DA6
+29 08			AND #$08			; up
+D0 01			BNE #$01
+60				RTS
+				...
+AE 68 0F		LDX $0F68
+BD 84 82		LDA ARROWUPIDX,X
+85 12			STA $12
+60				RTS
+
+				TABLEOFFSET:
+00 02 04 06							; \ table for table offsets
+08 0A 0F 13							; |
+18 19								; /
+
+				STRIPEIMGIDX:
+24 27								; \ table for stripe image numbers of options
+2A 2D								; |
+30 33								; |
+36 39								; |
+3C 3F								; |
+42 45 48 4B 4E						; |
+51 54 57 5A							; |
+5D 60 63 66 69						; |
+00									; |
+00									; /
+
+				ARROWDOWNIDX:
+6C 6F 72 75							; \ table for stripe image number for arrows (moved down)
+78 7B 7E 81							; |
+84 87								; /
+
+				ARROWUPIDX:
+8A 8D 90 93							; \ table for stripe image number for arrows (moved up)
+96 99 9C 9F							; |
+A2 A5								; /
+
+</e>
+<e>$158500: ; xA8700					; Draw dynamic stripe image Y = number to draw, X = index of option
+
+BF 4A 85 15 AA 4A 4A 4A 29 03 09 50 8D 38 19 8A 0A 0A 0A 0A 0A 29 C0 09 17 8D 39 19 9C 3A 19 A9 03 8D 3B 19 A9 3D 8D 3D 19 8D 3F 19 A9 FF 8D 40 19 98 4A 4A 4A 4A AA BF 54 85 15 8D 3C 19 98 29 0F AA BF 54 85 15 8D 3E 19 6B 06 08 0A 0C 0E 10 12 14 1F 1F 6B 64 65 66 67 68 69 6A 6C 77 00 01 02 03 04 05
+
+									; Stripe image format
+									; 010100YY YYY10111 00000000 00000011
+									; TTTTTTTT 00111101 TTTTTTTT 00111101
+									; 11111111
+				
+BF 4A 85 15		LDA YOPTIONIDX,X
+AA				TAX
+4A				LSR
+4A				LSR
+4A				LSR
+29 03			AND #$03
+09 50			ORA #$50
+8D 38 19		STA $1938
+8A				TXA
+0A				ASL
+0A				ASL
+0A				ASL
+0A				ASL
+0A				ASL
+29 C0			AND #$C0
+09 17			ORA #$17
+8D 39 19		STA $1939
+9C 3A 19		STZ $193A
+A9 03			LDA #$03
+8D 3B 19		STA $193B
+A9 3D			LDA #$3D
+8D 3D 19		STA $193D
+8D 3F 19		STA $193F
+A9 FF			LDA #$FF
+8D 40 19		STA $1940
+98				TYA
+4A				LSR
+4A				LSR
+4A				LSR
+4A				LSR
+AA				TAX
+BF 54 85 15		LDA ALPHABET,X
+8D 3C 19		STA $193C
+98				TYA
+29 0F			AND #$0F
+AA				TAX
+BF 54 85 15		LDA ALPHABET,X
+8D 3E 19		STA $193E
+6B				RTL
+
+				YOPTIONIDX
+06 08 0A 0C 0E 10 12 14 1F 1F
+
+				ALPHABET
+6B 64 65 66 67 68 69 6A				; 0-7
+6C 77 00 01 02 03 04 05				; 8-F
+
+</e>
+<e>$159000: ; xA9200					; GM1B - credits/records
+									
+									// accum 16-bit index 8-bit
+									
+A9 80 FF 8D 46 14 A5 24 C9 80 05 B0 10 AD A2 0D 29 04 00 F0 08 A9 00 01 8D 48 14 80 03 9C 48 14 AD A2 0D 29 F0 00 C9 F0 00 F0 0B AD A4 0D 29 F0 00 C9 F0 00 F0 01 6B A2 70 86 05 AF 0A 01 7E 29 FF 00 0A 0A 0A 0A EB 85 03 C2 10 A9 FF FF A0 00 00 C0 00 10 F0 06 97 03 C8 C8 80 F5 E2 10 6B
+
+A9 80 FF		LDA #$FF80		; background scrolling
+8D 46 14		STA $1446
+
+				tryMove:
+A5 24			LDA $24
+C9 80 05		CMP #$0580
+B0 10			BCS nomove
+AD A2 0D		LDA $0DA2
+29 04 00		AND #$0004		; down
+F0 08			BEQ nomove
+A9 00 01		LDA #$0100
+8D 48 14		STA $1448
+80 03			BRA tryDelete
+				
+				nomove:
+9C 48 14		STZ $1448
+				
+				tryDelete:
+AD A2 0D		LDA $0DA2
+29 F0 00		AND #$00F0		; B Y Select Start
+C9 F0 00		CMP #$00F0
+F0 0B			BNE done
+AD A4 0D		LDA $0DA4
+29 F0 00		AND #$00F0		; A X L R
+C9 F0 00		CMP #$00F0
+F0 01			BEQ deleteAll
+				
+				done:
+6B				RTL
+
+				deleteAll:
+A2 70			LDX #$70
+86 05			STX $05
+AF 0A 01 7E		LDA $7E010A
+29 FF 00		AND #$00FF
+0A				ASL A
+0A				ASL A
+0A				ASL A
+0A				ASL A
+EB				XBA
+85 03			STA $03				
+				
+C2 10			REP #$10		; 16-bit index
+A9 FF FF		LDA #$FFFF
+A0 00 00		LDY #$0000
+				
+				loop:
+C0 00 10		CPY #$1000
+F0 06			BEQ finish
+97 03			STA [$03],Y
+C8				INY
+C8				INY
+80 F5			BRA loop
+				
+				finish:
+E2 10			SEP #$10		; 8-bit index
+6B				RTL
+				
+
+</e>
+<e>$00A249: ; x02449					; level mode hijack
+
+22 00 A0 14 4C DA A1
+
+22 00 A0 14		JSL $14A000
+4C DA A1		JMP $A1DA
+
+</e>
+<e>$149F00: ; xA2100					; load level precise timer penalty
+
+22 9E 80 05 A2 28 AD 6A 0F 0D 6B 0F 0D 6C 0F D0 01 6B E0 00 F0 09 CA DA 22 00 A0 14 FA 80 F3 6B
+
+22 9E 80 05		JSL $05809E				; original call
+A2 28			LDX #$28				; average of 40 frames for level load
+
+AD 6A 0F		LDA $0F6A				; \ don't tick if timer is 0
+0D 6B 0F		ORA $0F6B				; | 
+0D 6C 0F		ORA $0F6C				; | used by TmpFade so that the
+D0 01			BNE loop				; | timer starts when the player
+6B				RTL						; / gets control of Mario
+				
+				loop:
+E0 00			CPX #$00
+F0 09			BEQ done
+CA				DEX
+DA				PHX
+22 00 A0 14		JSL $14A000
+FA				PLX
+80 F3			BRA loop
+				
+6B				RTL
+</e>
+<e>$14A000: ; xA2200					; precise timer & reseter
+
+AD 31 0F CD F1 1F 90 03 8D F1 1F AD 93 14 D0 76 AD 34 14 D0 71 AD A4 0D 29 30 C9 30 D0 68 AD BF 13 C9 25 90 03 38 E9 24 A2 20 CA 9D B8 19 D0 FA A9 05 85 71 64 88 64 89 A2 06 CA 9E 6A 0F D0 FA A2 0C CA 74 C2 D0 FB C2 10 A2 80 01 CA 9E F8 19 D0 FA E2 10 AD EE 1F 85 19 AD EF 1F 8D C7 13 8D BA 0D 8D C1 0D AD F0 1F 8D C2 0D 9C 20 14 9C 22 14 9C 93 1B AD F1 1F 8D 31 0F 9C 32 0F 9C 33 0F A9 54 8D FC 1D 6B AD 0A 01 0A 0A 0A 0A 0C 6F 0F AD BF 13 29 7F 4A 4A 4A 0C 6F 0F AD BF 13 0A 0A 0A 0A 0A 0C 6E 0F AD 6E 0F 29 0C C9 08 F0 3D A5 19 C9 02 D0 0C AD 6E 0F 09 08 29 FB 8D 6E 0F 80 2B A5 19 D0 11 AD 90 14 D0 0C AD 7A 18 D0 07 AD F3 13 D0 02 80 16 AD 6E 0F 09 04 8D 6E 0F 80 0C AD 6A 0F 0D 6B 0F 0D 6C 0F D0 01 6B AD 6D 0F F0 01 6B AE 1C 14 A5 9E C9 C5 D0 02 A2 01 AD 93 14 D0 0C AD 0D 19 D0 07 A2 01 AD 34 14 F0 08 EE 6D 0F 20 73 A1 80 35 9C 6D 0F AD 6A 0F C9 09 D0 0E AD 6B 0F C9 3B D0 07 AD 6C 0F C9 3B F0 1D EE 6C 0F AD 6C 0F C9 3C D0 13 9C 6C 0F EE 6B 0F AD 6B 0F C9 3C D0 06 9C 6B 0F EE 6A 0F AD 6A 0F 22 4C 97 00 8E 16 0F 8D 17 0F AD 6B 0F 22 4C 97 00 8E 19 0F 8D 1A 0F AD 6C 0F 22 4C 97 00 8E 1C 0F 8D 1D 0F 6B 8A 0A 0A 0A 0A 0C 6E 0F A0 00 AD 6E 0F 85 00 AD 6F 0F 85 01 AD 70 0F 85 02 C0 03 F0 20 B7 00 C9 FF F0 0C D9 6A 0F F0 04 30 13 10 03 C8 80 EA A0 00 C0 03 F0 08 B9 6A 0F 97 00 C8 80 F4 60
+
+AD 31 0F		LDA $0F31
+CD F1 1F		CMP $1FF1
+90 03			BCC testLR
+8D F1 1F		STA $1FF1
+				
+				testLR:
+AD 93 14		LDA $1493				; no reset if keyhole
+D0 76			BNE timer
+AD 34 14		LDA $1434				; no reset if level beaten
+D0 71			BNE timer
+				
+AD A4 0D		LDA $0DA4
+29 30			AND #$30
+C9 30			CMP #$30
+D0 68			BNE timer				; if L + R is pressed
+				
+AD BF 13		LDA $13BF
+C9 25			CMP #$25
+90 03			BCC skiptranslevel
+38				SEC
+E9 24			SBC #$24				; get level number low byte
+				
+				skiptranslevel:
+A2 20			LDX #$20
+				
+				lopp:
+CA				DEX						; overwrite entire exit table
+9D B8 19		STA $19B8,X
+D0 FA			BNE lopp
+				
+A9 05			LDA #$05
+85 71			STA $71					; exit via door
+64 88			STZ $88
+64 89			STZ $89
+				
+A2 06			LDX #$06
+				
+				loppp:
+CA				DEX
+9E 6A 0F		STZ $0F6A,X				; clear timer
+D0 FA			BNE loppp
+				
+A2 0C			LDX #$0C
+				
+				lopppp:
+CA				DEX
+74 C2			STZ $C2,X				; clear on yoshi flag
+D0 FB			BNE lopppp
+				
+C2 10			REP #$10
+A2 80 01		LDX #$0180
+				
+				loppppp:
+CA				DEX
+9E F8 19		STZ $19F8,X				; clear item memory settings
+D0 FA			BNE loppppp
+E2 10			SEP #$10
+
+AD EE 1F		LDA $1FEE				; revert mario's powerup
+85 19			STA $19
+AD EF 1F		LDA $1FEF				; revert mario's yoshi
+8D C7 13		STA $13C7
+8D BA 0D		STA $0DBA
+8D C1 0D		STA $0DC1
+AD F0 1F		LDA $1FF0				; revert mario's item box
+8D C2 0D		STA $0DC2	
+9C 20 14		STZ $1420				; clear yoshi coin count
+9C 22 14		STZ $1422
+9C 93 1B		STZ $1B93				; use primary exit
+AD F1 1F		LDA $1FF1
+8D 31 0F		STA $0F31				; reset game time
+9C 32 0F		STZ $0F32
+9C 33 0F		STZ $0F33
+A9 54			LDA #$54				; \ play sound effect
+8D FC 1D		STA $1DFC				; /			
+6B				RTL
+
+				timer:
+AD 0A 01		LDA $010A
+0A				ASL A
+0A				ASL A
+0A				ASL A
+0A				ASL A
+0C 6F 0F		TSB $0F6F
+AD BF 13		LDA $13BF
+29 7F			AND #$7F
+4A				LSR A
+4A				LSR A
+4A				LSR A
+0C 6F 0F		TSB $0F6F
+AD BF 13		LDA $13BF
+0A				ASL A
+0A				ASL A
+0A				ASL A
+0A				ASL A
+0A				ASL A
+0C 6E 0F		TSB $0F6E
+
+AD 6E 0F		LDA $0F6E
+29 0C			AND #$0C
+C9 08			CMP #$08
+F0 3D			BEQ notloading
+A5 19			LDA $19
+C9 02			CMP #$02
+D0 0C			BNE checkpowerup
+AD 6E 0F		LDA $0F6E
+09 08			ORA #$08
+29 FB			AND #$FB
+8D 6E 0F		STA $0F6E
+80 2B			BRA notloading
+				
+				checkpowerup:
+A5 19			LDA $19					; powerup status
+D0 11			BNE denylow
+AD 90 14		LDA $1490				; star timer
+D0 0C			BNE denylow
+AD 7A 18		LDA $187A				; yoshi flag
+D0 07			BNE denylow
+AD F3 13		LDA $13F3				; p-balloon flag
+D0 02			BNE denylow
+80 16			BRA notloading
+				
+				denylow:
+AD 6E 0F		LDA $0F6E
+09 04			ORA #$04
+8D 6E 0F		STA $0F6E
+80 0C			BRA notloading
+
+AD 6A 0F		LDA $0F6A				; \ don't tick if timer is 0
+0D 6B 0F		ORA $0F6B				; | 
+0D 6C 0F		ORA $0F6C				; | used by TmpFade so that the
+D0 01			BNE notloading			; | timer starts when the player
+6B				RTL						; / gets control of Mario
+
+				notloading:
+AD 6D 0F		LDA $0F6D
+F0 01			BEQ begin
+6B				RTL
+				
+				begin:
+AE 1C 14		LDX $141C				; exit
+A5 9E			LDA $9E
+C9 C5			CMP #$C5				; special check for big boo
+D0 02			BNE notbigboo
+A2 01			LDX #$01
+				
+				notbigboo:
+AD 93 14		LDA $1493				; goal point, orb, koopaling
+D0 0C			BNE save
+AD 0D 19		LDA $190D				; bowser
+D0 07			BNE save
+A2 01			LDX #$01				; secret exit
+AD 34 14		LDA $1434				; keyhole
+F0 08			BEQ trytick
+				
+				save:
+EE 6D 0F		INC $0F6D
+20 73 A1		JSR savevalue
+80 35			BRA display
+
+				trytick:
+9C 6D 0F		STZ $0F6D
+AD 6A 0F		LDA $0F6A
+C9 09			CMP #$09
+D0 0E			BNE tick
+AD 6B 0F		LDA $0F6B
+C9 3B			CMP #$3B
+D0 07			BNE tick
+AD 6C 0F		LDA $0F6C
+C9 3B			CMP #$3B
+F0 1D			BEQ display
+				
+				tick:
+EE 6C 0F		INC $0F6C
+AD 6C 0F		LDA $0F6C
+C9 3C			CMP #$3C
+D0 13			BNE display
+9C 6C 0F		STZ $0F6C
+EE 6B 0F		INC $0F6B
+AD 6B 0F		LDA $0F6B
+C9 3C			CMP #$3C
+D0 06			BNE display
+9C 6B 0F		STZ $0F6B
+EE 6A 0F		INC $0F6A
+				
+				display:
+AD 6A 0F		LDA $0F6A
+22 4C 97 00		JSL $00974C
+8E 16 0F		STX $0F16
+8D 17 0F		STA $0F17
+				
+AD 6B 0F		LDA $0F6B
+22 4C 97 00		JSL $00974C
+8E 19 0F		STX $0F19
+8D 1A 0F		STA $0F1A
+				
+AD 6C 0F		LDA $0F6C
+22 4C 97 00		JSL $00974C
+8E 1C 0F		STX $0F1C
+8D 1D 0F		STA $0F1D
+				
+6B				RTL
+
+				savevalue:				; X	= 0 for normal exit, X = 1 for secret
+8A				TXA
+0A				ASL A
+0A				ASL A
+0A				ASL A
+0A				ASL A
+0C 6E 0F		TSB $0F6E
+
+A0 00			LDY #$00
+AD 6E 0F		LDA $0F6E
+85 00			STA $00
+AD 6F 0F		LDA $0F6F
+85 01			STA $01
+AD 70 0F		LDA $0F70
+85 02			STA $02
+				
+				loopA:
+C0 03			CPY #$03
+F0 20			BEQ nosave
+B7 00			LDA [$00],Y
+C9 FF			CMP #$FF
+F0 0C			BEQ newrecord
+D9 6A 0F		CMP $0F6A,Y
+F0 04			BEQ #$04
+30 13			BMI nosave
+10 03			BPL newrecord
+C8				INY
+80 EA			BRA loopA
+				
+				newrecord:
+A0 00			LDY #$00
+				loopB:
+C0 03			CPY #$03
+F0 08			BEQ nosave
+B9 6A 0F		LDA $0F6A,Y
+97 00			STA [$00],Y
+C8				INY
+80 F4			BRA loopB
+				
+				nosave:
+60				RTS
+</e>
+<e>$14E000: ; xA6200					; fadeout hijack for yoshi wings level
+
+AD 95 1B C9 02 D0 0A EE 93 14 22 00 A0 14 9C 95 1B 5C 6F 9F 00
+
+AD 95 1B		LDA $1B95
+C9 02			CMP #$02
+D0 0A			BNE notinyoshilevel
+EE 93 14		INC $1493
+22 00 A0 14		JSL $14A000
+9C 95 1B		STZ $1B95
+
+				notinyoshilevel:
+5C 6F 9F 00		JML $009F6F
+
+</e>
+<e>$14F000: ; xA7200					; load records tilemap
+
+										// tilemap located at $14A208
+										// X = tile index
+										// return in A tile
+										// index, accum 16-bit
+1:30:00
+1:01:20
+0:48:34
+
+										
+BF 08 A2 14 E2 20 C9 27 F0 03 C2 20 6B EB 48 EB DA 5A A9 70 85 05 AF 0A 01 7E 0A 0A 0A 0A 85 04 8A 29 40 4A 4A 85 03 8A 1A 1A 29 30 C9 30 F0 08 C9 20 D0 08 A9 04 80 02 A9 08 04 03 C2 20 8A EB 3A 18 2A 90 01 1A 29 FF 00 A8 E2 20 DA BB BF DA F0 14 29 7F 4A 4A 4A 04 04 BF DA F0 14 0A 0A 0A 0A 0A 04 03 FA CA CA BF 08 A2 14 E8 E8 C9 78 D0 11 8A 4A 29 01 F0 05 A0 01 00 80 03 A0 02 00 4C A5 F0 E8 E8 BF 08 A2 14 CA CA C9 FC D0 06 A0 02 00 4C BC F0 8A 4A 29 01 F0 05 A0 00 00 80 03 A0 01 00 4C BC F0 B7 03 C9 FF D0 05 A9 27 4C D2 F0 E2 10 22 4C 97 00 C2 10 8A 4C D2 F0 B7 03 C9 FF D0 05 A9 27 4C D2 F0 E2 10 22 4C 97 00 C2 10 4C D2 F0 7A FA EB 68 EB C2 20 6B 28 29 2A 27 26 15 09 05 06 0A 2F 04 13 03 3E 3C 2E 3D 2D 01 02 2B 0B 0C 0D 0F 10 11 42 44 47 43 46 41 1F 22 24 23 1D 1C 3B 21 1B 18 3A 39 37 33 38 35 25 07 40 0E 20 1A 34 31 32 14 08 3F 45 58 54 56 59 5A 4E 4F 50 51 4C 4B 4A 48
+
+BF 08 A2 14			LDA $14A208,X
+E2 20				SEP #$20
+C9 27				CMP #$27			; hyphen
+F0 03				BEQ replacetile
+C2 20				REP #$20
+6B					RTL
+					
+					replacetile:
+EB					XBA
+48					PHA
+EB					XBA
+DA					PHX
+5A					PHY
+A9 70				LDA #$70
+85 05				STA $05				; bank byte of saved time
+AF 0A 01 7E			LDA $7E010A
+0A					ASL A
+0A					ASL A
+0A					ASL A
+0A					ASL A
+85 04				STA $04				; file of saved time
+8A					TXA
+29 40				AND #$40
+4A					LSR A
+4A					LSR A
+85 03				STA $03				; exit of saved time
+8A					TXA
+1A					INC A
+1A					INC A
+29 30				AND #$30
+C9 30				CMP #$30
+F0 08				BEQ	#$08
+C9 20				CMP #$20
+D0 08				BNE level
+A9 04				LDA #$04
+80 02				BRA continue
+A9 08				LDA #$08
+					
+					continue:
+04 03				TSB $03				; kind of saved time
+					
+					level:
+C2 20				REP #$20
+8A					TXA					; \
+EB					XBA					; | stupid function from
+3A					DEC A				; | tile index -> translevel index
+18					CLC					; |
+2A					ROL A				; |
+90 01				BCC #$01			; |
+1A					INC A				; |
+29 FF 00			AND #$00FF			; |
+A8					TAY					; /
+E2 20				SEP #$20
+DA					PHX
+BB					TYX
+BF DA F0 14			LDA translevels,X	; \
+29 7F				AND #$7F			; | level of saved time
+4A					LSR A				; |
+4A					LSR A				; |
+4A					LSR A				; |
+04 04				TSB $04				; |
+BF DA F0 14			LDA translevels,X	; |
+0A					ASL A				; |
+0A					ASL A				; |
+0A					ASL A				; |
+0A					ASL A				; |
+0A					ASL A				; | at this point $03 has
+04 03				TSB $03				; /	address of saved time
+FA					PLX
+
+					lookbehind:
+CA					DEX
+CA					DEX
+BF 08 A2 14			LDA $14A208,X
+E8					INX
+E8					INX
+C9 78				CMP #$78			; colon
+D0 11				BNE lookahead
+8A					TXA
+4A					LSR A
+29 01				AND #$01
+F0 05				BEQ #$05
+A0 01 00			LDY #$0001			; seconds
+80 03				BRA #$03
+A0 02 00			LDY #$0002			; frames
+4C A5 F0			JMP dotens
+					
+					lookahead:
+E8					INX
+E8					INX
+BF 08 A2 14			LDA $14A208,X
+CA					DEX
+CA					DEX
+C9 FC				CMP #$FC
+D0 06				BNE continue
+A0 02 00			LDY #$0002			; frames
+4C BC F0			JMP doones
+					
+					continue:
+8A					TXA
+4A					LSR A
+29 01				AND #$01
+F0 05				BEQ #$05
+A0 00 00			LDY #$0000			; minutes
+80 03				BRA #$03
+A0 01 00			LDY #$0001			; seconds
+4C BC F0			JMP doones
+					
+					dotens:
+B7 03				LDA [$03],Y
+C9 FF				CMP #$FF
+D0 05				BNE #$05
+A9 27				LDA #$27
+4C D2 F0			JMP done
+E2 10				SEP #$10
+22 4C 97 00			JSL $00974C
+C2 10				REP #$10
+8A					TXA
+4C D2 F0			JMP done
+					
+					doones:
+B7 03				LDA [$03],Y
+C9 FF				CMP #$FF
+D0 05				BNE #$05
+A9 27				LDA #$27
+4C D2 F0			JMP done
+E2 10				SEP #$10
+22 4C 97 00			JSL $00974C
+C2 10				REP #$10
+4C D2 F0			JMP done
+					
+					done:
+7A					PLY
+FA					PLX
+EB					XBA
+68					PLA
+EB					XBA
+C2 20				REP #$20
+6B					RTL
+
+					translevels:
+28 29 2A 27
+26 15 09 05
+06 0A 2F 04
+13 03 3E 3C
+2E 3D 2D 01
+02 2B 0B 0C
+0D 0F 10 11
+42 44 47 43
+46 41 1F 22
+24 23 1D 1C
+3B 21 1B 18
+3A 39 37 33
+38 35 25 07
+40 0E 20 1A
+34 31 32 14
+08 3F 45 58
+54 56 59 5A
+4E 4F 50 51
+4C 4B 4A 48
+
+</e>
+</ROM>
+IF LIVES FUCK UP LOOK HERE ADDR_05BE70
+
+order of translevels
+
+28 29 2A 27
+26 15 09 05
+06 0A 2F 04
+13 03 3E 3C
+2E 3D 2D 01
+02 2B 0B 0C
+0D 0F 10 11
+42 44 47 43
+46 41 1F 22
+24 23 1D 1C
+3B 21 1B 18
+3A 39 37 33
+38 35 25 07
+40 0E 20 1A
+34 31 32 14
+08 3F 45 58
+54 56 59 5A
+4E 4F 50 51
+4C 4B 4A 48
+
+(top 16 bits - 1) * 2
+if highest bit of bottom 16 bits is set, increment by 1
+this is the index into that table ^
+
+if - and next is : and odd -> minutes ones
+if - and previous is : and odd -> seconds tens
+if - and next is : and even -> seconds ones
+if - and previous is : and even -> frames tens
+if - and next is blank -> frames ones
+<RAM>
+
+$7E0F5E		; yellow ! block status - 00 = off, 01 = on
+$7E0F5F		; green ! block status - 00 = off, 01 = on
+$7E0F60		; red ! block status - 00 = off, 01 = on
+$7E0F61		; blue ! block status - 00 = off, 01 = on
+$7E0F62		; special world effects status - 00 = off, 01 = on
+$7E0F63		; yoshi color status - 00 = none, 01 = yellow, 02 = blue, 03 = red, 04 = green
+$7E0F64		; mario powerup status - 00 = small, 01 = big, 02 = cape, 03 = fire
+$7E0F65		; item box status - 00 = empty, 01 = mushroom, 02 = flower, 03 = star, 04 = feather
+$7E0F66		; save
+$7E0F67		; cancel
+
+$7E0F68		; current selection 00 = yellow!, 01 = green!, 02 = red!, 03 = blue!, 04 = special, 05 = yoshi, 06 = powerup, 07 = itembox, 08 = save, 09 = cancel
+$7E0F69		; current display mode 00 = text, 01 = numbers
+
+$7E0F6A		; precise timer minutes
+$7E0F6B		; precise timer seconds
+$7E0F6C		; precise timer frames
+$7E0F6D		; flag if timer has been saved for this level
+
+$7E0F6E		; low byte for save location
+$7E0F6F		; high byte for save location
+$7E0F70		; bank byte for save location (#$70)
+
+$7E1938		; (9 bytes) dynamic stripe image for option numbers
+
+$7E1FEE		; Mario's powerup upon entering level
+$7E1FEF		; Mario's yoshi upon entering level
+$7E1FF0		; Mario's item box upon entering level
+
+$7E1FF1		; hundreds of timer
+</RAM>
+<SRAM>
+3 save files, 76 levels each, 2 exits each, 3 times each, 3 bytes each
+3 save files, 128 levels each, 2 exits each, 4 times each, 4 bytes each
+
+$700000		; save location
+
+01110000 00ffllll lllxkktt
+
+f - save file
+l - level
+x - exit
+k - kind (low/nocape/normal)
+t - time byte (m/s/f)
+
+</SRAM>
