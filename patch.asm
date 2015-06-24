@@ -16,7 +16,8 @@
 !yoshi_status                = $0F63
 !powerup_status              = $0F64
 !itembox_status              = $0F65
-!erase_status                = $0F66
+!speedometer_status          = $0F66
+!erase_status                = $0F67
 
 !curr_selection              = $0F68
 !curr_drawing                = $0F69
@@ -46,6 +47,7 @@
 !restore_room_powerup        = $1F3C
 !restore_room_yoshi          = $1F3D
 !restore_room_itembox        = $1F3E
+!speedometer_flag            = $1F3F
 
 !restore_powerup             = $1FEE
 !restore_yoshi               = $1FEF
@@ -163,10 +165,81 @@ ORG $009510
 ; remove original save function
 ORG $009BC9
     db $6B
+	
+; save file indices
+ORG $009CCB
+	db $00,$10,$20
+	db $00,$00,$00
+	
+; disable something about overwriting sram
+ORG $009CF7
+	STZ $0109
+	JMP $9D22
 
-; skip intro level
-ORG $009CB1
-    db $00
+; display 3 digits for number of times gotten
+ORG $009D66
+	REP #$20
+	LDA $700005,X
+	SEP #$10
+	JSL HexToDec16
+	TXY
+	LDX $00
+	STA $7F8383,X
+	TYA
+	JSL HexToDec16
+	TXY
+	LDX $00
+	STA $7F8381,X
+	TYA
+	STA $7F837F,X
+	SEP #$20
+	LDA #$38
+	STA $7F8380,X
+	STA $7F8382,X
+	STA $7F8384,X
+	NOP
+	NOP
+	NOP
+	NOP
+	NOP
+	NOP
+	NOP
+	
+; how to tell if a file is new or not
+ORG $009DB5
+	LDA $9CCB,X
+	XBA
+	LDA $9CCE,X
+	REP #$30
+	TAX
+	PHX
+	LDA #$0070
+	STA $08
+	STX $06
+	LDY #$1000
+	LDA #$0000
+	PHA
+loop:
+	DEY
+	DEY
+	DEY
+	DEY
+	CPY #$0020
+	BCC done
+	LDA [$06],Y
+	CMP #$FFFF
+	BEQ loop
+	PLA
+	INC A
+	PHA
+	BRA loop
+done:
+	PLA
+	PLX
+	STA $700005,X
+	LDA $700001,X       ; $700001,file = 0000 if not new
+	SEP #$20
+	RTS
 
 ; start with 99 lives
 ORG $009E25
@@ -260,7 +333,7 @@ ORG $00EECD        ; switch palace
 ORG $00C962
     ;db $10
 ORG $01877C        ; orb
-    db $01
+    ;db $01
 ORG $01C0FA        ; goal tape
     db $01
 ORG $01D04B        ; Morton & Roy
@@ -424,12 +497,12 @@ NMIHijack:
         DEX
         CPX #$FF
         BNE .go_on
-        LDX #$0B
+        LDX #$0C
     .go_on:
         JSL update_graphics_menu
         PLX
         INX
-        CPX #$0C
+        CPX #$0D
         BNE .go_on2
         LDX #$00
     .go_on2:
@@ -893,6 +966,10 @@ load_menu:
         STA !itembox_status
         STZ $0F66
         STZ $0F67
+		
+	.speedometer:
+		LDA !speedometer_flag
+		STA !speedometer_status
     
     .testDMAVRAM:
         PHP
@@ -908,7 +985,7 @@ load_menu:
         PHK
         PLA
         LDX #Tiles                            ; layer 2 tiles
-        LDY #$1000                            ; number of bytes
+        LDY #$4000                            ; number of bytes
         JSL LoadVRAM
         LDX #$2000                            ; layer 2 tilemap @$2000
         STX $2116
@@ -947,7 +1024,7 @@ load_menu:
         STX $0701                             ; background color
         PLP
         
-        LDX #$0C
+        LDX #$0D
     .loop_item:
         DEX
         BMI .done_item
@@ -994,7 +1071,7 @@ draw_menu_selection:                          ; X = index of option
         LSR A
         TAX
         PLA
-        CPX #$09
+        CPX #$0A
         BCS .no_add
         SEP #$20
         CLC
@@ -1013,7 +1090,7 @@ draw_menu_selection:                          ; X = index of option
         CPX !curr_selection
         BNE .not_sel
         CLC
-        ADC #$30F0    
+        ADC #$3110    
     .not_sel:
         TAX
         SEP #$20
@@ -1053,12 +1130,14 @@ draw_menu_selection:                          ; X = index of option
         RTL
     
 menu_table_offset:
-        dw $0000,$0002,$0004,$0006,$0008,$000A,$010A,$020A,$030A,$030C,$030D,$030E
+        dw $0000,$0002,$0004,$0006,$0008,$000A,$010A
+		dw $020A,$030A,$030C,$030E,$030F,$0310
 
 graphics_position:
         dw $2058,$2098,$20D8,$2118
         dw $2158,$2198,$21D8,$2218
         dw $2258,$2298,$22D8,$2318
+		dw $2358
 
 LoadVRAM:                                    ; A|X = address of data, Y = number of bytes (Mx)
         PHP
@@ -1127,7 +1206,7 @@ overworld_menu:
         DEC A
         CMP #$FF
         BNE .nowrap
-        LDA #$0B
+        LDA #$0C
     .nowrap:
         STA !curr_selection
         JMP .finish_sound
@@ -1138,7 +1217,7 @@ overworld_menu:
         BEQ .testLEFT
         LDA !curr_selection
         INC A
-        CMP #$0C
+        CMP #$0D
         BNE .nowrap2
         AND #$00
     .nowrap2:
@@ -1154,7 +1233,7 @@ overworld_menu:
         BEQ .testRIGHT
     .goLEFT:
         LDX !curr_selection
-        CPX #$09
+        CPX #$0A
         BCS .testRIGHT
         DEC !status_table,X
         LDA #$00
@@ -1170,7 +1249,7 @@ overworld_menu:
         BEQ .test_selection
     .goRIGHT:
         LDX !curr_selection
-        CPX #$09
+        CPX #$0A
         BCS .test_selection
         INC !status_table,X
         LDA #$01
@@ -1200,6 +1279,7 @@ overworld_menu:
         dw .j_yoshi
         dw .j_powerup
         dw .j_itembox
+        dw .j_speed
         dw .j_records
         dw .j_enemy
         dw .j_cancel
@@ -1215,6 +1295,7 @@ overworld_menu:
     .j_special:
     .j_powerup:
     .j_itembox:
+	.j_speed:
         JMP .finish_no_sound
     .j_records:
         LDA #$24
@@ -1280,6 +1361,8 @@ overworld_menu:
         LDA !itembox_status
         STA !restore_itembox
         STA $0DC2
+		LDA !speedometer_status
+		STA !speedometer_flag
     .quit:
         LDA #$0B
         STA $0100
@@ -1332,10 +1415,10 @@ check_bounds:
         RTS
 
 min_selection_normal:
-    db $01,$01,$01,$01,$01,$04,$03,$04,$01,$00,$00,$00
+    db $01,$01,$01,$01,$01,$04,$03,$04,$01,$01,$00,$00,$00
 
 min_selection_extended:
-    db $01,$01,$01,$01,$01,$FF,$FF,$FF,$01,$00,$00,$00
+    db $01,$01,$01,$01,$01,$FF,$FF,$FF,$01,$01,$00,$00,$00
     
 reset_enemy_states:
         PHP
@@ -1579,8 +1662,8 @@ delete_all_records:
         STA $03
         
         REP #$10
-        LDA #$FEFF
-        LDY #$0000
+        LDA #$FFFF
+        LDY #$0020
         
     .loop:
         CPY #$1000
@@ -1616,7 +1699,7 @@ delete_this_level:                                ; A (8-bit) has translevel
         XBA
         STA $03
         
-        LDA #$FEFF
+        LDA #$FFFF
         LDX #$0000
         
     .loop:
@@ -1634,7 +1717,7 @@ delete_this_level:                                ; A (8-bit) has translevel
         RTL
         
 save_confirm_message:
-    db $52,$46,$00,$1D
+    db $52,$86,$00,$1D
     db $1C,$3C,$0A,$3C
     db $1F,$3C,$0E,$3C
     db $FC,$3C,$1D,$3C
@@ -1664,7 +1747,27 @@ graphics_tile_data:
 ORG $1B8000
 level_load_penalty:
         JSL $05809E
-        
+		
+		LDA $0109                            ; erase all records if first time playing file
+		CMP #$E9
+		BNE .not_intro
+		JSL delete_all_records
+		REP #$30
+		LDA $010A
+		AND #$0003
+		CLC
+		ROR A
+		ROR A
+		ROR A
+		ROR A
+		ROR A
+		TAX
+		LDA #$0000
+		STA $700001,X                        ; mark file as used		
+		SEP #$30
+		INC $0109
+		
+	.not_intro:
         LDA $141A
         BNE .goto_loops
         INC $141A                            ; index starting at 1 instead of 0
@@ -1803,6 +1906,7 @@ time_restore:
         ORA $1434                            ; no reset if level beaten
         ORA $9D                                ; no reset if sprites locked
         ORA $1426                            ; no reset if message block
+		ORA $13D4                            ; no reset if paused
         BEQ .testLR_2
         JMP .timer
         
@@ -1825,12 +1929,13 @@ time_restore:
         BEQ .test_secondary
         
     .test_translevel:
+        STZ !tick_rta_timer_flag
+        STZ !reset_room_flag
         LDA $13BF
         CMP #$25
         BCC .skip_translevel
         SEC
         SBC #$24
-        STZ !tick_rta_timer_flag
         BRA .skip_translevel
         
     .test_secondary:
@@ -2011,6 +2116,8 @@ l_r_reset_fade:
         STZ !coins_this_level                ; coins for ci2
         STZ $149F                            ; clear P-speed (tsk tsk for not doing this originally)
         STZ $0DBF                            ; clear coin counter
+		STZ $1B9F                            ; clear reznor floor
+		STZ $14B6                            ; clear bowser bowling ball
     
 ;        LDX #$0C
 ;    .loop_yoshi:
@@ -2182,6 +2289,8 @@ not_loading:
         STA $0F1C
         
     .display_speed:
+		LDA !speedometer_flag
+		BNE .display_input
         LDA $7B
         BPL .positive_speed
         EOR #$FF
@@ -2280,18 +2389,7 @@ try_save_value:
         
         LDA !tick_rta_timer_flag
         BNE .no_save
-        
-        PHY
-        LDY #$03
-        LDA [$00],Y
-        PLY
-        AND #$10
-        BEQ .check_prev_orb                        ; if the previous time was saved on an old version,
-        LDA !orb_flag                            ; never save the time if you beat level with orb
-        BEQ .loop_check                            ; (this fucks up sunken ghost ship)
-        BRA .no_save
-        
-    .check_prev_orb:
+		
         PHY
         LDY #$03
         LDA [$00],Y
@@ -2329,8 +2427,8 @@ try_save_value:
         INY
         BRA .loop_do
         
-    .save_attributes:                            ; shozygrb, ygrb = ! blocks, s = special, h = yoshi, o = orb
-        LDA $1F28                                ; z = 0 if these values are known, 1 if unknown (a time saved on prev ver)
+    .save_attributes:                            ; sho-ygrb, ygrb = ! blocks, s = special, h = yoshi, o = orb
+        LDA $1F28                                ; 
         ASL A
         ORA $1F27
         ASL A
@@ -2391,6 +2489,17 @@ sub_horiz_pos:
         INY
     .no_inc:
         RTL
+		
+HexToDec16:
+		LDX #$00
+	.loop:
+		CMP #$000A
+		BCC .done
+		SBC #$000A
+		INX
+		BRA .loop
+	.done:
+		RTL
 
 took_secondary_exit:
         STA $17BB
