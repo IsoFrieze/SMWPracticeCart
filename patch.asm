@@ -7,6 +7,14 @@
 !cont_frame_a                = $0DA6
 !cont_frame_b                = $0DA8
 
+!restore_timer_min           = $0F3A
+!restore_timer_sec           = $0F3B
+!restore_timer_frames        = $0F3C
+!restore_timer_flag          = $0F3D
+
+!curr_selection              = $0F3E
+!curr_drawing                = $0F3F
+
 !status_table                = $0F5E
 !yellow_status               = $0F5E
 !green_status                = $0F5F
@@ -16,11 +24,10 @@
 !yoshi_status                = $0F63
 !powerup_status              = $0F64
 !itembox_status              = $0F65
-!speedometer_status          = $0F66
-!erase_status                = $0F67
-
-!curr_selection              = $0F68
-!curr_drawing                = $0F69
+!erase_status                = $0F66
+!speedometer_status          = $0F67
+!drop_item_status            = $0F68
+!enemy_status                = $0F69
 
 !timer_min                   = $0F6A
 !timer_sec                   = $0F6B
@@ -48,6 +55,9 @@
 !restore_room_yoshi          = $1F3D
 !restore_room_itembox        = $1F3E
 !speedometer_flag            = $1F3F
+!restore_room_pspeed         = $1F40
+!restore_room_item           = $1F41
+!drop_item_flag              = $1F42
 
 !restore_powerup             = $1FEE
 !restore_yoshi               = $1FEF
@@ -75,16 +85,17 @@ ORG $0084F1
 
 ; status bar tilemap
 ORG $008C89
-    db $76,$3C,$27,$3C,$27,$3C,$85,$3C
-    db $27,$3C,$27,$3C,$86,$3C,$27,$3C
-    db $27,$3C,$FC,$3C,$27,$2C,$27,$2C
+    db $FC,$3C,$FC,$2C,$FC,$2C,$FC,$3C
+    db $FC,$3C,$27,$3C,$85,$3C,$27,$3C
+    db $27,$3C,$86,$3C,$27,$3C,$27,$3C
 ORG $008CAB
     db $2E,$3C,$FC,$38,$00,$38,$FC,$3C
     db $FC,$3C,$FC,$28,$FC,$28,$FC,$28
     db $FC,$28,$FC,$28,$FC,$28
 ORG $008CC1
-    db $27,$38,$27,$38,$85,$38,$27,$38
-    db $27,$38,$86,$38,$27,$38,$27,$38
+    db $FC,$3C,$FC,$3C,$FC,$38,$FC,$38
+    db $27,$38,$85,$38,$27,$38,$27,$38
+	db $86,$38,$27,$38,$27,$38
 ORG $008CEB
     db $FC,$28,$FC,$28,$FC,$28,$FC,$28
     db $FC,$28,$FC,$28
@@ -103,9 +114,11 @@ ORG $00C578
     INC !coins_this_level
     RTS
 
-; don't draw lives to the status bar
+; don't draw lives to the status bar, and bowser timer
 ORG $008F55
-    db $EA,$EA,$EA,$EA,$EA,$EA
+    NOP
+	NOP
+	JSL display_bowser_timers
 
 ; don't go to bonus game
 ORG $008F67
@@ -165,6 +178,10 @@ ORG $009510
 ; remove original save function
 ORG $009BC9
     db $6B
+	
+; reload music on death
+ORG $00F610
+	db $00
 	
 ; save file indices
 ORG $009CCB
@@ -275,6 +292,15 @@ fade_out:
     JMP $AF39
 .return:
     RTS
+	
+; modify drop item from item box
+ORG $00C56C
+	JSL drop_item_box
+	CMP #$00
+	BNE .no_drop
+	JMP $C585
+.no_drop:
+	JMP $C58F
 
 ; disable midway points
 ORG $00CA2C
@@ -283,6 +309,12 @@ ORG $00CA2C
 ; don't decrement lives on death
 ORG $00D0D8
     db $EA,$EA,$EA
+	
+; use this address for free ram
+ORG $00D94F
+	NOP
+	NOP
+	NOP
 
 ; activate ! blocks every time
 ORG $00EEB1
@@ -497,12 +529,12 @@ NMIHijack:
         DEX
         CPX #$FF
         BNE .go_on
-        LDX #$0C
+        LDX #$0D
     .go_on:
         JSL update_graphics_menu
         PLX
         INX
-        CPX #$0D
+        CPX #$0E
         BNE .go_on2
         LDX #$00
     .go_on2:
@@ -605,7 +637,7 @@ overworld_controls:
         LDY #$08
     .loop_display_time:
         DEY
-        BMI .done_times
+        BMI .be_done
         JSR load_unran_time
         TYA
         ASL A
@@ -618,12 +650,14 @@ overworld_controls:
         
         PHX
         LDA [$00],Y
+		STA $0D
         JSL $00974C                            ; hex -> dec
         TAX
         LDA tile_numbers,X
         STA !dynamic_stripe+4
         INY
         LDA [$00],Y
+		STA $0E
         JSL $00974C                            ; hex -> dec
         PHA
         LDA tile_numbers,X
@@ -634,6 +668,7 @@ overworld_controls:
         STA !dynamic_stripe+10
         INY
         LDA [$00],Y
+		STA $0F
         JSL $00974C                            ; hex -> dec
         PHA
         LDA tile_numbers,X
@@ -643,27 +678,35 @@ overworld_controls:
         LDA tile_numbers,X
         STA !dynamic_stripe+16
         PLX
+		JSR comp_to_gold
         JSR load_stripe_from_buffer
         PLY
         BRA .loop_display_time
         
-    .draw_unran
+    .draw_unran:
         PLY
         LDA !potential_translevel
         TAX
         LDA translevel_types,X
-        CPY #$04
-        BCC .no_shift
+		PHY
+		
+	.shift_loop:
+        CPY #$00
+        BEQ .no_shift
         LSR A
-    .no_shift:
+		DEY
+		BRA .shift_loop
+		
+    .no_shift:	
+		PLY
         AND #$01
         BEQ .draw_blank
         JSR load_stripe_from_buffer
-        BRA .loop_display_time
+        JMP .loop_display_time
     .draw_blank
         JSR load_blank_time
         JSR load_stripe_from_buffer
-        BRA .loop_display_time
+        JMP .loop_display_time
         
     .done_times:
         LDA $0DB2
@@ -704,16 +747,34 @@ overworld_controls:
         
     .testSTART:                                ; START = menu
         LDA $144E
-        BNE .save_lvl_states                ; make sure Mario is facing forward
+        BNE .testSELECT                     ; make sure Mario is facing forward
         LDA $1DF7
-        BNE .save_lvl_states                ; and he's not warping off star road
+        BNE .testSELECT                     ; and he's not warping off star road
         LDA !cont_frame_a
         AND #$10
-        BEQ .save_lvl_states
+        BEQ .testSELECT
         LDA #$1C                            ; play sound
         STA $1DFC
         LDA #$20                            ; set game mode
         STA $0100
+		
+	.testSELECT:                                 ; SELECT = swap powerup / item box
+		LDA !cont_frame_a
+		AND #$20
+		BEQ .save_lvl_states
+		LDA $19
+		AND #$FC                                  ; powerup must be 0,1,3,2
+		BNE .save_lvl_states
+		LDA $0DC2
+		CMP #$03
+		BEQ .save_lvl_states
+		CMP #$04
+		BNE .stupid_inc
+		DEC A
+	.stupid_inc:
+		AND #$FC
+		BNE .save_lvl_states                    ; item box must be 0,1,2,4
+		JSR swap_powerup_item_box
         
     .save_lvl_states:
         LDX #$04
@@ -742,6 +803,9 @@ overworld_controls:
         STZ !room_timer_min                  ; clear timer
         STZ !room_timer_sec
         STZ !room_timer_frames
+		STZ !restore_timer_min               ; clear timer
+		STZ !restore_timer_sec
+		STZ !restore_timer_frames
         STZ !timer_flag                      ; clear timer lock
         STZ !coins_this_level                ; clear coin counter
         STZ !yoshi_flag
@@ -781,6 +845,36 @@ overworld_controls:
         PLB
         PLP
         RTL
+		
+swap_powerup_item_box:
+		LDA $19
+		CMP #$02
+		BNE .not_cape_mario
+		ASL A
+	.not_cape_mario:
+		CMP #$03
+		BNE .not_fire_mario
+		DEC A
+	.not_fire_mario:
+		STA $00
+		
+		LDA $0DC2
+		CMP #$02
+		BNE .not_flower
+		INC A
+	.not_flower:
+		CMP #$04
+		BNE .not_feather
+		LSR A
+	.not_feather:
+		STA $19
+		STA $0DB8
+		
+		LDA $00
+		STA $0DC2
+		STA $0DBC
+		RTS
+		
         
 load_unran_time:
         PHY
@@ -839,6 +933,63 @@ load_stripe_from_buffer:
         PLX
         PLY
         RTS
+		
+comp_to_gold: 
+		PHB
+		PHK
+		PLB
+		PHX
+		PHY                                 ; [$00],Y-2 = pointer to time to compare
+		PHP
+		
+		REP #$30
+		LDA $00
+		AND #$0FFF
+		TAX
+		SEP #$20
+		INY
+		LDA [$00],Y
+		AND #$20
+		BNE .no_gold                          ; orb used = no gold whatsoever
+		DEY
+		DEY
+		DEY
+		
+		LDA [$00],Y                           ; unwrapped loop because I am lazy.
+		CMP GoldTimes,X
+		BCC .yes_gold
+		BNE .no_gold
+		INY
+		INX
+		
+		LDA [$00],Y
+		CMP GoldTimes,X
+		BCC .yes_gold
+		BNE .no_gold
+		INY
+		INX
+		
+		LDA [$00],Y
+		CMP GoldTimes,X
+		BCC .yes_gold
+		BRA .no_gold
+		
+	.yes_gold:
+		LDA #$29
+        STA !dynamic_stripe+5
+        STA !dynamic_stripe+7
+        STA !dynamic_stripe+9
+        STA !dynamic_stripe+11
+        STA !dynamic_stripe+13
+        STA !dynamic_stripe+15
+        STA !dynamic_stripe+17
+		
+	.no_gold:
+		PLP
+		PLY
+		PLX
+		PLB
+		RTS
         
 no_yoshi_intros:
         db $5D,$63,$58,$60,$61                ; castles, ghost houses, bowser
@@ -865,31 +1016,34 @@ tile_numbers:                                ; 0-9
         db $22,$23,$24,$25,$26
         db $27,$28,$29,$2A,$2B
         
-translevel_types:                            ; ------sn, s = display secret exit times, n = display normal exit times
-        db $00,$01,$01,$00
-        db $03,$01,$01,$01
-        db $01,$03,$03,$01
-        db $01,$01,$01,$03
-        db $01,$01,$00,$03
-        db $01,$03,$00,$00
-        db $01,$00,$01,$01
-        db $01,$01,$00,$01
-        db $01,$01,$01,$03
-        db $03,$01,$01,$01
-        db $00,$01,$01,$01
-        db $00,$03,$01,$01
-        db $00,$01,$01,$03
-        db $01,$01,$00,$01
-        db $03,$03,$01,$01
-        db $03,$01,$03,$01
-        db $01,$03,$03,$03
-        db $03,$01,$01,$03
-        db $01,$00,$01,$01                    ; funky
-        db $01,$00,$01,$01
-        db $01,$01,$00,$00
-        db $03,$00,$03,$00
-        db $03,$03,$03,$00
+translevel_types:                            ; 76543210 - display times:
+        db $00,$0F,$0F,$00                   ; 0 4
+        db $77,$0F,$0F,$07                   ; 1 5
+        db $07,$7F,$FF,$07                   ; 2 6
+        db $0F,$0F,$07,$FF                   ; 3 7
+        db $0F,$0F,$00,$77
+        db $07,$FF,$00,$00
+        db $0E,$00,$07,$07
+        db $0F,$0F,$00,$07
+        db $0F,$07,$0F,$FF
+        db $7F,$07,$0F,$0F
+        db $00,$0F,$0F,$0F
+        db $00,$FF,$0F,$0F
+        db $00,$07,$07,$77
+        db $0F,$07,$0F,$0F
+        db $FF,$7F,$0F,$07
+        db $FF,$0F,$FF,$07
+        db $07,$F7,$77,$FF
+        db $FF,$07,$0F,$FF
+        db $0F,$00,$0F,$0F                    ; funky
+        db $0F,$00,$0F,$0F
+        db $0F,$0F,$00,$00
+        db $77,$00,$77,$00
+        db $EE,$77,$77,$00
         db $00
+
+GoldTimes:
+        incbin "bin_gold_times.bin"
 
 ;;;;;;;;;;;;;;;;
 ; Load Overworld Menu
@@ -970,6 +1124,10 @@ load_menu:
 	.speedometer:
 		LDA !speedometer_flag
 		STA !speedometer_status
+		
+	.drop_item:
+		LDA !drop_item_flag
+		STA !drop_item_status
     
     .testDMAVRAM:
         PHP
@@ -1002,12 +1160,12 @@ load_menu:
         LDY #$0800                            ; number of bytes
         JSL LoadVRAM
         
-        LDA #$40
-        STA $2121                             ; palette at $40
+        LDA #$00
+        STA $2121                             ; palette at $00
         PHK
         PLA
         LDX #Palette
-        LDY #$0080
+        LDY #$0100
         JSL LoadCGRAM
         
         LDA #$23                              ; layer 2 tilemap -> $2000, 64x64
@@ -1024,7 +1182,7 @@ load_menu:
         STX $0701                             ; background color
         PLP
         
-        LDX #$0D
+        LDX #$0E
     .loop_item:
         DEX
         BMI .done_item
@@ -1071,7 +1229,7 @@ draw_menu_selection:                          ; X = index of option
         LSR A
         TAX
         PLA
-        CPX #$0A
+        CPX #$0B
         BCS .no_add
         SEP #$20
         CLC
@@ -1090,7 +1248,7 @@ draw_menu_selection:                          ; X = index of option
         CPX !curr_selection
         BNE .not_sel
         CLC
-        ADC #$3110    
+        ADC #$3150    
     .not_sel:
         TAX
         SEP #$20
@@ -1131,13 +1289,19 @@ draw_menu_selection:                          ; X = index of option
     
 menu_table_offset:
         dw $0000,$0002,$0004,$0006,$0008,$000A,$010A
-		dw $020A,$030A,$030C,$030E,$030F,$0310
+		dw $020A,$030A,$030C,$030E,$0312,$0313,$0314
 
 graphics_position:
-        dw $2058,$2098,$20D8,$2118
-        dw $2158,$2198,$21D8,$2218
-        dw $2258,$2298,$22D8,$2318
-		dw $2358
+        dw $20CC,$210C,$214C,$218C
+        dw $21CC,$220C,$224C,$228C
+        dw $20D0,$2110,$2150,$2190
+		dw             $2250,$2290
+
+;graphics_position:
+;        dw $2058,$2098,$20D8,$2118
+;        dw $2158,$2198,$21D8,$2218
+;        dw $2258,$2298,$22D8,$2318
+;        dw $2358
 
 LoadVRAM:                                    ; A|X = address of data, Y = number of bytes (Mx)
         PHP
@@ -1206,7 +1370,7 @@ overworld_menu:
         DEC A
         CMP #$FF
         BNE .nowrap
-        LDA #$0C
+        LDA #$0D
     .nowrap:
         STA !curr_selection
         JMP .finish_sound
@@ -1217,7 +1381,7 @@ overworld_menu:
         BEQ .testLEFT
         LDA !curr_selection
         INC A
-        CMP #$0D
+        CMP #$0E
         BNE .nowrap2
         AND #$00
     .nowrap2:
@@ -1233,7 +1397,7 @@ overworld_menu:
         BEQ .testRIGHT
     .goLEFT:
         LDX !curr_selection
-        CPX #$0A
+        CPX #$0B
         BCS .testRIGHT
         DEC !status_table,X
         LDA #$00
@@ -1249,7 +1413,7 @@ overworld_menu:
         BEQ .test_selection
     .goRIGHT:
         LDX !curr_selection
-        CPX #$0A
+        CPX #$0B
         BCS .test_selection
         INC !status_table,X
         LDA #$01
@@ -1279,8 +1443,9 @@ overworld_menu:
         dw .j_yoshi
         dw .j_powerup
         dw .j_itembox
-        dw .j_speed
         dw .j_records
+        dw .j_speed
+        dw .j_drop
         dw .j_enemy
         dw .j_cancel
         dw .j_save
@@ -1296,6 +1461,7 @@ overworld_menu:
     .j_powerup:
     .j_itembox:
 	.j_speed:
+	.j_drop:
         JMP .finish_no_sound
     .j_records:
         LDA #$24
@@ -1363,6 +1529,8 @@ overworld_menu:
         STA $0DC2
 		LDA !speedometer_status
 		STA !speedometer_flag
+		LDA !drop_item_status
+		STA !drop_item_flag
     .quit:
         LDA #$0B
         STA $0100
@@ -1415,10 +1583,10 @@ check_bounds:
         RTS
 
 min_selection_normal:
-    db $01,$01,$01,$01,$01,$04,$03,$04,$01,$01,$00,$00,$00
+    db $01,$01,$01,$01,$01,$04,$03,$04,$01,$01,$03,$00,$00,$00
 
 min_selection_extended:
-    db $01,$01,$01,$01,$01,$FF,$FF,$FF,$01,$01,$00,$00,$00
+    db $01,$01,$01,$01,$01,$FF,$FF,$FF,$01,$01,$03,$00,$00,$00
     
 reset_enemy_states:
         PHP
@@ -1452,7 +1620,7 @@ credits_records:
     .try_move:
         LDA $24
         CMP #$0580
-        BCS    .no_move
+        BCS .no_move
         LDA !cont_all_a
         AND #$0004                            ; down
         BEQ .no_move
@@ -1661,7 +1829,11 @@ delete_all_records:
         XBA
         STA $03
         
-        REP #$10
+		SEP #$20
+		LDA #$FF
+		STA [$03]
+		
+        REP #$30
         LDA #$FFFF
         LDY #$0020
         
@@ -1679,6 +1851,9 @@ delete_all_records:
 
 delete_this_level:                                ; A (8-bit) has translevel
         PHP
+		CMP #$00                                  ; don't clear level 00 it contains important file info!
+		BEQ .finish
+		
         REP #$30
         AND #$00FF
         ASL A
@@ -1717,18 +1892,26 @@ delete_this_level:                                ; A (8-bit) has translevel
         RTL
         
 save_confirm_message:
-    db $52,$86,$00,$1D
-    db $1C,$3C,$0A,$3C
-    db $1F,$3C,$0E,$3C
-    db $FC,$3C,$1D,$3C
-    db $18,$3C,$FC,$3C
-    db $0C,$3C,$18,$3C
-    db $17,$3C,$0F,$3C
-    db $12,$3C,$1B,$3C
-    db $16,$3C,$FF
+    db $51,$D4,$00,$0D
+    db $1C,$38,$0A,$38
+    db $1F,$38,$0E,$38
+    db $FC,$38,$1D,$38
+    db $18,$38
+    db $51,$F4,$00,$0D
+	db $0C,$38,$18,$38
+    db $17,$38,$0F,$38
+    db $12,$38,$1B,$38
+    db $16,$38
+    db $52,$14,$00,$13
+	db $0D,$38,$0A,$38
+    db $1D,$38,$0A,$38
+    db $FC,$38,$0E,$38
+    db $1B,$38,$0A,$38
+    db $1C,$38,$0E,$38
+	db $FF
         
 new_record_message:
-    db $50,$82,$00,$15
+    db $50,$83,$00,$15
     db $17,$28,$0E,$28
     db $20,$28,$FC,$28
     db $1B,$28,$0E,$28
@@ -1771,6 +1954,7 @@ level_load_penalty:
         LDA $141A
         BNE .goto_loops
         INC $141A                            ; index starting at 1 instead of 0
+		
     .goto_loops:
     
         LDX #$28                            ; penalty = 40 frames
@@ -1931,6 +2115,7 @@ time_restore:
     .test_translevel:
         STZ !tick_rta_timer_flag
         STZ !reset_room_flag
+		STZ !restore_room_item
         LDA $13BF
         CMP #$25
         BCC .skip_translevel
@@ -1944,6 +2129,7 @@ time_restore:
         LDA !recent_secondary_exit
     .skip_translevel:
         
+		STZ $188A
         INC $9D                                ; lock sprites
         LDX #$20        
     .loop_exits:
@@ -2101,6 +2287,12 @@ l_r_reset_fade:
         STA $0DC1
         LDA !restore_room_itembox
         STA $0DC2
+		LDA !restore_timer_min
+		STA !timer_min
+		LDA !restore_timer_sec
+		STA !timer_sec
+		LDA !restore_timer_frames
+		STA !timer_frames
         
     .merge:
         STZ $1420                            ; clear dragon coins
@@ -2114,16 +2306,30 @@ l_r_reset_fade:
         STZ $14AF                            ; on/off switch
         STZ $1432                            ; coin snake
         STZ !coins_this_level                ; coins for ci2
-        STZ $149F                            ; clear P-speed (tsk tsk for not doing this originally)
+		LDA !restore_room_pspeed
+        STA $149F                            ; clear P-speed (tsk tsk for not doing this originally)
         STZ $0DBF                            ; clear coin counter
 		STZ $1B9F                            ; clear reznor floor
-		STZ $14B6                            ; clear bowser bowling ball
+		STZ $14B1
+		STZ $14B6                            ; clear bowser timers
+		STZ $1884                            ; clear bowser HP
+		STZ $1496
+		STZ $1497                            ; clear Mario animation timers
+		LDA #$FF
+		STA $1B9D                            ; layer 3 tide timer
+		LDA !restore_room_item
+		BEQ .fix_dp2
+		STA $9E
+		LDA #$0B
+		STA $14C8
     
 ;        LDX #$0C
 ;    .loop_yoshi:
 ;        DEX
 ;        STZ $C2,X
 ;        BNE .loop_yoshi
+
+	.fix_dp2:
         
         LDA $13BF
         CMP #$09
@@ -2180,6 +2386,10 @@ not_loading:
         AND #$0C
         CMP #$0C
         BNE .save
+		
+		PHB
+		PHK
+		PLB
         LDA $1420                            ; check if Lunar Dragon (yoshi coins)
         CMP #$05
         BCC .no_ld
@@ -2192,14 +2402,16 @@ not_loading:
         BNE .loop_moon
         LDA $13C5                            ; if level has moon, check if it was collected
         BEQ .no_ld
+		
     .yes_ld:
         JSR try_save_value                        ; save that record
     .no_ld:
-        BRA .display
+		PLB
+        JMP .display
     
     .try_tick:
         LDA !tick_rta_timer_flag
-        BNE .tick_room
+    ;   BNE .try_tick_room
         STZ !timer_flag
         LDA !timer_min
         CMP #$09
@@ -2209,31 +2421,43 @@ not_loading:
         BNE .tick
         LDA !timer_frames
         CMP #$3B
-        BEQ .tick_room
+        BEQ .try_tick_room
         
     .tick:
         INC !timer_frames
         LDA !timer_frames
         CMP #$3C
-        BNE .tick_room
+        BNE .try_tick_room
         STZ !timer_frames
         INC !timer_sec
         LDA !timer_sec
         CMP #$3C
-        BNE .tick_room
+        BNE .try_tick_room
         STZ !timer_sec
         INC !timer_min
         
-    .tick_room:
+    .try_tick_room:
+        LDA !room_timer_min
+        CMP #$09
+        BNE .tick_room
+        LDA !room_timer_sec
+        CMP #$3B
+        BNE .tick_room
+        LDA !room_timer_frames
+        CMP #$3B
+        BEQ .display
+	
+	.tick_room:
         LDA $71
         CMP #$05
-        BEQ .display
+        BEQ .in_transition
         CMP #$06
-        BEQ .display
+        BEQ .in_transition
         CMP #$08
-        BEQ .display
+        BEQ .in_transition
         CMP #$0D
-        BEQ .display
+        BEQ .in_transition
+		STZ !restore_timer_flag
         INC !room_timer_frames
         LDA !room_timer_frames
         CMP #$3C
@@ -2244,49 +2468,58 @@ not_loading:
         CMP #$3C
         BNE .display
         STZ !room_timer_sec
-        INC !room_timer_min        
+        INC !room_timer_min
+		BRA .display
+		
+	.in_transition:
+		LDA !restore_timer_flag
+		BNE .display
+		LDA $88                                       ; going through pipe timer
+		BNE .display
+		LDA !timer_min
+		STA !restore_timer_min
+		LDA !timer_sec
+		STA !restore_timer_sec
+		LDA !timer_frames
+		STA !restore_timer_frames
+		INC !restore_timer_flag
         
     .display:
+		LDA #$FC
+		STA $0EFD
         LDA !tick_rta_timer_flag
-        BNE .no_rta_timer
+        BNE .rta_timer
+		LDA $13
+		AND #$20
+		BEQ .rta_timer
+		LDA #$76
+		STA $0EFD
+	.rta_timer:
         LDA !timer_min
         JSL $00974C
-        STX $0EFA
-        STA $0EFB
-        LDA !timer_sec
-        JSL $00974C
-        STX $0EFD
+    ;   STX $0EFD
         STA $0EFE
-        LDA !timer_frames
+        LDA !timer_sec
         JSL $00974C
         STX $0F00
         STA $0F01
-        BRA .display_room
-    .no_rta_timer:
-        LDA #$27
-        STA $0EFA
-        STA $0EFB
-        STA $0EFD
-        STA $0EFE
-        STA $0F00
-        STA $0F01
-        LDA #$FF
-        STA !timer_min
-        STA !timer_sec
-        STA !timer_frames
+        LDA !timer_frames
+        JSL $00974C
+        STX $0F03
+        STA $0F04
     .display_room:
         LDA !room_timer_min
         JSL $00974C
-        STX $0F15
-        STA $0F16
-        LDA !room_timer_sec
-        JSL $00974C
-        STX $0F18
+    ;   STX $0F18
         STA $0F19
-        LDA !room_timer_frames
+        LDA !room_timer_sec
         JSL $00974C
         STX $0F1B
         STA $0F1C
+        LDA !room_timer_frames
+        JSL $00974C
+        STX $0F1E
+        STA $0F1F
         
     .display_speed:
 		LDA !speedometer_flag
@@ -2297,8 +2530,22 @@ not_loading:
         INC A
     .positive_speed:
         JSL $00974C
-        STX $0F03
-        STA $0F04
+        STX $0EFA
+        STA $0EFB
+        
+    .display_takeoff:
+		LDA $19
+		CMP #$02
+		BNE .clear_takeoff
+        LDA $149F
+        JSL $00974C
+        STX $0F15
+        STA $0F16
+		JMP .display_input
+	.clear_takeoff:
+		LDA #$FC
+		STA $0F15
+		STA $0F16
         
     .display_input:
         PHB
@@ -2360,7 +2607,7 @@ not_loading:
         RTL
 
 moon_lvls:
-        db $29,$06,$2E,$0F,$41,$22,$3A
+        db $29,$06,$2E,$0F,$41,$22,$36,$3A
         
 input_locs_1:
         db $2D,$2F,$14,$13,$10,$11,$0F,$12
@@ -2372,6 +2619,10 @@ input_tiles_2:
         db $0A,$21,$15,$1B
         
 try_save_value:
+		LDA !tick_rta_timer_flag
+		BEQ .not_spliced
+		RTS
+	.not_spliced:
         TXA
         ASL A
         ASL A
@@ -2454,6 +2705,9 @@ yoshi_wings:
         LDA $1B95
         CMP #$02
         BNE .no_yoshi_level
+		LDA $0DD5
+		CMP #$80
+		BEQ .no_yoshi_level
         INC $1493
         JSL precise_timer
         STZ $1B95
@@ -2502,6 +2756,8 @@ HexToDec16:
 		RTL
 
 took_secondary_exit:
+		PHP
+		PHX
         STA $17BB
         STA !recent_secondary_exit
         STA $0E
@@ -2517,6 +2773,170 @@ took_secondary_exit:
         STA !restore_room_powerup
         LDA $0DC2
         STA !restore_room_itembox
+        LDA $149F
+        STA !restore_room_pspeed
+		
+		SEP #$20
+		LDX #$0B
+	.loop_sprites:
+		LDA $14C8,X
+		CMP #$0B
+		BEQ .restore_item
+		DEX
+		BPL .loop_sprites
+		BRA .restore_done
+	.restore_item:		
+		LDA $9E,X
+		STA !restore_room_item
+	.restore_done:
+		PLX
+		PLP
         RTL
+
+drop_item_box:
+		PHB
+		PHK
+		PLB
+		PHX
+		
+		LDA !drop_item_flag
+        TAX
+		LDA $15
+		AND button_masks,X
+		EOR button_masks,X
+		
+		PLX
+		PLB
+		RTL
+		
+button_masks:
+		db $20,$28,$24,$60
+		
+display_bowser_timers:
+		LDA $0D9B
+		CMP #$C1                         ; in Bowser fight
+		BEQ .begin
+		RTL
+		
+	.begin:
+		PHB
+		PHK
+		PLB
+		PHY
+		LDA #$69
+		STA $02C2
+        LDA !tick_rta_timer_flag
+        BNE .rta_timer
+		LDA $13
+		AND #$20
+		BEQ .rta_timer
+		LDA #$8E
+		STA $02C2
+	.rta_timer:
+        LDA !timer_min
+        JSL $00974C
+		JSR dec_to_bowser
+        STA $02C6
+        LDA !timer_sec
+        JSL $00974C
+		JSR dec_to_bowser
+        STX $02CE
+        STA $02D2
+        LDA !timer_frames
+        JSL $00974C
+		JSR dec_to_bowser
+        STX $02DA
+        STA $02DE
+		LDA #$9D
+		STA $02CA
+		LDA #$9E
+		STA $02D6
+		
+		LDY #$08
+	.rta_loop:
+		DEY
+		BMI .display_room
+		TYX
+		STZ $0450,X
+		LDA timer_x,X
+		PHA
+		TYA
+		ASL A
+		ASL A
+		TAX
+		PLA
+		STA $02C0,X
+		LDA #$10
+		STA $02C1,X
+		LDA #$30
+		STA $02C3,X
+		BRA .rta_loop
+		
+    .display_room:
+        LDA !room_timer_min
+        JSL $00974C
+		JSR dec_to_bowser
+        STA $03A2
+        LDA !room_timer_sec
+        JSL $00974C
+		JSR dec_to_bowser
+        STX $03AA
+        STA $03AE
+        LDA !room_timer_frames
+        JSL $00974C
+		JSR dec_to_bowser
+        STX $03B6
+        STA $03BA
+		LDA #$9D
+		STA $03A6
+		LDA #$9E
+		STA $03B2
+		
+		LDY #$07
+	.room_loop:
+		DEY
+		BMI .done
+		TYX
+		STZ $0488,X
+		INX
+		LDA timer_x,X
+		DEX
+		PHA
+		TYA
+		ASL A
+		ASL A
+		TAX
+		PLA
+		STA $03A0,X
+		LDA #$18
+		STA $03A1,X
+		LDA #$32
+		STA $03A3,X
+		BRA .room_loop
+		
+	.done:
+		PLY
+		PLB
+		RTL
+		
+timer_x:
+	db $30,$38,$40,$48,$50,$58,$60,$68
+	
+dec_to_bowser:                               ; X = tens, A = ones
+		PHX
+		TAX
+		LDA bowser_numbers,X
+		PLX
+		PHA
+		LDA bowser_numbers,X
+		TAX
+		PLA
+		RTS
+
+bowser_numbers:
+	db $88,$89,$8A,$8B,$8C
+	db $98,$99,$9A,$9B,$9C
+		
+		
         
 print "Bytes inserted: ", bytes
