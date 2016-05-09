@@ -23,6 +23,7 @@ level_tick:
 		JSR display_pmeter
 		JSR display_timers
 		JSR display_dropped_frames
+		JSR display_input
 		PLB
 		PLP
 		RTL
@@ -49,6 +50,7 @@ display_speed:
 		JSL $00974C ; hex2dec
 		STX $1F2F ; tens
 		STA $1F30 ; ones
+		RTS
 		
 ; draw the player's takeoff meter to the status bar
 display_takeoff:
@@ -139,9 +141,103 @@ fractional_seconds:
 		db $50,$51,$53,$55,$57,$58,$5A,$5B,$5D,$5F,$61,$62
 
 ; draw the number of dropped frames to the status bar
+; this number will stay in hex because it can get large and lag the game itself!
 display_dropped_frames:
-		LDA $FC ; lag
-		JSL $00974C ; hex2dec
-		STX $1F76 ; tens
-		STA $1F77 ; ones
+		LDA !dropped_frames+1
+		PHA
+		LSR A
+		LSR A
+		LSR A
+		LSR A
+		STA $1F74 ; 0x1000's
+		PLA
+		AND #$0F
+		STA $1F75 ; 0x100's
+		LDA !dropped_frames
+		PHA
+		LSR A
+		LSR A
+		LSR A
+		LSR A
+		STA $1F76 ; 0x10's
+		PLA
+		AND #$0F
+		STA $1F77 ; 0x01's
+
+		LDX #$00 ; replace 0's with spaces cause it looks better for a 4 digit number
+	.loop:
+		LDA $1F74,X
+		BNE .done
+		LDA #$FC
+		STA $1F74,X
+		INX
+		CPX #$03
+		BNE .loop
+	.done
 		RTS
+		
+; draw the current controller input to the status bar
+display_input:
+        LDA #$7E
+        STA $02
+        LDA #$1F
+        STA $01
+		
+        LDA $0DA2 ; byetudlr
+        LDX #$08
+    .loop_cont_a:
+        DEX
+        BMI .next_cont
+        LSR A
+        PHA
+        BCS .draw_cont_a
+        LDA input_locs_1,X
+        STA $00
+        LDA #$FC
+        BRA .finish_cont_a
+    .draw_cont_a:
+        LDA input_locs_1,X
+        STA $00
+        LDA input_tiles_1,X
+    .finish_cont_a:
+        STA [$00]
+        PLA
+        BRA .loop_cont_a
+		
+    .next_cont:
+        LDA $0DA4 ; axlr----
+        LSR A
+        LSR A
+        LSR A
+        LSR A
+        LDX #$04
+    .loop_cont_b:
+        DEX
+        BMI .done_cont
+        LSR A
+        PHA
+        BCS .draw_cont_b
+        LDA input_locs_2,X
+        STA $00
+        LDA #$FC
+        BRA .finish_cont_b
+    .draw_cont_b:
+        LDA input_locs_2,X
+        STA $00
+        LDA input_tiles_2,X
+    .finish_cont_b:
+        STA [$00]
+        PLA
+        BRA .loop_cont_b
+
+    .done_cont:
+        RTS
+
+input_locs_1:
+        db $A5,$87,$A4,$86,$4C,$A6,$6A,$88
+input_locs_2:
+        db $69,$4B,$4A,$68
+input_tiles_1:
+        db $0B,$22,$0E,$1C,$1E,$0D,$15,$1B
+input_tiles_2:
+        db $0A,$21,$15,$1B

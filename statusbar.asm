@@ -3,10 +3,10 @@
 ; status bar default tiles and properties for each tile
 ORG $008C59
 Status_bar_tiles:
-	db $00,$2C,$00,$2C,$FC,$3C,$FC,$3C,$FC,$3C,$76,$3C,$27,$3C,$85,$3C,$27,$3C,$27,$3C,$86,$3C,$27,$3C,$27,$3C,$3A,$38,$3B,$38,$3B,$38,$3A,$78,$2E,$3C,$FC,$38,$00,$38,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$15,$28,$21,$28,$1E,$28
-	db $FC,$38,$FC,$38,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$27,$38,$85,$38,$27,$38,$27,$38,$86,$38,$27,$38,$27,$38,$4A,$38,$FC,$3C,$FC,$3C,$4A,$78,$FC,$3C,$FC,$3C,$00,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$1B,$28,$0A,$28,$15,$28
-	db $19,$3C,$00,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$4A,$38,$FC,$3C,$FC,$3C,$4A,$78,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$1C,$28,$22,$28,$1B,$28
-	db $FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$3A,$B8,$3B,$B8,$3B,$B8,$3A,$F8,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$0E,$28,$0B,$28,$0D,$28
+		db $00,$2C,$00,$2C,$FC,$3C,$FC,$3C,$FC,$3C,$76,$3C,$27,$3C,$85,$3C,$27,$3C,$27,$3C,$86,$3C,$27,$3C,$27,$3C,$3A,$38,$3B,$38,$3B,$38,$3A,$78,$2E,$3C,$FC,$38,$00,$38,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$28,$FC,$28,$FC,$28
+		db $FC,$38,$FC,$38,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$27,$38,$85,$38,$27,$38,$27,$38,$86,$38,$27,$38,$27,$38,$4A,$38,$FC,$3C,$FC,$3C,$4A,$78,$FC,$3C,$FC,$3C,$00,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$28,$FC,$28,$FC,$28
+		db $19,$3C,$00,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$4A,$38,$FC,$3C,$FC,$3C,$4A,$78,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$28,$FC,$28,$FC,$28
+		db $FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$3A,$B8,$3B,$B8,$3B,$B8,$3A,$F8,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$28,$FC,$28,$FC,$28
 	
 ; DMA 4 lines of status bar tile properties+default tiles
 DMA_Status_Bar:		
@@ -98,17 +98,17 @@ default_status_bar:
 
 ; number of scanlines used by layer 3 in normal level mode
 ORG $008293
-	db $28
+		db $28
 
 ; relocate calls to above routines
 ORG $00985A
-	JSR DMA_Status_Bar
+		JSR DMA_Status_Bar
 ORG $00A5A8
-	JSR DMA_Status_Bar
+		JSR DMA_Status_Bar
 ORG $0081F4
-	JSR DMA_Status_Bar_Tiles
+		JSR DMA_Status_Bar_Tiles
 ORG $0082E8
-	JSR DMA_Status_Bar_Tiles
+		JSR DMA_Status_Bar_Tiles
 	
 ; disable all the old status bar counters
 ; lives, coins, score, bonus stars, dragon coins
@@ -119,11 +119,11 @@ ORG $008F3B
 
 ; relocate the time counter
 ORG $008E6F
-	LDA $0F31
-	STA $1F5E
-	LDA $0F32
-	STA $1F5F
-	LDA $0F33
-	STA $1F60
+		LDA $0F31
+		STA $1F5E
+		LDA $0F32
+		STA $1F5F
+		LDA $0F33
+		STA $1F60
 ORG $008E8C
-	STA $1F4E,X
+		STA $1F4E,X

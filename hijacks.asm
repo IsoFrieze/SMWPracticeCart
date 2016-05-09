@@ -5,39 +5,20 @@
 ; $00CC86 - 53 / 53 bytes
 ; $009510 - 18 / 25 bytes
 
-; hijacks
-
-; run on overworld load
-;$00A087
-; run every frame on overworld
-;$00A1BE
-; run every frame in level
-;$00A1DA
-; run on level load before fade in
-;$0096D5
-; run on level load as soon as player gets control
-;$00A1DA (first frame)
-; run on level complete (switch, key, goal, orb, boss, bowser)
-;$------
-; run on vblank
-;$008176
-; run on every frame
-;$008072
-
 !level_loaded = $0F3A
 !level_finished = $1DEF
 
-; run on vblank
+; run on nmi
 ORG $0081AA
-		JSR vblank_hijack
+		JSR nmi_hijack
 		NOP
 		NOP
 		
 ORG $009510
-vblank_hijack:
+nmi_hijack:
 		LDA #$80
 		STA $2100
-		JSL vblank_expand ; vblank.asm
+		JSL nmi_expand ; nmi.asm
 		RTS
 every_frame_hijack:
 		JSR $9322

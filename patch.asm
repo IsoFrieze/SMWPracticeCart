@@ -10,6 +10,7 @@ ORG $00FFC0
 ; include everything because I want to be organized this time
 
 incsrc "overworld_menu.asm"
+incsrc "nmi.asm"
 incsrc "hijacks.asm"
 incsrc "relocations.asm"
 incsrc "statusbar.asm"
@@ -19,6 +20,5 @@ incsrc "level_load.asm"
 incsrc "level_finish.asm"
 incsrc "overworld_tick.asm"
 incsrc "level_tick.asm"
-incsrc "vblank.asm"
 incsrc "every_frame.asm"
 incsrc "prepare_file.asm"
