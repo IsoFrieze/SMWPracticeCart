@@ -1,2 +1,3 @@
-echo f | xcopy /y "base_LM_edits.smc" "x.smc"
-asar patch.asm x.smc
+echo f | xcopy /y "SMW.smc" "patched.smc"
+asar patch.asm patched.smc
+pause

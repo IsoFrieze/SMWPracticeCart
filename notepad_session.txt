@@ -1,0 +1,18 @@
+<NotepadPlus>
+    <Session activeView="0">
+        <mainView activeIndex="0">
+            <File firstVisibleLine="34" xOffset="0" scrollWidth="2114" startPos="3730" endPos="3730" selMode="0" lang="Normal Text" encoding="-1" filename="C:\Users\Alex\Downloads\LunarMagic\all.log\all.log" backupFilePath="C:\Users\Alex\AppData\Roaming\Notepad++\backup\all.log@2016-05-02_025235" originalFileLastModifTimestamp="1451766032" />
+            <File firstVisibleLine="162" xOffset="0" scrollWidth="2004" startPos="4534" endPos="4534" selMode="0" lang="Assembly" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\_old_patch.asm" backupFilePath="" originalFileLastModifTimestamp="1462302619">
+                <Mark line="198" />
+            </File>
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="350" startPos="344" endPos="344" selMode="0" lang="Batch" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\PATCH.bat" backupFilePath="" originalFileLastModifTimestamp="1462246103" />
+        </mainView>
+        <subView activeIndex="4">
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="622" startPos="610" endPos="610" selMode="0" lang="Assembly" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\hijacks.asm" backupFilePath="" originalFileLastModifTimestamp="1462251428" />
+            <File firstVisibleLine="70" xOffset="0" scrollWidth="1722" startPos="2448" endPos="2448" selMode="0" lang="Assembly" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\statusbar.asm" backupFilePath="" originalFileLastModifTimestamp="1462237571" />
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="133" startPos="0" endPos="0" selMode="0" lang="Assembly" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\overworld_tick.asm" backupFilePath="" originalFileLastModifTimestamp="1462220851" />
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="210" startPos="0" endPos="0" selMode="0" lang="Assembly" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\level_tick.asm" backupFilePath="" originalFileLastModifTimestamp="1462246123" />
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="210" startPos="78" endPos="84" selMode="0" lang="Assembly" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\every_frame.asm" backupFilePath="" originalFileLastModifTimestamp="1462245540" />
+        </subView>
+    </Session>
+</NotepadPlus>
