@@ -37,11 +37,11 @@ ORG $009510
 vblank_hijack:
 		LDA #$80
 		STA $2100
-		JSL $168000 ; vblank.asm
+		JSL vblank_expand ; vblank.asm
 		RTS
 every_frame_hijack:
 		JSR $9322
-		JSL $178000 ; every_frame.asm
+		JSL every_frame ; every_frame.asm
 		RTS
 
 ; run on every frame
@@ -54,11 +54,11 @@ ORG $00A087
 	
 ORG $00A249
 overworld_load_hijack:
-		JSL $118000 ; overworld_load.asm
+		JSL overworld_load ; overworld_load.asm
 		JSR $937D
 		RTS
 overworld_hijack:
-		JSL $148000 ; overworld_tick.asm
+		JSL overworld_tick ; overworld_tick.asm
 		JSR $9A74
 		RTS
 		
@@ -72,17 +72,17 @@ ORG $00A1DA
 		
 ORG $00F9F5
 level_hijack:
-		JSL $158000 ; level_tick.asm
+		JSL level_tick ; level_tick.asm
 		LDA !level_loaded
 		BEQ .already_loaded
 		STZ !level_loaded
-		JSL $108000 ; level_mario_appear.asm
+		JSL level_mario_appear ; level_mario_appear.asm
 	.already_loaded:
 		JSL test_last_frame
 		LDA $1426
 		RTS
 level_load_hijack:
-		JSL $128000 ; level_load.asm
+		JSL level_load ; level_load.asm
 		STZ $4200
 		INC !level_loaded
 		RTS
@@ -120,7 +120,7 @@ test_last_frame:
 		RTL
 		
 	.trigger:
-		JSL $138000 ; level_finish.asm
+		JSL level_finish ; level_finish.asm
 		RTL
 		
 ; hijack for overworld menu game modes
@@ -132,9 +132,9 @@ ORG $009367
 ; game modes for overworld menu
 ORG $00C578
 overworld_menu_load_gm:
-		JSL $188000 ; overworld_menu.asm
+		JSL overworld_menu_load ; overworld_menu.asm
 		RTS
 overworld_menu_gm:
-		JSL $198000 ; overworld_menu.asm
+		JSL overworld_menu ; overworld_menu.asm
 		RTS
 		

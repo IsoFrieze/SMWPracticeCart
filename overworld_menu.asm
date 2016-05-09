@@ -18,10 +18,13 @@
 ; $0F09 - $0F18 reserved for future expansion
 
 
+; this code is run once on overworld menu load
 ORG $188000
 overworld_menu_load:
 		RTL
 		
+
+; this code is run on every frame during the overworld menu game mode (after fade in completes)
 ORG $198000
 overworld_menu:
 		RTL

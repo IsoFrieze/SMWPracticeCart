@@ -8,6 +8,8 @@ ORG $00FFC0
 		db "SMW PRACTICE CART    "
 
 ; include everything because I want to be organized this time
+
+incsrc "overworld_menu.asm"
 incsrc "hijacks.asm"
 incsrc "relocations.asm"
 incsrc "statusbar.asm"
@@ -20,5 +22,3 @@ incsrc "level_tick.asm"
 incsrc "vblank.asm"
 incsrc "every_frame.asm"
 incsrc "prepare_file.asm"
-incsrc "overworld_menu.asm"
-		

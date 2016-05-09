@@ -1,3 +1,5 @@
 ORG $108000
-	level_mario_appear:
+
+; this code is run once on the frame that Mario appears (a frame after the mosaic effect finishes)
+level_mario_appear:
 		RTL

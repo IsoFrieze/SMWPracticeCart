@@ -1,3 +1,5 @@
 ORG $148000
-	overworld_tick:
+
+; this code is run on every frame during the overworld game mode (after fade in completes)
+overworld_tick:
 		RTL

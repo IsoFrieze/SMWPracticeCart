@@ -8,15 +8,11 @@ ORG $009339
 ; we specifically nop out this routine because
 ; we use the now-free space for a routine below
 ORG $009CB8
-		NOP
-		NOP
-		NOP
+		NOP #3
 		
 ; disable disabling sprite layer on title screen
 ORG $009CA5
-		NOP
-		NOP
-		NOP
+		NOP #3
 	
 ; write overworld
 ; set mario's overworld position if it is saved in sram

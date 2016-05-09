@@ -1,3 +1,5 @@
 ORG $128000
-	level_load:
+
+; this code is run once on level load (during the black screen)
+level_load:
 		RTL
