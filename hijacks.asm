@@ -63,9 +63,12 @@ level_hijack:
 		RTS
 level_load_hijack:
 		JSL level_load ; level_load.asm
-		STZ $4200
+		STZ $4200 ; *
 		INC !level_loaded
 		RTS
+		
+; * This will prevent NMI during level loading.
+; Eventually I will re-enable it so that we can count frames during room transitions.
 		
 ; run on level load before fade in
 ORG $0096D5

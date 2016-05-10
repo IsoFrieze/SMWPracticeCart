@@ -1,12 +1,13 @@
-!level_timer_minutes        = $0F3A
-!level_timer_seconds        = $0F3B
-!level_timer_frames         = $0F3C
-!backup_level_timer_minutes = $0F3D
-!backup_level_timer_seconds = $0F3E
-!backup_level_timer_frames  = $0F3F
-!room_timer_minutes         = $0F42
-!room_timer_seconds         = $0F43
-!room_timer_frames          = $0F44
+!level_timer_minutes         = $0F3A
+!level_timer_seconds         = $0F3B
+!level_timer_frames          = $0F3C
+!restore_level_timer_minutes = $0F3D
+!restore_level_timer_seconds = $0F3E
+!restore_level_timer_frames  = $0F3F
+!room_timer_minutes          = $0F42
+!room_timer_seconds          = $0F43
+!room_timer_frames           = $0F44
+!spliced_run                 = $0F19
 
 ORG $158000
 
@@ -134,7 +135,19 @@ display_timers:
 		STX $1F58 ; tens
 		STA $1F59 ; ones
 		
+	; draw flashing clock symbol if run was not spliced
+		LDA !spliced_run
+		BNE .merge
+		LDA $13 ; true frame
+		AND #%00100000
+		BEQ .merge
+		LDA #$76
+		STA $1F34
+		BRA .done
 	.merge:
+		LDA #$FC
+		STA $1F34
+	.done:
 		RTS
 
 ; table to convert frames into hundredths of seconds
