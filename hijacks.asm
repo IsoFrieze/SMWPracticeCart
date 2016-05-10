@@ -5,14 +5,13 @@
 ; $00CC86 - 53 / 53 bytes
 ; $009510 - 18 / 25 bytes
 
-!level_loaded = $0F3A
+!level_loaded   = $13C8
 !level_finished = $1DEF
 
 ; run on nmi
 ORG $0081AA
 		JSR nmi_hijack
-		NOP
-		NOP
+		NOP #2
 		
 ORG $009510
 nmi_hijack:

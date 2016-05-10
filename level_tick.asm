@@ -1,12 +1,12 @@
-!level_timer_minutes        = $0F5E
-!level_timer_seconds        = $0F5F
-!level_timer_frames         = $0F60
-!backup_level_timer_minutes = $0F61
-!backup_level_timer_seconds = $0F62
-!backup_level_timer_frames  = $0F63
-!room_timer_minutes         = $0F64
-!room_timer_seconds         = $0F65
-!room_timer_frames          = $0F66
+!level_timer_minutes        = $0F3A
+!level_timer_seconds        = $0F3B
+!level_timer_frames         = $0F3C
+!backup_level_timer_minutes = $0F3D
+!backup_level_timer_seconds = $0F3E
+!backup_level_timer_frames  = $0F3F
+!room_timer_minutes         = $0F42
+!room_timer_seconds         = $0F43
+!room_timer_frames          = $0F44
 
 ORG $158000
 
@@ -24,6 +24,11 @@ level_tick:
 		JSR display_timers
 		JSR display_dropped_frames
 		JSR display_input
+		PEA !level_timer_minutes
+		JSR tick_timer
+		PEA !room_timer_minutes
+		JSR tick_timer
+		JSR test_reset
 		PLB
 		PLP
 		RTL
@@ -149,95 +154,181 @@ display_dropped_frames:
 		LSR A
 		LSR A
 		LSR A
-		STA $1F74 ; 0x1000's
+		STA $1F73 ; 0x1000's
 		PLA
 		AND #$0F
-		STA $1F75 ; 0x100's
+		STA $1F74 ; 0x100's
 		LDA !dropped_frames
 		PHA
 		LSR A
 		LSR A
 		LSR A
 		LSR A
-		STA $1F76 ; 0x10's
+		STA $1F75 ; 0x10's
 		PLA
 		AND #$0F
-		STA $1F77 ; 0x01's
+		STA $1F76 ; 0x01's
 
 		LDX #$00 ; replace 0's with spaces cause it looks better for a 4 digit number
 	.loop:
-		LDA $1F74,X
+		LDA $1F73,X
 		BNE .done
 		LDA #$FC
-		STA $1F74,X
+		STA $1F73,X
 		INX
 		CPX #$03
 		BNE .loop
-	.done
+	.done:
+		LDA #$11
+		STA $1F77
 		RTS
 		
 ; draw the current controller input to the status bar
 display_input:
-        LDA #$7E
-        STA $02
-        LDA #$1F
-        STA $01
+		LDA #$7E
+		STA $02
+		LDA #$1F
+		STA $01
 		
-        LDA $0DA2 ; byetudlr
-        LDX #$08
-    .loop_cont_a:
-        DEX
-        BMI .next_cont
-        LSR A
-        PHA
-        BCS .draw_cont_a
-        LDA input_locs_1,X
-        STA $00
-        LDA #$FC
-        BRA .finish_cont_a
-    .draw_cont_a:
-        LDA input_locs_1,X
-        STA $00
-        LDA input_tiles_1,X
-    .finish_cont_a:
-        STA [$00]
-        PLA
-        BRA .loop_cont_a
+		LDA $0DA2 ; byetudlr
+		LDX #$08
+	.loop_cont_a:
+		DEX
+		BMI .next_cont
+		LSR A
+		PHA
+		BCS .draw_cont_a
+		LDA input_locs_1,X
+		STA $00
+		LDA #$FC
+		BRA .finish_cont_a
+	.draw_cont_a:
+		LDA input_locs_1,X
+		STA $00
+		LDA input_tiles_1,X
+	.finish_cont_a:
+		STA [$00]
+		PLA
+		BRA .loop_cont_a
 		
-    .next_cont:
-        LDA $0DA4 ; axlr----
-        LSR A
-        LSR A
-        LSR A
-        LSR A
-        LDX #$04
-    .loop_cont_b:
-        DEX
-        BMI .done_cont
-        LSR A
-        PHA
-        BCS .draw_cont_b
-        LDA input_locs_2,X
-        STA $00
-        LDA #$FC
-        BRA .finish_cont_b
-    .draw_cont_b:
-        LDA input_locs_2,X
-        STA $00
-        LDA input_tiles_2,X
-    .finish_cont_b:
-        STA [$00]
-        PLA
-        BRA .loop_cont_b
+	.next_cont:
+		LDA $0DA4 ; axlr----
+		LSR A
+		LSR A
+		LSR A
+		LSR A
+		LDX #$04
+	.loop_cont_b:
+		DEX
+		BMI .done_cont
+		LSR A
+		PHA
+		BCS .draw_cont_b
+		LDA input_locs_2,X
+		STA $00
+		LDA #$FC
+		BRA .finish_cont_b
+	.draw_cont_b:
+		LDA input_locs_2,X
+		STA $00
+		LDA input_tiles_2,X
+	.finish_cont_b:
+		STA [$00]
+		PLA
+		BRA .loop_cont_b
 
-    .done_cont:
-        RTS
+	.done_cont:
+		RTS
 
 input_locs_1:
-        db $A5,$87,$A4,$86,$4C,$A6,$6A,$88
+		db $A5,$87,$A4,$86,$4C,$A6,$6A,$88
 input_locs_2:
-        db $69,$4B,$4A,$68
+		db $69,$4B,$4A,$68
 input_tiles_1:
-        db $0B,$22,$0E,$1C,$1E,$0D,$15,$1B
+		db $0B,$22,$0E,$1C,$1E,$0D,$15,$1B
 input_tiles_2:
-        db $0A,$21,$15,$1B
+		db $0A,$21,$15,$1B
+		
+; increment the timer located at address at top of stack by the number of frames elapsed this execution frame
+tick_timer:
+		PLX ; grab timer address off of the stack and restore return address
+		PLY
+		PLA
+		STA $00
+		PLA
+		STA $01
+		PHY
+		PHX
+		
+		LDY #$02
+		LDA ($00),Y
+		CLC
+		ADC !real_frames
+		CMP #$3C
+		BCC .frames_less
+		SEC
+		SBC #$3C
+		STA ($00),Y
+		DEY
+		LDA ($00),Y
+		INC A
+		CMP #$3C
+		BCC .seconds_less
+		SEC
+		SBC #$3C
+		STA ($00),Y
+		DEY
+		LDA ($00),Y
+		INC A
+		CMP #$0A
+		BCS .minutes_max
+		STA ($00),Y
+	.done:
+		RTS
+	.frames_less:
+		STA ($00),Y
+		BRA .done
+	.seconds_less:
+		STA ($00),Y
+		BRA .done
+	.minutes_max:
+		LDA #$3B
+		INY
+		STA ($00),Y
+		INY
+		STA ($00),Y
+		BRA .done
+
+; test if a reset was activated, if so, call the appropriate routine
+test_reset:
+		LDA $0DA4 ; axlr----
+		AND #%00110000
+		CMP #%00110000
+		BNE .done
+		
+		; test X + Y for advance room
+		LDA $0DA4 ; axlr----
+		AND #%01000000
+		BEQ .test_ab
+		LDA $0DA2 ; byetudlr
+		AND #%01000000
+		BEQ .test_ab
+		JSL activate_room_advance
+		JMP .done
+		
+		; test A + B for level reset
+	.test_ab:
+		LDA $0DA4 ; axlr----
+		AND #%10000000
+		BEQ .room_reset
+		LDA $0DA2 ; byetudlr
+		AND #%10000000
+		BEQ .room_reset
+		JSL activate_level_reset
+		JMP .done
+	
+	.room_reset:
+		JSL activate_room_reset
+		
+	.done:
+		RTS
