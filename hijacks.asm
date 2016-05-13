@@ -5,8 +5,8 @@
 ; $00CC86 - 53 / 53 bytes
 ; $009510 - 18 / 25 bytes
 
-!level_loaded   = $13C8
-!level_finished = $1DEF
+!level_loaded           = $13C8
+!level_finished         = $1DEF
 
 ; run on nmi
 ORG $0081AA
@@ -120,4 +120,8 @@ overworld_menu_load_gm:
 overworld_menu_gm:
 		JSL overworld_menu ; overworld_menu.asm
 		RTS
-		
+
+; run during level load, like while $17BB is available
+ORG $05D7BD
+		JSL level_load_exit_table
+		NOP #2

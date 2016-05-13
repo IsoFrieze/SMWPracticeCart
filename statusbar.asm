@@ -98,7 +98,7 @@ default_status_bar:
 
 ; number of scanlines used by layer 3 in normal level mode
 ORG $008293
-		db $28
+		db $26
 
 ; relocate calls to above routines
 ORG $00985A

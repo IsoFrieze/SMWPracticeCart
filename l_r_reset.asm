@@ -1,13 +1,10 @@
-!recent_screen_exit     = $0F1A
-!recent_secondary_flag  = $0F1B
-!l_r_function           = $0F1D
-
 ORG $1A8000
 
 ; this code is run when the player presses L + R in a level to reset the current room
 activate_room_reset:
 		; if we are in first room of level, just level reset
 		LDA $141A ; sublevel count
+		AND #$7F
 		BNE .room_reset
 		JSL activate_level_reset
 		RTL
@@ -16,7 +13,10 @@ activate_room_reset:
 		LDA #$01
 		STA !l_r_function
 		
-		; TODO set secondary exit
+		LDA !recent_screen_exit
+		LDY !recent_secondary_flag
+		JSR set_global_exit
+		JSR trigger_screen_exit
 		
 		RTL
 
