@@ -11,10 +11,12 @@
 !status_drop         = $0F02
 !status_fractions    = $0F03
 !status_slots        = $0F04
-!status_music        = $0F05
-!status_enemy        = $0F06
-!status_save         = $0F07
-; $0F08 - $0F18 reserved for future expansion
+!status_pause        = $0F05
+!status_timedeath    = $0F06
+!status_music        = $0F07
+!status_enemy        = $0F08
+!status_exit         = $0F09
+; $0F0A - $0F18 reserved for future expansion
 
 
 ; this code is run once on overworld menu load

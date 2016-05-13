@@ -8,6 +8,7 @@
 !room_timer_seconds          = $0F43
 !room_timer_frames           = $0F44
 !spliced_run                 = $0F19
+!held_item_slot              = $0F1C
 
 ORG $158000
 
@@ -25,6 +26,8 @@ level_tick:
 		JSR display_timers
 		JSR display_dropped_frames
 		JSR display_input
+		JSR display_yoshi_subpixel
+		JSR display_held_subpixel
 		PEA !level_timer_minutes
 		JSR tick_timer
 		PEA !room_timer_minutes
@@ -261,6 +264,81 @@ input_tiles_1:
 		db $0B,$22,$0E,$1C,$1E,$0D,$15,$1B
 input_tiles_2:
 		db $0A,$21,$15,$1B
+
+; if yoshi is present, draw his x and y subpixels to the status bar
+display_yoshi_subpixel:
+		LDA $18DF ; yoshi slot
+		BEQ .erase
+		DEC A
+		TAX
+		LDA $14F8,X ; sprite x subpixel
+		LSR A
+		LSR A
+		LSR A
+		LSR A
+		STA $1F32
+		LDA $14EC,X ; sprite y subpixel
+		LSR A
+		LSR A
+		LSR A
+		LSR A
+		STA $1F33
+		BRA .done
+	.erase:
+		LDA #$FC
+		STA $1F32
+		STA $1F33
+	.done:
+		RTS
+
+; if an item is held, draw its x and y subpixels to the status bar
+display_held_subpixel:
+		LDA !held_item_slot
+		BMI .done_check_despawn
+		; check if item has despawned, and if so, erase the numbers
+		TAX
+		LDA $14C8,X ; sprite status
+		CMP #$07
+		BCS .done_check_despawn
+		LDA #$FF
+		STA !held_item_slot
+		LDA #$FC
+		STA $1F50
+		STA $1F51
+		
+	.done_check_despawn:
+		LDA $148F ; held item flag
+		BEQ .done_check_hold
+		LDX #$0B
+	.loop:
+		LDA $14C8,X ; sprite status
+		CMP #$0B
+		BEQ .store_held
+		DEX
+		BPL .loop
+		BRA .done_check_hold
+	.store_held:
+		STX !held_item_slot
+		
+	.done_check_hold:
+		LDA !held_item_slot
+		BMI .done
+		TAX
+		LDA $14F8,X ; sprite x subpixel
+		LSR A
+		LSR A
+		LSR A
+		LSR A
+		STA $1F50
+		LDA $14EC,X ; sprite y subpixel
+		LSR A
+		LSR A
+		LSR A
+		LSR A
+		STA $1F51
+		
+	.done:
+		RTS
 		
 ; increment the timer located at address at top of stack by the number of frames elapsed this execution frame
 tick_timer:

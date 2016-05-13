@@ -1,4 +1,6 @@
-!recent_secondary_exit = $0F1A
+!recent_screen_exit     = $0F1A
+!recent_secondary_flag  = $0F1B
+!l_r_function           = $0F1D
 
 !restore_level_powerup  = $19D8
 !restore_level_itembox  = $19D9
@@ -19,10 +21,16 @@ ORG $1A8000
 
 ; this code is run when the player presses L + R in a level to reset the current room
 activate_room_reset:
-		; if we are in first room of level
-		; JSR activate_level_reset
-		; RTL
+		; if we are in first room of level, just level reset
+		LDA $141A ; sublevel count
+		BNE .room_reset
+		JSL activate_level_reset
+		RTL
 		
+		LDA #$01
+		STA !l_r_function
+		
+	.room_reset:
 		LDA #$01
 		STA !spliced_run
 		
@@ -48,6 +56,7 @@ activate_room_reset:
 		STA !level_timer_seconds
 		LDA !restore_level_timer_frames
 		STA !level_timer_frames
+		DEC $141A ; sublevel count
 		
 		LDX #$03
 	.loop_tables:
@@ -71,6 +80,9 @@ activate_room_reset:
 
 ; this code is run when the player presses L + R + A + B in a level to reset the entire level
 activate_level_reset:
+		LDA #$02
+		STA !l_r_function
+		
 		STZ !spliced_run
 		
 		LDA !restore_level_powerup
@@ -88,6 +100,8 @@ activate_level_reset:
 		STZ !level_timer_minutes
 		STZ !level_timer_seconds
 		STZ !level_timer_frames
+		LDA #$FF
+		STA $141A ; sublevel count
 		
 		LDX #$03
 	.loop_tables:
@@ -121,6 +135,9 @@ activate_level_reset:
 
 ; this code is run when the player presses L + R + X + Y in a level to advance to the next room
 activate_room_advance:
+		LDA #$03
+		STA !l_r_function
+		
 		LDA #$01
 		STA !spliced_run
 		RTL
