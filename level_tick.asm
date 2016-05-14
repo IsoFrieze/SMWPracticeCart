@@ -33,6 +33,7 @@ level_tick:
 		JSR tick_timer
 		PEA !room_timer_minutes
 		JSR tick_timer
+		JSR test_ci2
 		JSR test_reset
 		PLB
 		PLP
@@ -394,12 +395,107 @@ tick_timer:
 		STA ($00),Y
 		BRA .done
 
+; rewrite CI2's weird screen exits so it's compatible with the level reset code
+test_ci2:
+		LDA $71 ; player animation
+		CMP #$05
+		BNE .done
+		LDA $88 ; pipe animation
+		BNE .done
+		LDA $13BF ; translevel number
+		CMP #$24
+		BNE .done
+		
+		LDA $141A
+		AND #$7F
+		ASL A
+		TAX
+		LDY #$00
+		JSR (ci2_room_exits,X)
+		
+	.done:
+		RTS
+
+ci2_room_exits:
+        dw ci2_coins
+        dw ci2_time
+        dw ci2_dragon_coins
+		dw ci2_goal ; this shouldn't happen, but just in case
+
+ci2_coins:
+        LDA $0DBF ; coins
+        CMP #$15
+        BCC .less_21
+        LDA #$CF ; x >= 21 coins
+        BRA .and_go
+    .less_21:
+        CMP #$09
+        BCC .less_9
+        LDA #$B9 ; 9 <= x < 21 coins
+        BRA .and_go
+    .less_9
+        LDA #$B8 ; x < 9 coins
+    .and_go:
+        JSL set_global_exit
+        RTS
+
+ci2_time:
+        LDA $0F31 ; timer hundreds
+        CMP #$02
+        BCS .ge_200
+        LDA #$CE ; x < 200
+        BRA .and_go
+    .ge_200:
+        LDA $0F32 ; timer tens
+        ASL A
+        ASL A
+        ASL A
+        ASL A
+        ORA $0F33 ; timer ones
+        CMP #$35
+        BCS .ge_235
+        LDA #$CE ; 200 <= x < 235
+        BRA .and_go
+    .ge_235:
+        CMP #$50
+        BCS .ge_250
+        LDA #$BB ; 235 <= x < 250
+        BRA .and_go
+    .ge_250
+        LDA #$BA ; x >= 250
+    .and_go:
+        JSL set_global_exit
+        RTS
+
+ci2_dragon_coins:
+        LDA $1420 ; dragon coins
+        CMP #$04
+        BCS .ge_4
+        LDA #$BC ; x < 4 dragon coins
+        BRA .and_go
+    .ge_4:
+        LDA #$CD ; x >= 4 dragon coins
+    .and_go
+        JSL set_global_exit
+        RTS
+
+ci2_goal:
+		RTS
+		
+
 ; test if a reset was activated, if so, call the appropriate routine
 test_reset:
+		LDA $9D ; sprite lock flag
+		BNE .done
+		LDA $1493 ; end level timer
+		BNE .done
+		
 		LDA $0DA4 ; axlr----
 		AND #%00110000
 		CMP #%00110000
 		BNE .done
+		
+		INC $9D ; sprite lock flag
 		
 		; test X + Y for advance room
 		LDA $0DA4 ; axlr----

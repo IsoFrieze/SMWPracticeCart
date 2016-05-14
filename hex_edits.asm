@@ -40,3 +40,43 @@ ORG $04E5E6
 ; remove intro sequence
 ORG $009CB1
 	db $00
+
+; allow pausing during level end
+ORG $00A224
+	NOP #2
+
+; disable chocolate island 2 weirdness
+ORG $05DAE5
+    db $00
+
+; chocolate island 2 sublevels
+; main level = 024 (original)
+; coins:
+;    00-08: 0B8 (NEW)
+;    09-20: 0B9 (NEW)
+;    21+  : 0CF (original)
+; time:
+;    250+   : 0BA (NEW)
+;    235-249: 0BB (NEW)
+;    000-234: 0CE (original)
+; dragon coins:
+;    0-4: 0BC (NEW)
+;    5  : 0CD (original)
+ORG $05E228 ; Layer 1
+	dl $06EAB0 ; parakoopa room
+	dl $06E9FB ; rex room
+	dl $06EBBE ; keyhole room
+	dl $06EB72 ; rhino room
+	dl $06EC7E ; rex goal room
+ORG $05E828 ; Layer 2
+	dl $FFDF59
+	dl $FFDF59
+	dl $FFDF59
+	dl $FFDF59
+	dl $FFDF59
+ORG $05ED70 ; Sprites
+	dw $D825 ; parakoopa room
+	dw $D7EA ; rex room
+	dw $D888 ; keyhole room
+	dw $D86E ; rhino room
+	dw $D8A1 ; rex goal room

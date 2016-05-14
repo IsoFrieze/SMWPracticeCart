@@ -158,7 +158,8 @@ setup_room_advance:
 		LDA #$01
 		STA !spliced_run
 		
-		; TODO
+		JSR save_room_properties
+		JSR restore_common_aspects
 		
 		RTS
 
