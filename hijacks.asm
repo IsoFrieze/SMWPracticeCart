@@ -125,3 +125,7 @@ overworld_menu_gm:
 ORG $05D7BD
 		JSL level_load_exit_table
 		NOP #2
+
+; run during level load, like while X = level index into timer table
+ORG $058583
+		JSL level_load_timer

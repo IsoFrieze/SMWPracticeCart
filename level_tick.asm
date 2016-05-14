@@ -9,6 +9,7 @@
 !room_timer_frames           = $0F44
 !spliced_run                 = $0F19
 !held_item_slot              = $0F1C
+!freeze_timer_flag           = $0F1E
 
 ORG $158000
 
@@ -350,6 +351,9 @@ tick_timer:
 		STA $01
 		PHY
 		PHX
+		
+		LDA !freeze_timer_flag
+		BNE .done
 		
 		LDY #$02
 		LDA ($00),Y

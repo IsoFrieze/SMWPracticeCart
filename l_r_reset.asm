@@ -68,4 +68,7 @@ trigger_screen_exit:
 		STA $71 ; player animation trigger
 		STZ $88
 		STZ $89 ; pipe timers
+		
+		LDA #$20 ; bow sound
+		STA $1DF9 ; apu i/o
 		RTS

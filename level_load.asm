@@ -47,9 +47,10 @@ level_load:
 		LDA $148F ; held item flag
 		DEC A
 		STA !held_item_slot
-		STZ !dropped_frames
-		STZ !dropped_frames+1
 		STZ !l_r_function
+		STZ !freeze_timer_flag
+		LDA #$28
+		STA $0F30 ; igt timer
 		
 		PLB
 		PLP
@@ -256,8 +257,6 @@ save_level_properties:
 		LDA $13C7 ; yoshi color
 		STA !restore_level_yoshi
 	.yoshi_done:
-		LDA $0F31 ; timer hundreds
-		STA !restore_level_igt
 		
 		LDX #$03
 	.loop_tables:
@@ -265,6 +264,18 @@ save_level_properties:
 		STA !restore_level_boo_ring,X
 		DEX
 		BPL .loop_tables
+		
+		STZ !level_timer_minutes
+		STZ !level_timer_seconds
+		STZ !level_timer_frames
+		
+		REP #$10
+		LDX #$017F
+	.loop_memory:
+		STZ $19F8,X ; item memory
+		DEX
+		BPL .loop_memory
+		SEP #$10
 		
 		RTS
 
@@ -276,4 +287,11 @@ level_load_exit_table:
 		LDA $19B8,X ; exit table
 		STA $17BB ; exit backup
 		STA !recent_screen_exit
+		RTL
+
+; save starting time to backup register
+; this isn't done in the above code because X is only the level index during the load routine
+level_load_timer:
+		LDA $0584D7,X ; timer table
+		STA !restore_level_igt
 		RTL
