@@ -7,9 +7,16 @@
 !room_timer_minutes          = $0F42
 !room_timer_seconds          = $0F43
 !room_timer_frames           = $0F44
+
 !spliced_run                 = $0F19
 !held_item_slot              = $0F1C
 !freeze_timer_flag           = $0F1E
+
+!record_used_powerup         = $0F23
+!record_used_cape            = $0F24
+!record_used_yoshi           = $0F25
+!record_used_orb             = $0F26
+!record_lunar_dragon         = $0F27
 
 ORG $158000
 
@@ -35,6 +42,7 @@ level_tick:
 		JSR tick_timer
 		JSR test_ci2
 		JSR test_reset
+		JSR test_run_type
 		PLB
 		PLP
 		RTL
@@ -417,67 +425,67 @@ test_ci2:
 		RTS
 
 ci2_room_exits:
-        dw ci2_coins
-        dw ci2_time
-        dw ci2_dragon_coins
+		dw ci2_coins
+		dw ci2_time
+		dw ci2_dragon_coins
 		dw ci2_goal ; this shouldn't happen, but just in case
 
 ci2_coins:
-        LDA $0DBF ; coins
-        CMP #$15
-        BCC .less_21
-        LDA #$CF ; x >= 21 coins
-        BRA .and_go
-    .less_21:
-        CMP #$09
-        BCC .less_9
-        LDA #$B9 ; 9 <= x < 21 coins
-        BRA .and_go
-    .less_9
-        LDA #$B8 ; x < 9 coins
-    .and_go:
-        JSL set_global_exit
-        RTS
+		LDA $0DBF ; coins
+		CMP #$15
+		BCC .less_21
+		LDA #$CF ; x >= 21 coins
+		BRA .and_go
+	.less_21:
+		CMP #$09
+		BCC .less_9
+		LDA #$B9 ; 9 <= x < 21 coins
+		BRA .and_go
+	.less_9
+		LDA #$B8 ; x < 9 coins
+	.and_go:
+		JSL set_global_exit
+		RTS
 
 ci2_time:
-        LDA $0F31 ; timer hundreds
-        CMP #$02
-        BCS .ge_200
-        LDA #$CE ; x < 200
-        BRA .and_go
-    .ge_200:
-        LDA $0F32 ; timer tens
-        ASL A
-        ASL A
-        ASL A
-        ASL A
-        ORA $0F33 ; timer ones
-        CMP #$35
-        BCS .ge_235
-        LDA #$CE ; 200 <= x < 235
-        BRA .and_go
-    .ge_235:
-        CMP #$50
-        BCS .ge_250
-        LDA #$BB ; 235 <= x < 250
-        BRA .and_go
-    .ge_250
-        LDA #$BA ; x >= 250
-    .and_go:
-        JSL set_global_exit
-        RTS
+		LDA $0F31 ; timer hundreds
+		CMP #$02
+		BCS .ge_200
+		LDA #$CE ; x < 200
+		BRA .and_go
+	.ge_200:
+		LDA $0F32 ; timer tens
+		ASL A
+		ASL A
+		ASL A
+		ASL A
+		ORA $0F33 ; timer ones
+		CMP #$35
+		BCS .ge_235
+		LDA #$CE ; 200 <= x < 235
+		BRA .and_go
+	.ge_235:
+		CMP #$50
+		BCS .ge_250
+		LDA #$BB ; 235 <= x < 250
+		BRA .and_go
+	.ge_250
+		LDA #$BA ; x >= 250
+	.and_go:
+		JSL set_global_exit
+		RTS
 
 ci2_dragon_coins:
-        LDA $1420 ; dragon coins
-        CMP #$04
-        BCS .ge_4
-        LDA #$BC ; x < 4 dragon coins
-        BRA .and_go
-    .ge_4:
-        LDA #$CD ; x >= 4 dragon coins
-    .and_go
-        JSL set_global_exit
-        RTS
+		LDA $1420 ; dragon coins
+		CMP #$04
+		BCS .ge_4
+		LDA #$BC ; x < 4 dragon coins
+		BRA .and_go
+	.ge_4:
+		LDA #$CD ; x >= 4 dragon coins
+	.and_go
+		JSL set_global_exit
+		RTS
 
 ci2_goal:
 		RTS
@@ -523,3 +531,64 @@ test_reset:
 		
 	.done:
 		RTS
+
+; test if player used cape, powerup, yoshi, etc. to count towards record keeping
+test_run_type:
+		LDA $187A ; riding yoshi
+		BNE .set_yoshi
+		LDA $19 ; powerup
+		BNE .deny_low
+		LDA $1490 ; star
+		BNE .deny_low
+		LDA $13F3 ; p-balloon flag
+		BEQ .check_cape
+		
+	.set_yoshi:
+		LDA #%01000000
+		STA !record_used_yoshi
+	.deny_low:
+		LDA #$01
+		STA !record_used_powerup
+	.check_cape:
+		LDA $19 ; powerup
+		CMP #$02
+		BNE .check_ld
+		LDA #$01
+		STA !record_used_cape
+		
+	.check_ld:
+		LDA $1420 ; dragon coin count
+		CMP #$05
+		BCC .done
+		LDA $13BF ; translevel
+		LDY #$07
+	.loop:
+		DEY
+		BMI .success
+		CMP levels_with_moons,Y
+		BNE .loop
+		LDA $13C5 ; collected moon flag
+		BEQ .done
+	.success:
+		LDA #$01
+		STA !record_lunar_dragon
+		
+	.done:
+		RTS
+
+levels_with_moons:
+		db $29,$06,$2E,$0F,$41,$22,$36,$3A
+
+; activate orb flag if level beaten with orb that came out of the item box
+collect_orb:
+		STZ $14C8,X ; sprite status
+		LDA $9E,X ; sprite id
+		CMP #$4A ; orb
+		BNE .done
+;		LDA $1528,X ; misc table (used for original orb in level flag)
+;		BNE .done ; TODO
+		LDA #%00100000
+		STA !record_used_orb
+	.done:
+		LDA #$FF
+		RTL

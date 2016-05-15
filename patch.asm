@@ -5,7 +5,7 @@
 ;========================
 
 ORG $00FFC0
-		db "SMW PRACTICE CART    "
+		;db "SMW PRACTICE CART    "
 
 ; include everything because I want to be organized this time
 

@@ -33,6 +33,7 @@ set_marios_overworld_position:
 		STA $700004
 		LDA #$00 ; y high
 		STA $700005
+		JSL delete_all_data
 	.already_set:
 		LDA $700001
 		STA $1F11 ; submap
@@ -62,4 +63,4 @@ prepare_overworld:
 
 ; give the cartridge more SRAM
 ORG $00FFD8
-		db $04
+		db $02

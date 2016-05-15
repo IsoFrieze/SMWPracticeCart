@@ -1,53 +1,53 @@
 ; disable no-yoshi intros
 ORG $05DA19
-    JMP $DAD7
-	
+		JMP $DAD7
+		
 ; disable tempo hike at 99 seconds
 ORG $008E59
-	db $80
-	
+		db $80
+		
 ; disable death at 0 seconds
 ; TODO make this an option
 ORG $008E69
-	db $80
+		db $80
 
 ; don't go to bonus game
 ORG $008F67
-    NOP #3
+		NOP #3
 
 ; reload music on death
 ORG $00F610
-	db $00
+		db $00
 
 ; disable midway points
 ORG $00CA2C
-    db $00
+		db $00
 
 ; activate ! blocks every time
 ORG $00EEB1
-    NOP #2
+		NOP #2
 ORG $0DEC9A
-    NOP #2
+		NOP #2
 
 ; disable overworld panning
 ORG $048380
-    db $00
+		db $00
 
 ; remove save prompt
 ORG $04E5E6
-    db $00,$00,$00,$00,$00,$00,$00,$00
-	
+		db $00,$00,$00,$00,$00,$00,$00,$00
+		
 ; remove intro sequence
 ORG $009CB1
-	db $00
+		db $00
 
 ; allow pausing during level end
 ORG $00A224
-	NOP #2
+		NOP #2
 
 ; disable chocolate island 2 weirdness
 ORG $05DAE5
-    db $00
+		db $00
 
 ; chocolate island 2 sublevels
 ; main level = 024 (original)
@@ -63,20 +63,18 @@ ORG $05DAE5
 ;    0-4: 0BC (NEW)
 ;    5  : 0CD (original)
 ORG $05E228 ; Layer 1
-	dl $06EAB0 ; parakoopa room
-	dl $06E9FB ; rex room
-	dl $06EBBE ; keyhole room
-	dl $06EB72 ; rhino room
-	dl $06EC7E ; rex goal room
+		dl $06EAB0 ; parakoopa room
+		dl $06E9FB ; rex room
+		dl $06EBBE ; keyhole room
+		dl $06EB72 ; rhino room
+		dl $06EC7E ; rex goal room
 ORG $05E828 ; Layer 2
-	dl $FFDF59
-	dl $FFDF59
-	dl $FFDF59
-	dl $FFDF59
-	dl $FFDF59
+		dl $FFDF59,$FFDF59,$FFDF59,$FFDF59,$FFDF59
 ORG $05ED70 ; Sprites
-	dw $D825 ; parakoopa room
-	dw $D7EA ; rex room
-	dw $D888 ; keyhole room
-	dw $D86E ; rhino room
-	dw $D8A1 ; rex goal room
+		dw $D825 ; parakoopa room
+		dw $D7EA ; rex room
+		dw $D888 ; keyhole room
+		dw $D86E ; rhino room
+		dw $D8A1 ; rex goal room
+ORG $05F2B8 ; level entrance
+		db $10,$10,$10,$10,$10

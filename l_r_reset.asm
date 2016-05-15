@@ -47,7 +47,6 @@ activate_room_advance:
 		
 		LDA $141A ; sublevel count
 		AND #$7F
-			;STA $1F2B
 		BNE .load_from_backup
 		
 		; we just entered the level, so backup may not be available

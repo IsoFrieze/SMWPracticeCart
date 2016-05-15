@@ -129,3 +129,8 @@ ORG $05D7BD
 ; run during level load, like while X = level index into timer table
 ORG $058583
 		JSL level_load_timer
+
+; run after collecting an orb, like while X = its slot number
+ORG $018778
+		JSL collect_orb
+		NOP

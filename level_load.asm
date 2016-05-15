@@ -16,6 +16,7 @@
 !recent_screen_exit     = $0F1A
 !recent_secondary_flag  = $0F1B
 !l_r_function           = $0F1D
+!save_timer_address     = $0F20 ; 3 bytes
 
 ORG $128000
 
@@ -51,6 +52,8 @@ level_load:
 		STZ !freeze_timer_flag
 		LDA #$28
 		STA $0F30 ; igt timer
+		LDA #$FF
+		STA !save_timer_address+2
 		
 		PLB
 		PLP
@@ -132,6 +135,11 @@ setup_level_reset:
 		STZ !level_timer_minutes
 		STZ !level_timer_seconds
 		STZ !level_timer_frames
+		STZ !record_used_powerup
+		STZ !record_used_cape
+		STZ !record_used_yoshi
+		STZ !record_used_orb
+		STZ !record_lunar_dragon
 		
 		; set msb so it's not 00, which is a special case for entering the level
 		; we'll turn this byte into fnnnnnnn, f = 0 if just entered level, n = sublevel count
@@ -269,6 +277,11 @@ save_level_properties:
 		STZ !level_timer_minutes
 		STZ !level_timer_seconds
 		STZ !level_timer_frames
+		STZ !record_used_powerup
+		STZ !record_used_cape
+		STZ !record_used_yoshi
+		STZ !record_used_orb
+		STZ !record_lunar_dragon
 		
 		REP #$10
 		LDX #$017F

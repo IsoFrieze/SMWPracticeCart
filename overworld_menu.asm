@@ -28,3 +28,20 @@ overworld_menu_load:
 ORG $198000
 overworld_menu:
 		RTL
+
+; clear all the times saved in memory
+; this is also run the first time you start up the game
+delete_all_data:
+		PHP
+		REP #$30
+		
+		LDA #$FFFF
+		LDX #$0FDE
+	.loop:
+		STA $700020,X
+		DEX
+		DEX
+		BPL .loop
+		
+		PLP
+		RTL
