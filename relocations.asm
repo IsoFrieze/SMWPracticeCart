@@ -101,3 +101,25 @@ load_special_16:
 		LDA !status_special
 		AND #$00FF
 		RTS
+
+; move layer 3 border data from $04A400 to $04A200
+; insert new overworld tilemap, which is slightly larger than the original
+ORG $04A200
+overworld_layer3_stripe:
+		incbin "bin/overworld_layer3_stripe.bin"
+overworld_layer2_tiles:
+		incbin "bin/overworld_layer2_tiles_compressed.bin"
+overworld_layer2_properties:
+		incbin "bin/overworld_layer2_properties_compressed.bin"
+		
+ORG $0084D6
+		dl overworld_layer3_stripe
+ORG $04DC72
+		dw overworld_layer2_tiles
+ORG $04DC8D
+		dw overworld_layer2_properties
+		
+ORG $05D000
+		incbin "bin/overworld_layer1_characters.bin"
+ORG $0CF7DF
+		incbin "bin/overworld_layer1_tiles.bin"

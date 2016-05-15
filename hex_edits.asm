@@ -45,6 +45,15 @@ ORG $009CB1
 ORG $00A224
 		NOP #2
 
+; press x or y on yoshi's house to warp to special world
+ORG $049134
+		AND #%01000000
+		db $F0
+ORG $0484D1
+		dw $0B18
+ORG $048507
+		dw $0118
+
 ; disable chocolate island 2 weirdness
 ORG $05DAE5
 		db $00

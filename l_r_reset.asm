@@ -147,5 +147,5 @@ room_advance_table:
 		; Table 6: secondary exit flag for above table number
 		; Table 7: exit number to take if last exit was a level exit, bank 0
 		; Table 8: secondary exit flag for above table number
-		incbin "room_advance_table.bin"
+		incbin "bin/room_advance_table.bin"
 		; =======================================
