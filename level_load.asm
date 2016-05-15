@@ -309,3 +309,45 @@ level_load_timer:
 		LDA $0584D7,X ; timer table
 		STA !restore_level_igt
 		RTL
+
+; load $01 - $03 with source of music bank
+; X = music bank 0-2
+set_music_bank:
+		PHB
+		PHK
+		PLB
+		
+		LDA !status_music
+		BEQ .not_muted
+		LDA muted_music_location
+		STA $00
+		LDA muted_music_location+1
+		STA $01
+		LDA muted_music_location+2
+		STA $02
+		BRA .done
+	
+	.not_muted:
+		STX $00
+		TXA
+		ASL A
+		CLC
+		ADC $00
+		TAX
+		LDA music_bank_locations,X
+		STA $00
+		LDA music_bank_locations+1,X
+		STA $01
+		LDA music_bank_locations+2,X
+		STA $02
+		
+	.done
+		PLB
+		RTL
+
+music_bank_locations:
+		dl $0E98B1,$0EAED6,$03E400
+muted_music_location:
+		dl muted_music_bank
+muted_music_bank:
+		incbin "bin/music_empty_bank.bin"

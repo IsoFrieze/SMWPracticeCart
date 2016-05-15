@@ -123,3 +123,17 @@ ORG $05D000
 		incbin "bin/overworld_layer1_characters.bin"
 ORG $0CF7DF
 		incbin "bin/overworld_layer1_tiles.bin"
+
+; update music upload routine
+ORG $00810E
+		LDX #$00
+		JSL set_music_bank
+		JMP $811D
+ORG $008148
+		LDX #$01
+		JSL set_music_bank
+		JMP $8157
+ORG $008159
+		LDX #$02
+		JSL set_music_bank
+		JMP $8168

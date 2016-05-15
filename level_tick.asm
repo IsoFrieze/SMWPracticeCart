@@ -585,8 +585,8 @@ collect_orb:
 		LDA $9E,X ; sprite id
 		CMP #$4A ; orb
 		BNE .done
-;		LDA $1528,X ; misc table (used for original orb in level flag)
-;		BNE .done ; TODO
+		LDA $1528,X ; misc table (used for original orb in level flag)
+		BNE .done
 		LDA #%00100000
 		STA !record_used_orb
 	.done:

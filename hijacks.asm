@@ -4,6 +4,7 @@
 ; $00C578 - 10 / 13 bytes
 ; $00CC86 - 53 / 53 bytes
 ; $009510 - 18 / 25 bytes
+; $01C062 - 17 / 19 bytes
 
 !level_loaded           = $13C8
 !level_finished         = $1DEF
@@ -134,3 +135,16 @@ ORG $058583
 ORG $018778
 		JSL collect_orb
 		NOP
+
+; orb initialization will set flag in $1525 misc. table
+ORG $018211
+		dw init_orb
+ORG $01C062
+init_orb:
+		LDA $14E0,X ; x position high byte + extra bits
+		AND #%00001100
+		STA $1528,X ; misc. table
+		LDA $14E0,X ; x position high byte + extra bits
+		AND #%00000001
+		STA $14E0,X ; x position high byte
+		RTS

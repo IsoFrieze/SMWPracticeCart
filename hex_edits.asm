@@ -54,6 +54,10 @@ ORG $0484D1
 ORG $048507
 		dw $0118
 
+; set extra bit on ghost ship orb so we can differentiate it from orb from item box
+ORG $07DD07
+		db $67
+
 ; disable chocolate island 2 weirdness
 ORG $05DAE5
 		db $00
