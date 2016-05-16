@@ -7,6 +7,7 @@
 ; $00D27C -  8 / 11 bytes
 ; $01C062 - 17 / 19 bytes
 ; $01CD1E - 11 / 12 bytes
+; $04FFB1 -  4 / 79 bytes
 
 !level_loaded           = $13C8
 !level_finished         = $1DEF
@@ -156,15 +157,18 @@ ORG $00C56C
 item_box:
 		JSL drop_item_box
 		CMP #$00
-		BNE .no_drop
+		db $D0,$1B ; BNE $C58F
 		JMP $C585
-.no_drop:
-		JMP $C58F
 		
 ; revamp how pausing works
 ORG $00A22C
 		JSL pause_timer
 		NOP
+		
+; run subroutine on 0 seconds left
+ORG $008E60
+		JSL out_of_time
+		NOP #5
 
 ; disable score sprites if sprite slot numbers are enabled
 ORG $02AEA5
@@ -192,3 +196,13 @@ upload_all_graphics:
 		JSR $A9DA
 		PLB
 		RTL
+
+; faster overworld movement
+ORG $048244
+		JSL iterate_overworld_movement
+		JMP $8261
+
+; stripe images for overworld menu record delete
+ORG $0084F4
+		dl stripe_confirm
+		dl stripe_deleted

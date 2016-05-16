@@ -115,6 +115,7 @@ ORG $0082E8
 ORG $008E81
 		JMP $8F1D
 ORG $008F3B
+		JSR $9079 ; draw item in itembox
 		RTS
 
 ; relocate the time counter

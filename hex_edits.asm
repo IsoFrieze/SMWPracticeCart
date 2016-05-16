@@ -5,11 +5,6 @@ ORG $05DA19
 ; disable tempo hike at 99 seconds
 ORG $008E59
 		db $80
-		
-; disable death at 0 seconds
-; TODO make this an option
-ORG $008E69
-		db $80
 
 ; don't go to bonus game
 ORG $008F67
@@ -36,6 +31,40 @@ ORG $048380
 ; remove save prompt
 ORG $04E5E6
 		db $00,$00,$00,$00,$00,$00,$00,$00
+
+; remove castle cutscenes
+ORG $00C9A7
+		db $00,$00,$00,$00,$00,$00,$00,$00
+
+; move level names down one tile
+ORG $049D22
+		dw $AB50
+
+; remove lives counter on overworld
+ORG $05DBC9
+		dw $8858
+		
+; move mario down one tile on the overworld
+ORG $0485B2
+		db $0E
+ORG $0485ED
+		db $0F
+
+; shift windowing effect on overworld down 8 scanlines
+ORG $04DB82
+		db $FE
+
+; faster star road warp
+ORG $049E5E
+		db $01
+ORG $049E69
+		LDA #$FF
+		STA $1DF7
+		NOP #10
+
+; create gold palette for overworld
+ORG $00B5EE
+		dw $573B,$03FF,$0000
 		
 ; remove intro sequence
 ORG $009CB1

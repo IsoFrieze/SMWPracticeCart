@@ -153,7 +153,7 @@ room_advance_table:
 ; this code is run when the player presses R + select to make a save state
 activate_save_state:
 		PHP
-		LDA #$1E ; p-balloon sound
+		LDA #$0E ; swim sound
 		STA $1DF9 ; apu i/o
 		
 		LDA #$80
@@ -271,9 +271,6 @@ activate_save_state:
 ; this code is run when the player presses L + select to load a save state
 activate_load_state:
 		PHP
-		LDA #$0E ; swim sound
-		STA $1DF9 ; apu i/o
-		
 		LDA #$80
 		STA $2100 ; force blank
 		STZ $4200 ; nmi disable

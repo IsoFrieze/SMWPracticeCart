@@ -42,6 +42,8 @@ overworld_load:
 		JSR attempt_timer_save
 		
 	.done:
+		LDA #$FF
+		STA !save_timer_address+2
 		JSL $04DAAD ; layer 2 tilemap upload routine
 		RTL
 		

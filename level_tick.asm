@@ -118,7 +118,7 @@ display_timers:
 		JSL $00974C ; hex2dec
 		STX $1F3A ; tens
 		STA $1F3B ; ones
-		LDA #$0F
+		LDA #$78
 		STA $1F39
 		JMP .display_room_timer
 	.draw_level_fractions:
@@ -142,7 +142,7 @@ display_timers:
 		JSL $00974C ; hex2dec
 		STX $1F58 ; tens
 		STA $1F59 ; ones
-		LDA #$0F
+		LDA #$78
 		STA $1F57
 		JMP .merge
 	.draw_room_fractions:
@@ -571,8 +571,8 @@ ci2_goal:
 
 ; test if a reset was activated, if so, call the appropriate routine
 test_reset:
-		LDA $9D ; sprite lock flag
-		BNE .done
+;		LDA $9D ; sprite lock flag
+;		BNE .done
 		LDA $1493 ; end level timer
 		BNE .done
 		
@@ -740,6 +740,17 @@ pause_timer:
 
 pause_lengths:
 		db $3C,$00
+		
+; kill mario when time runs out only if option is on
+; return 0 in A to kill mario
+out_of_time:
+		LDA $0F31
+		ORA $0F32
+		ORA $0F33 ; timer
+		BNE .done
+		LDA !status_timedeath
+	.done:
+		RTL
 
 ; display a score sprite only if sprite slot numbers are disabled
 check_score_sprites:
