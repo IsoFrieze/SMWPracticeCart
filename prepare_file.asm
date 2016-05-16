@@ -63,4 +63,4 @@ prepare_overworld:
 
 ; give the cartridge more SRAM
 ORG $00FFD8
-		db $02
+		db $07

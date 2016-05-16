@@ -18,6 +18,9 @@
 !record_used_orb             = $0F26
 !record_lunar_dragon         = $0F27
 
+!save_state_exists           = $700006
+!save_state_used             = $700007
+
 ORG $158000
 
 ; this code is run on every frame during the level game mode (after fade in completes)
@@ -42,6 +45,7 @@ level_tick:
 		JSR tick_timer
 		JSR test_ci2
 		JSR test_reset
+		JSR test_savestate
 		JSR test_run_type
 		PLB
 		PLP
@@ -150,6 +154,8 @@ display_timers:
 		
 	; draw flashing clock symbol if run was not spliced
 		LDA !spliced_run
+		BNE .merge
+		LDA.L !save_state_used
 		BNE .merge
 		LDA $13 ; true frame
 		AND #%00100000
@@ -349,6 +355,78 @@ display_held_subpixel:
 		
 	.done:
 		RTS
+
+; display a sprite's slot number next to it on the screen
+; X = slot number
+display_slot:
+		PHB
+		PHK
+		PLB
+		LDA !status_slots
+		BEQ .done
+		
+		TXA
+		ASL A
+		ASL A
+		TAY
+		LDA $14C8,X ; sprite status
+		BNE .not_dead
+		LDA !status_slots
+		CMP #$01
+		BEQ .erase_tile
+	.not_dead:
+		JSR get_screen_y
+		XBA
+		CMP #$00
+		BNE .erase_tile
+		XBA
+		STA $02B1,Y ; oam y position
+		JSR get_screen_x
+		XBA
+		CMP #$00
+		BNE .erase_tile
+		XBA
+		STA $02B0,Y ; oam x position
+		LDA sprite_slot_tiles,X
+		STA $02B2,Y ; oam tile
+		LDA #$38
+		STA $02B3,Y ; oam properties
+		STZ $044C,X ; oam size
+		BRA .done
+	.erase_tile:
+		LDA #$F0
+		STA $02B1,Y ; oam y position
+		
+	.done:
+		PLB
+		RTL
+
+sprite_slot_tiles:
+		db $44,$45,$46,$47
+		db $54,$55,$56,$57
+		db $78,$79,$7A,$7B
+
+get_screen_x:
+		LDA $E4,X ; sprite x position, low byte
+		XBA
+		LDA $14E0,X ; sprite x position, high byte
+		XBA
+		REP #$20
+		SEC
+		SBC $1A ; layer 1 x position
+		SEP #$20
+		RTS
+
+get_screen_y:
+		LDA $D8,X ; sprite y position, low byte
+		XBA
+		LDA $14D4,X ; sprite y position, high byte
+		XBA
+		REP #$20
+		SEC
+		SBC $1C ; layer 1 y position
+		SEP #$20
+		RTS
 		
 ; increment the timer located at address at top of stack by the number of frames elapsed this execution frame
 tick_timer:
@@ -532,6 +610,32 @@ test_reset:
 	.done:
 		RTS
 
+; test if a savestate was activated, if so, call the appropriate routine
+test_savestate:
+		LDA $0DA2 ; byetudlr
+		AND #%00100000
+		BEQ .done
+		
+		LDA $0DA4 ; axlr----
+		AND #%00010000
+		BEQ .test_load
+		
+		JSL activate_save_state
+		BRA .done
+		
+	.test_load:
+		LDA.L !save_state_exists
+		CMP #$BD
+		BNE .done
+		LDA $0DA4 ; axlr----
+		AND #%00100000
+		BEQ .done
+		
+		JSL activate_load_state
+	
+	.done:
+		RTS
+
 ; test if player used cape, powerup, yoshi, etc. to count towards record keeping
 test_run_type:
 		LDA $187A ; riding yoshi
@@ -591,4 +695,63 @@ collect_orb:
 		STA !record_used_orb
 	.done:
 		LDA #$FF
+		RTL
+
+; test if we should drop the item out of the item box
+drop_item_box:
+		PHB
+		PHK
+		PLB
+		PHX
+		
+		LDA $16 ; byetudlr frame
+		AND #%00100000
+		BEQ .no_select
+		LDA !status_drop
+		TAX
+		LDA $15 ; byetudlr
+		AND button_masks,X
+		EOR button_masks,X
+		BRA .yes_select
+		
+	.no_select:
+		INC A
+	.yes_select:		
+		PLX
+		PLB
+		RTL
+
+button_masks:
+		db $20,$28,$24,$60
+
+; set the pause timer depending on our current setting
+pause_timer:
+		PHB
+		PHK
+		PLB
+		
+		LDA !status_pause
+		TAX
+		LDA pause_lengths,X
+		STA $13D3 ; pause timer
+		
+		PLB
+		RTL
+
+pause_lengths:
+		db $3C,$00
+
+; display a score sprite only if sprite slot numbers are disabled
+check_score_sprites:
+		LDA !status_slots
+		CMP #$00
+		PHP
+		BNE .done
+		LDA $16E7,X ; score sprite y position low byte
+		SEC
+		SBC $02
+		STA $0201,Y ; oam tile
+		STA $0205,Y ; oam tile
+	.done:
+		PLP
 		RTL

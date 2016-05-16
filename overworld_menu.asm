@@ -45,3 +45,95 @@ delete_all_data:
 		
 		PLP
 		RTL
+
+; clear all records from one level
+; A = translevel to delete
+delete_translevel_data:
+		PHP
+		CMP #$00 ; level 00 contains file info, so never delete it
+		BEQ .done
+		
+		LDX #$07
+	.loop:
+		JSL delete_one_record
+		DEX
+		BPL .loop
+		
+	.done:		
+		PLP
+		RTL
+
+; clear a record where A = translevel & X = 00000xkk, x = normal/secret, kk = kind
+; restores A & X
+delete_one_record:
+		PHP
+		PHA
+		
+		REP #$20
+		AND #$00FF
+		ASL A
+		ASL A
+		ASL A
+		ASL A
+		ASL A
+		STA $00
+		SEP #$20
+		TXA
+		ASL A
+		ASL A
+		TSB $00
+		LDA #$70
+		STA $02
+		
+		LDA #$FF
+		LDY #$03
+	.loop:
+		STA [$00],Y
+		DEY
+		BPL .loop
+		
+		PLA
+		PLP
+		RTL
+
+; A|X = address of data, Y = number of bytes
+; requires 8-bit accumulator, 16-bit index
+load_vram:
+		PHP
+		PHA
+		
+		STX $4302 ; dma0 source address
+		STA $4304 ; dma0 source bank
+		STY $4305 ; dma0 length
+		
+		LDA #$01 ; 2-byte, low-high
+		STA $4300 ; dma0 parameters
+		LDA #$18 ; $2118, vram data
+		STA $4301 ; dma0 destination
+		LDA #$01 ; channel 0
+		STA $420B ; dma enable
+		
+		PLA
+		PLP
+		RTL
+
+; A|X = address of data, Y = number of bytes
+; requires 8-bit accumulator, 16-bit index
+load_cgram:
+		PHP
+		PHA
+		
+		STX $4302 ; dma0 source address
+		STA $4304 ; dma0 source bank
+		STY $4305 ; dma0 length
+		
+		LDA #$00 ; 1-byte
+		STA $4300 ; dma0 parameters
+		LDA #$22 ; $2122, cgram data
+		STA $4301 ; dma0 destination
+		LDA #$01 ; channel 0
+		STA $420B ; dma enable
+		
+		PLA
+		PLP
+		RTL

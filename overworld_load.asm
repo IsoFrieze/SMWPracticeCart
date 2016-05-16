@@ -42,6 +42,7 @@ overworld_load:
 		JSR attempt_timer_save
 		
 	.done:
+		JSL $04DAAD ; layer 2 tilemap upload routine
 		RTL
 		
 ; compare the timer stored at !save_timer_address against the current time, and save it if it is faster

@@ -4,7 +4,9 @@
 ; $00C578 - 10 / 13 bytes
 ; $00CC86 - 53 / 53 bytes
 ; $009510 - 18 / 25 bytes
+; $00D27C -  8 / 11 bytes
 ; $01C062 - 17 / 19 bytes
+; $01CD1E - 11 / 12 bytes
 
 !level_loaded           = $13C8
 !level_finished         = $1DEF
@@ -148,3 +150,45 @@ init_orb:
 		AND #%00000001
 		STA $14E0,X ; x position high byte
 		RTS
+
+; revamp how dropping an item from the item box works
+ORG $00C56C
+item_box:
+		JSL drop_item_box
+		CMP #$00
+		BNE .no_drop
+		JMP $C585
+.no_drop:
+		JMP $C58F
+		
+; revamp how pausing works
+ORG $00A22C
+		JSL pause_timer
+		NOP
+
+; disable score sprites if sprite slot numbers are enabled
+ORG $02AEA5
+score_sprites:
+		JSL check_score_sprites
+		BEQ .not_disabled
+		RTS
+	.not_disabled:
+		NOP #5
+
+; draw sprite slots
+ORG $0180AF
+		JSR $CD1E
+ORG $01CD1E
+		JSR $8127
+		JSL display_slot
+		RTS
+
+; upload graphics after load state
+ORG $00D27C
+upload_all_graphics:
+		PHB
+		PHK
+		PLB
+		JSR $A9DA
+		PLB
+		RTL

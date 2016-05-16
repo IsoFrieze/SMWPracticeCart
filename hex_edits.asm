@@ -58,6 +58,10 @@ ORG $048507
 ORG $07DD07
 		db $67
 
+; modify water splash to not conflict with slot numbers
+ORG $028D42
+		db $66,$66,$64,$64,$64
+
 ; disable chocolate island 2 weirdness
 ORG $05DAE5
 		db $00

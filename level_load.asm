@@ -140,6 +140,8 @@ setup_level_reset:
 		STZ !record_used_yoshi
 		STZ !record_used_orb
 		STZ !record_lunar_dragon
+		LDA #$00
+		STA.L !save_state_used
 		
 		; set msb so it's not 00, which is a special case for entering the level
 		; we'll turn this byte into fnnnnnnn, f = 0 if just entered level, n = sublevel count
@@ -282,6 +284,8 @@ save_level_properties:
 		STZ !record_used_yoshi
 		STZ !record_used_orb
 		STZ !record_lunar_dragon
+		LDA #$00
+		STA.L !save_state_used
 		
 		REP #$10
 		LDX #$017F
@@ -351,3 +355,37 @@ muted_music_location:
 		dl muted_music_bank
 muted_music_bank:
 		incbin "bin/music_empty_bank.bin"
+
+; upload the graphics for the slots 0-B
+load_slots_graphics:
+		PHP
+		REP #$10
+		SEP #$20
+		LDA !status_slots
+		BEQ .done
+		
+		LDY #$0080
+		PHK
+		PLA
+		
+		LDX #$6440
+		STX $2116 ; vram address
+		LDX #sprite_slots_graphics
+		JSL load_vram
+		
+		LDX #$6540
+		STX $2116 ; vram address
+		LDX #sprite_slots_graphics+$80
+		JSL load_vram
+		
+		LDX #$6780
+		STX $2116 ; vram address
+		LDX #sprite_slots_graphics+$100
+		JSL load_vram
+		
+	.done:
+		PLP
+		RTL
+		
+sprite_slots_graphics:
+		incbin "bin/sprite_slots_graphics.bin"
