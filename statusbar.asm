@@ -3,8 +3,8 @@
 ; status bar default tiles and properties for each tile
 ORG $008C59
 Status_bar_tiles:
-		db $00,$2C,$00,$2C,$FC,$3C,$FC,$28,$FC,$28,$FC,$3C,$27,$3C,$85,$3C,$27,$3C,$27,$3C,$86,$3C,$27,$3C,$27,$3C,$3A,$38,$3B,$38,$3B,$38,$3A,$78,$2E,$3C,$FC,$38,$00,$38,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$28,$FC,$28,$FC,$28
-		db $FC,$38,$FC,$38,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$27,$38,$85,$38,$27,$38,$27,$38,$86,$38,$27,$38,$27,$38,$4A,$38,$FC,$3C,$FC,$3C,$4A,$78,$FC,$3C,$FC,$3C,$00,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$28,$FC,$28,$FC,$28
+		db $00,$2C,$00,$2C,$FC,$3C,$FC,$28,$FC,$28,$FC,$3C,$27,$3C,$85,$3C,$27,$3C,$27,$3C,$24,$3C,$27,$3C,$27,$3C,$3A,$38,$3B,$38,$3B,$38,$3A,$78,$2E,$3C,$FC,$38,$00,$38,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$28,$FC,$28,$FC,$28
+		db $FC,$38,$FC,$38,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$27,$38,$85,$38,$27,$38,$27,$38,$24,$38,$27,$38,$27,$38,$4A,$38,$FC,$3C,$FC,$3C,$4A,$78,$FC,$3C,$FC,$3C,$00,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$28,$FC,$28,$FC,$28
 		db $19,$3C,$00,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$2C,$FC,$2C,$FC,$2C,$00,$2C,$11,$2C,$4A,$38,$FC,$3C,$FC,$3C,$4A,$78,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$28,$FC,$28,$FC,$28
 		db $FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$3A,$B8,$3B,$B8,$3B,$B8,$3A,$F8,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$28,$FC,$28,$FC,$28
 	
@@ -112,7 +112,9 @@ ORG $0082E8
 	
 ; disable all the old status bar counters
 ; lives, coins, score, bonus stars, dragon coins
+; also draw the bowser timer
 ORG $008E81
+		JSL draw_bowser_timer
 		JMP $8F1D
 ORG $008F3B
 		JSR $9079 ; draw item in itembox

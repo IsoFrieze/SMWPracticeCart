@@ -227,6 +227,8 @@ draw_times:
 		LDA [$00],Y
 		CMP #$FF
 		BEQ .draw_unran
+		LDA !potential_translevel
+		BEQ .draw_unran
 		
 		PHX
 		LDA [$00],Y
@@ -319,7 +321,7 @@ load_unran_time:
 		STA !dynamic_stripe_image+1
 		LDA !status_fractions
 		BEQ .done
-		LDA #$5E
+		LDA #$5D
 		STA !dynamic_stripe_image+12
 	.done:
 		RTS
@@ -458,12 +460,12 @@ times_position:
         db $2F,$4F,$6F,$8F
         db $37,$57,$77,$97
 
-; a stripe image that shows -'--"--
+; a stripe image that shows -'--.--
 default_time_stripe:
         db $50,$FF,$00,$0D
         db $1C,$39,$5D,$39
         db $1C,$39,$1C,$39
-        db $5D,$39,$1C,$39
+        db $1B,$39,$1C,$39
         db $1C,$39,$FF
 
 ; a stripe image that shows completely blank

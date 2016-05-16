@@ -47,6 +47,7 @@ level_tick:
 		JSR test_reset
 		JSR test_savestate
 		JSR test_run_type
+		JSL upload_bowser_timer_graphics
 		PLB
 		PLP
 		RTL
@@ -118,7 +119,7 @@ display_timers:
 		JSL $00974C ; hex2dec
 		STX $1F3A ; tens
 		STA $1F3B ; ones
-		LDA #$78
+		LDA #$85
 		STA $1F39
 		JMP .display_room_timer
 	.draw_level_fractions:
@@ -142,7 +143,7 @@ display_timers:
 		JSL $00974C ; hex2dec
 		STX $1F58 ; tens
 		STA $1F59 ; ones
-		LDA #$78
+		LDA #$85
 		STA $1F57
 		JMP .merge
 	.draw_room_fractions:
@@ -766,3 +767,148 @@ check_score_sprites:
 	.done:
 		PLP
 		RTL
+
+; draw the level and room timers, but on the sprite layer instead if in the bowser fight
+draw_bowser_timer:
+		LDA $0D9B ; boss flag
+		CMP #$C1 ; bowser fight
+		BEQ .begin
+		RTL
+		
+	.begin:
+		PHB
+		PHK
+		PLB
+		
+		LDA #$69 ; empty tile
+		STA $02C2
+		LDA !spliced_run
+		BNE .spliced
+		LDA.L !save_state_used
+		BNE .spliced
+		LDA $13 ; true frame
+		AND #%00100000
+		BEQ .spliced
+		LDA #$F0 ; clock icon
+		STA $02C2
+	.spliced:
+		LDA !level_timer_minutes
+		JSR hex_to_bowser
+		STA $02C6
+		LDA !level_timer_seconds
+		JSR hex_to_bowser
+		STX $02CE
+		STA $02D2
+		LDA !status_fractions
+		BEQ .draw_level_fractions
+		LDA !level_timer_frames
+		JSR hex_to_bowser
+		STX $02DA
+		STA $02DE
+		LDA #$F1
+		STA $02D6
+		JMP .set_level_positions
+	.draw_level_fractions:
+		LDX !level_timer_frames
+		LDA fractional_seconds,X
+		JSR hex_to_bowser
+		STX $02DA
+		STA $02DE
+		LDA #$F2
+		STA $02D6
+	.set_level_positions:
+		LDA #$F1
+		STA $02CA
+		
+		LDY #$07
+	.level_loop:
+		TYX
+		STZ $0450,X
+		LDA timer_x,X
+		PHA
+		TYA
+		ASL A
+		ASL A
+		TAX
+		PLA
+		STA $02C0,X
+		LDA #$10
+		STA $02C1,X
+		LDA #$30
+		STA $02C3,X
+		DEY
+		BPL .level_loop
+		
+		LDA !room_timer_minutes
+		JSR hex_to_bowser
+		STA $03A2
+		LDA !room_timer_seconds
+		JSR hex_to_bowser
+		STX $03AA
+		STA $03AE
+		LDA !status_fractions
+		BEQ .draw_room_fractions
+		LDA !level_timer_frames
+		JSR hex_to_bowser
+		STX $03B6
+		STA $03BA
+		LDA #$F1
+		STA $03B2
+		JMP .set_room_positions
+	.draw_room_fractions:
+		LDX !level_timer_frames
+		LDA fractional_seconds,X
+		JSR hex_to_bowser
+		STX $03B6
+		STA $03BA
+		LDA #$F2
+		STA $03B2
+	.set_room_positions:
+		LDA #$F1
+		STA $03A6
+		
+		LDY #$06
+	.room_loop:
+		TYX
+		STZ $0488,X
+		INX
+		LDA timer_x,X
+		DEX
+		PHA
+		TYA
+		ASL A
+		ASL A
+		TAX
+		PLA
+		STA $03A0,X
+		LDA #$18
+		STA $03A1,X
+		LDA #$32
+		STA $03A3,X
+		DEY
+		BPL .room_loop
+		
+		PLB
+		RTL
+
+; the x positions of each of the tiles in the bowser timer
+timer_x:
+		db $30,$38,$40,$48,$50,$58,$60,$68
+
+; convert a hex number to decimal, then get tile numbers
+hex_to_bowser:
+		JSL $00974C ; hex2dec
+		PHX
+		TAX
+		LDA bowser_numbers,X
+		PLX
+		PHA
+		LDA bowser_numbers,X
+		TAX
+		PLA
+		RTS
+		
+; tile numbers for each of the numbers 0-9 in the bowser timer
+bowser_numbers:
+		db $A8,$A9,$AA,$AB,$AC
+		db $AD,$AE,$AF,$B0,$B1

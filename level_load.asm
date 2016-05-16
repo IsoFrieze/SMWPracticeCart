@@ -115,7 +115,7 @@ setup_room_reset:
 		RTS
 
 ; prepare the level load if we just did a level reset
-setup_level_reset:		
+setup_level_reset:
 		STZ !spliced_run
 		
 		LDA !restore_level_powerup
@@ -286,6 +286,7 @@ save_level_properties:
 		STZ !record_lunar_dragon
 		LDA #$00
 		STA.L !save_state_used
+		STZ !spliced_run
 		
 		REP #$10
 		LDX #$017F
@@ -382,6 +383,50 @@ load_slots_graphics:
 		STX $2116 ; vram address
 		LDX #sprite_slots_graphics+$100
 		JSL load_vram
+		
+	.done:
+		PLP
+		RTL
+
+; upload the tiles used for the timer during the bowser fight
+; this routine sucks and needs to be put elsewhere but ive spent
+; like an hour trying to find the best place to put it and i give up
+upload_bowser_timer_graphics:
+		PHP
+		SEP #$20
+		REP #$10
+		
+		LDA !room_timer_frames
+		CMP #$01
+		BNE .done
+		LDA $0D9B ; boss flag
+		CMP #$C1
+		BNE .done
+		
+		LDA #$80
+		STA $2100 ; force blank
+		STZ $4200 ; nmi disable
+		
+		LDA #$80
+		STA $2115 ; vram properties
+		PHK
+		PLA
+		LDY #$0140
+		LDX #$6A80
+		STX $2116 ; vram address
+		LDX #sprite_slots_graphics
+		JSL load_vram
+		
+		LDY #$0060
+		LDX #$6F00
+		STX $2116 ; vram address
+		LDX #sprite_slots_graphics+$180
+		JSL load_vram
+		
+		LDA #$81
+		STA $4200 ; nmi enable
+		LDA #$0F
+		STA $2100 ; exit force blank
 		
 	.done:
 		PLP

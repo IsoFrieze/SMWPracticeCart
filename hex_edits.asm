@@ -28,13 +28,25 @@ ORG $0DEC9A
 ORG $048380
 		db $00
 
-; remove save prompt
-ORG $04E5E6
+; remove save prompts & castle crushes
+ORG $04E5B6
 		db $00,$00,$00,$00,$00,$00,$00,$00
+		db $00,$00,$00,$00,$00,$00,$00,$00
+		db $00,$00,$00,$00,$00,$00,$00,$00
+		db $00,$00,$00,$00,$00,$00,$00,$00
+		db $00,$00,$00,$00,$00,$00,$00,$00
+		db $00,$00,$00,$00,$00,$00,$00,$00
+		db $00,$00,$00,$00,$00,$00,$00,$00
+ORG $04903F
+		db $80
 
 ; remove castle cutscenes
 ORG $00C9A7
 		db $00,$00,$00,$00,$00,$00,$00,$00
+
+; remove switch palace crushes
+ORG $00C9A7
+		db $00,$00,$00,$00,$00
 
 ; move level names down one tile
 ORG $049D22
@@ -43,16 +55,6 @@ ORG $049D22
 ; remove lives counter on overworld
 ORG $05DBC9
 		dw $8858
-		
-; move mario down one tile on the overworld
-ORG $0485B2
-		db $0E
-ORG $0485ED
-		db $0F
-
-; shift windowing effect on overworld down 8 scanlines
-ORG $04DB82
-		db $FE
 
 ; faster star road warp
 ORG $049E5E
@@ -87,9 +89,27 @@ ORG $048507
 ORG $07DD07
 		db $67
 
+; title screen "practice cart"
+ORG $05B6D3
+		db $52,$2A,$00,$19,$19,$38,$1B,$38
+		db $0A,$38,$0C,$38,$1D,$38,$12,$38
+		db $0C,$38,$0E,$38,$FC,$38,$0C,$38
+		db $0A,$38,$1B,$38,$1D,$38
+		db $53,$0B,$00,$15,$0D,$28,$18,$28
+		db $1D,$28,$1C,$28,$0A,$28,$1B,$28
+		db $0E,$28,$0C,$28,$18,$28,$18,$28
+		db $15,$28
+		db $53,$38,$00,$0B,$1F,$3C,$02,$3C
+		db $24,$3C,$00,$3C,$24,$3C,$00,$3C
+		db $FF
+
 ; modify water splash to not conflict with slot numbers
 ORG $028D42
 		db $66,$66,$64,$64,$64
+
+; prevent credits
+ORG $03AC12
+    db $93,$14
 
 ; disable chocolate island 2 weirdness
 ORG $05DAE5
