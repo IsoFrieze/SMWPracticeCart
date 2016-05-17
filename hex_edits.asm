@@ -117,7 +117,7 @@ ORG $05B6D3
 		db $0E,$28,$0C,$28,$18,$28,$18,$28
 		db $15,$28
 		db $53,$38,$00,$0B,$1F,$3C,$02,$3C
-		db $24,$3C,$00,$3C,$24,$3C,$01,$3C
+		db $24,$3C,$00,$3C,$24,$3C,$02,$3C
 		db $FF
 
 ; modify water splash to not conflict with slot numbers

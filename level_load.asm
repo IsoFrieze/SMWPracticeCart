@@ -194,6 +194,14 @@ restore_common_aspects:
 		STZ !room_timer_minutes
 		STZ !room_timer_seconds
 		STZ !room_timer_frames
+		
+		REP #$10
+		LDX #$017F
+	.loop_memory:
+		STZ $19F8,X ; item memory
+		DEX
+		BPL .loop_memory
+		SEP #$10
 		RTS
 		
 ; save everything after entering a new room
@@ -289,14 +297,6 @@ save_level_properties:
 		LDA #$00
 		STA.L !save_state_used
 		STZ !spliced_run
-		
-		REP #$10
-		LDX #$017F
-	.loop_memory:
-		STZ $19F8,X ; item memory
-		DEX
-		BPL .loop_memory
-		SEP #$10
 		
 		RTS
 

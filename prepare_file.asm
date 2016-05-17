@@ -18,6 +18,20 @@ ORG $009CA5
 ; set mario's overworld position if it is saved in sram
 ORG $009D38
 set_marios_overworld_position:
+		LDA #$01 ; submap
+		STA $1F11
+		LDA #$68 ; x low
+		STA $1F17
+		LDA #$00 ; x high
+		STA $1F18
+		LDA #$78 ; y low
+		STA $1F19
+		LDA #$00 ; y high
+		STA $1F1A
+		RTS
+
+
+;=========================================
 		LDA $700000
 		CMP #$BD
 		BEQ .already_set
