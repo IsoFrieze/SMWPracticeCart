@@ -28,6 +28,21 @@ set_marios_overworld_position:
 		STA $1F19
 		LDA #$00 ; y high
 		STA $1F1A
+		
+		LDA #$00
+		STA.L !disallow_save_states
+		LDA #$AA
+		STA $717FFF
+		LDA #$BB
+		STA $737FFF
+		LDA $717FFF
+		CMP #$AA
+		BEQ .done
+		
+		LDA #$01
+		STA.L !disallow_save_states
+		
+	.done:
 		RTS
 
 

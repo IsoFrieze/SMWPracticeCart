@@ -20,6 +20,7 @@
 
 !save_state_exists           = $700006
 !save_state_used             = $700007
+!disallow_save_states        = $70000E
 
 ORG $158000
 
