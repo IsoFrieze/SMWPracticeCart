@@ -4,8 +4,13 @@
 ; Created by Dotsarecool
 ;========================
 
+; internal rom name
 ORG $00FFC0
-		;db "SMW PRACTICE CART    "
+		db "SMW PRACTICE CART    "
+
+; nintendo presents sound
+ORG $0093C1
+		db $06
 
 ; include everything because I want to be organized this time
 

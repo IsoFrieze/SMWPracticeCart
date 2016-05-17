@@ -115,3 +115,31 @@ attempt_timer_save:
 		
 	.done:
 		RTS
+
+; set sram to an 'acceptable' value as a temporary measure against flashcarts that don't support more than 32kB of sram
+emergency_clear:
+		LDA $0DA4 ; byetudlr
+		AND #%00001000
+		BEQ .done
+		LDA $0DA4 ; axlr----
+		AND #%00010000
+		BEQ .done
+		LDA $0DA6 ; byetudlr frame
+		AND #%00010000
+		BEQ .done
+		
+		LDA #$BD
+		STA $700000
+		LDA #$01 ; submap
+		STA $700001
+		LDA #$68 ; x low
+		STA $700002
+		LDA #$00 ; x high
+		STA $700003
+		LDA #$78 ; y low
+		STA $700004
+		LDA #$00 ; y high
+		STA $700005
+	
+	.done:
+		RTL

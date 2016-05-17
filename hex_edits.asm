@@ -18,6 +18,23 @@ ORG $00F610
 ORG $00CA2C
 		db $00
 
+; don't remember 1ups, moons, or dragon coins
+ORG $00F2BB
+		NOP #3
+ORG $00F325
+		NOP #3
+ORG $00F354
+		NOP #3
+ORG $0DA5A7
+		LDA #$00
+		NOP
+ORG $0DA59C
+		LDA #$00
+		NOP
+ORG $0DB2D7
+		LDA #$00
+		NOP
+
 ; activate ! blocks every time
 ORG $00EEB1
 		NOP #2
@@ -100,7 +117,7 @@ ORG $05B6D3
 		db $0E,$28,$0C,$28,$18,$28,$18,$28
 		db $15,$28
 		db $53,$38,$00,$0B,$1F,$3C,$02,$3C
-		db $24,$3C,$00,$3C,$24,$3C,$00,$3C
+		db $24,$3C,$00,$3C,$24,$3C,$01,$3C
 		db $FF
 
 ; modify water splash to not conflict with slot numbers

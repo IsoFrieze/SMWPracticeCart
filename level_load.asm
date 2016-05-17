@@ -55,6 +55,8 @@ level_load:
 		LDA #$FF
 		STA !save_timer_address+2
 		
+		JSR save_marios_position
+		
 		PLB
 		PLP
 		RTL
@@ -434,3 +436,17 @@ upload_bowser_timer_graphics:
 		
 sprite_slots_graphics:
 		incbin "bin/sprite_slots_graphics.bin"
+
+; save mario's position on the overworld to sram
+save_marios_position:
+		LDA $1F11 ; submap
+		STA $700001
+		LDA $1F17 ; x low
+		STA $700002
+		LDA $1F18 ; x high
+		STA $700003
+		LDA $1F19 ; y low
+		STA $700004
+		LDA $1F1A ; y high
+		STA $700005
+		RTS

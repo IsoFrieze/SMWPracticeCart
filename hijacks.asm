@@ -5,6 +5,7 @@
 ; $00CC86 - 53 / 53 bytes
 ; $009510 - 18 / 25 bytes
 ; $00D27C -  8 / 11 bytes
+; $00CDCE -  8 / 14 bytes
 ; $01C062 - 17 / 19 bytes
 ; $01CD1E - 11 / 12 bytes
 ; $04FFB1 -  4 / 79 bytes
@@ -206,3 +207,12 @@ ORG $048244
 ORG $0084F4
 		dl stripe_confirm
 		dl stripe_deleted
+
+; emergency data clear on title screen
+ORG $009C64
+		JSR emergency_clear_hijack
+ORG $00CDCE
+emergency_clear_hijack:
+		JSL emergency_clear
+		JSR $9A74
+		RTS
