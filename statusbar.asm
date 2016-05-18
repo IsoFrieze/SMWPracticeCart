@@ -36,8 +36,8 @@ DMA_Status_Bar:
 		DEX
 		BPL .loop_property_lines
 		
-		JSR DMA_Status_Bar_Tiles
 		JSR default_status_bar
+		JSR DMA_Status_Bar_Tiles
 		RTS
 		
 	line_pos:

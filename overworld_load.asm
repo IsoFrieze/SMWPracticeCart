@@ -44,6 +44,7 @@ overworld_load:
 	.done:
 		LDA #$FF
 		STA !save_timer_address+2
+		STZ !l_r_function
 		JSL $04DAAD ; layer 2 tilemap upload routine
 		RTL
 		
@@ -116,30 +117,70 @@ attempt_timer_save:
 	.done:
 		RTS
 
-; set sram to an 'acceptable' value as a temporary measure against flashcarts that don't support more than 32kB of sram
-emergency_clear:
-		LDA $0DA4 ; byetudlr
-		AND #%00001000
-		BEQ .done
-		LDA $0DA4 ; axlr----
-		AND #%00010000
-		BEQ .done
-		LDA $0DA6 ; byetudlr frame
-		AND #%00010000
+; this will run when exiting the title screen
+prepare_file:
+		JSR set_overworld_position
+		RTL
+
+; initialize mario on the overworld
+set_overworld_position:
+		LDA !save_data_exists
+		CMP #$BD
+		BEQ .already_exists
+		JSL delete_all_data
+	.reset:
+		JSL set_position_to_yoshis_house
+		BRA .merge
+	.already_exists:
+		LDA.L !save_overworld_submap
+		CMP #$07
+		BCS .reset
+		STA $1F11
+		LDA.L !save_overworld_x
+		STA $1F17
+		LDA.L !save_overworld_x+1
+		CMP #$02
+		BCS .reset
+		STA $1F18
+		LDA.L !save_overworld_y
+		STA $1F19
+		LDA.L !save_overworld_y+1
+		CMP #$02
+		BCS .reset
+		STA $1F1A
+		
+	.merge:
+		LDA #$00
+		STA.L !disallow_save_states
+		LDA #$AA
+		STA $717FFF
+		LDA #$BB
+		STA $737FFF
+		LDA $717FFF
+		CMP #$AA
 		BEQ .done
 		
 		LDA #$BD
-		STA $700000
-		LDA #$01 ; submap
-		STA $700001
-		LDA #$68 ; x low
-		STA $700002
-		LDA #$00 ; x high
-		STA $700003
-		LDA #$78 ; y low
-		STA $700004
-		LDA #$00 ; y high
-		STA $700005
-	
+		STA.L !disallow_save_states
+		
 	.done:
+		RTS
+
+; set marios position on the overworld to yoshi's house
+set_position_to_yoshis_house:
+		LDA #$01
+		STA.L !save_overworld_submap
+		STA $1F11
+		LDA #$68
+		STA.L !save_overworld_x
+		STA $1F17
+		LDA #$00
+		STA.L !save_overworld_x+1
+		STA $1F18
+		LDA #$78
+		STA.L !save_overworld_y
+		STA $1F19
+		LDA #$00
+		STA.L !save_overworld_y+1
+		STA $1F1A
 		RTL

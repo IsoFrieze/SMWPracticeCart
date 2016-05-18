@@ -1,6 +1,6 @@
 ;========================
 ; SMW Practice Cart
-; Version 2.0.2
+; Version 2.0.3
 ; Created by Dotsarecool
 ;========================
 
@@ -19,7 +19,6 @@ incsrc "hijacks.asm"            ; internal
 incsrc "hex_edits.asm"          ; internal
 incsrc "relocations.asm"        ; internal
 incsrc "statusbar.asm"          ; internal
-incsrc "prepare_file.asm"       ; internal
 incsrc "level_mario_appear.asm" ; $108000
 incsrc "overworld_load.asm"     ; $118000
 incsrc "level_load.asm"         ; $128000

@@ -2,7 +2,7 @@ ORG $158000
 
 ; this code is run on every frame during fades to and from the level game mode (game modes #$0F & #$13)
 ; TODO actually call this routine in a hijack
-level_fade_tick:
+temp_fade_tick:
 		PHP
 		PHB
 		PHK
@@ -12,6 +12,8 @@ level_fade_tick:
 		
 		PLB
 		PLP
+		
+		INC $0100
 		RTL
 
 ; this code is run on every frame during the level game mode (after fade in completes) (game mode #$14)
@@ -30,7 +32,8 @@ level_tick:
 		JSR test_ci2
 		JSR test_reset
 		JSR test_run_type
-		JSL upload_bowser_timer_graphics
+		JSR test_grab_wings
+		JSR test_translevel_0_failsafe
 		
 		PLB
 		PLP
@@ -610,6 +613,9 @@ test_reset:
 
 ; test if a savestate was activated, if so, call the appropriate routine
 test_savestate:
+		LDA.L !disallow_save_states
+		BNE .done
+		
 		LDA $0DA2 ; byetudlr
 		AND #%00100000
 		BEQ .done
@@ -631,6 +637,16 @@ test_savestate:
 		
 		JSL activate_load_state
 	
+	.done:
+		RTS
+
+; test if player grabbed wings
+test_grab_wings:
+		LDA $71 ; player animation
+		CMP #$08
+		BNE .done
+		LDX #$00
+		JSL set_time_save_address
 	.done:
 		RTS
 
@@ -778,47 +794,47 @@ draw_bowser_timer:
 		PLB
 		
 		LDA #$69 ; empty tile
-		STA $02C2
+		STA $0256
 		LDA.L !spliced_run
 		BNE .spliced
 		LDA $13 ; true frame
 		AND #%00100000
 		BEQ .spliced
 		LDA #$F0 ; clock icon
-		STA $02C2
+		STA $0256
 	.spliced:
 		LDA !level_timer_minutes
 		JSR hex_to_bowser
-		STA $02C6
+		STA $025A
 		LDA !level_timer_seconds
 		JSR hex_to_bowser
-		STX $02CE
-		STA $02D2
+		STX $0262
+		STA $0266
 		LDA !status_fractions
 		BEQ .draw_level_fractions
 		LDA !level_timer_frames
 		JSR hex_to_bowser
-		STX $02DA
-		STA $02DE
+		STX $026E
+		STA $0272
 		LDA #$F1
-		STA $02D6
+		STA $026A
 		JMP .set_level_positions
 	.draw_level_fractions:
 		LDX !level_timer_frames
 		LDA fractional_seconds,X
 		JSR hex_to_bowser
-		STX $02DA
-		STA $02DE
+		STX $026E
+		STA $0272
 		LDA #$F2
-		STA $02D6
+		STA $026A
 	.set_level_positions:
 		LDA #$F1
-		STA $02CA
+		STA $025E
 		
 		LDY #$07
 	.level_loop:
 		TYX
-		STZ $0450,X
+		STZ $0435,X
 		LDA timer_x,X
 		PHA
 		TYA
@@ -826,11 +842,11 @@ draw_bowser_timer:
 		ASL A
 		TAX
 		PLA
-		STA $02C0,X
+		STA $0254,X
 		LDA #$10
-		STA $02C1,X
+		STA $0255,X
 		LDA #$30
-		STA $02C3,X
+		STA $0257,X
 		DEY
 		BPL .level_loop
 		
@@ -907,3 +923,15 @@ hex_to_bowser:
 bowser_numbers:
 		db $A8,$A9,$AA,$AB,$AC
 		db $AD,$AE,$AF,$B0,$B1
+
+; if mario finds himself in translevel 0, reset his overworld position as a fail safe
+test_translevel_0_failsafe:
+		LDA $0100 ; game mode
+		CMP #$14
+		BNE .done
+		LDA $13BF ; translevel
+		BNE .done
+		JSL set_position_to_yoshis_house
+	.done:
+		RTS
+		

@@ -1,3 +1,16 @@
+; point game mode 8 to start game
+; this will skip all file and player menuing
+ORG $009339
+		dw $9E10
+		
+; disable routine that gets the number of exits and shows it on the screen
+ORG $009CB8
+		NOP #3
+		
+; disable disabling sprite layer on title screen
+ORG $009CA5
+		NOP #3
+		
 ; disable no-yoshi intros
 ORG $05DA19
 		JMP $DAD7
@@ -116,8 +129,8 @@ ORG $05B6D3
 		db $1D,$28,$1C,$28,$0A,$28,$1B,$28
 		db $0E,$28,$0C,$28,$18,$28,$18,$28
 		db $15,$28
-		db $53,$38,$00,$0B,$1F,$3C,$02,$3C
-		db $24,$3C,$00,$3C,$24,$3C,$02,$3C
+		db $53,$38,$00,$0B,$1F,$3C,!version_a,$3C
+		db $24,$3C,!version_b,$3C,$24,$3C,!version_c,$3C
 		db $FF
 
 ; modify water splash to not conflict with slot numbers
@@ -161,3 +174,8 @@ ORG $05ED70 ; Sprites
 		dw $D8A1 ; rex goal room
 ORG $05F2B8 ; level entrance
 		db $10,$10,$10,$10,$10
+
+; give the cartridge more SRAM
+ORG $00FFD8
+		db $07
+;		db $05 ; some platforms will treat $07 as $05 here

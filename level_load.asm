@@ -35,8 +35,12 @@ level_load:
 		LDA #$FF
 		STA !save_timer_address+2
 		
+		LDA $0100 ; game mode
+		CMP #$06
+		BCC .done
 		JSR save_marios_position
 		
+	.done:
 		PLB
 		PLP
 		RTL
@@ -76,6 +80,10 @@ setup_room_reset:
 		LDA !restore_level_timer_frames
 		STA !level_timer_frames
 		DEC $141A ; sublevel count
+		LDA !restore_room_xpos
+		STA $D1 ; mario x position low byte
+		LDA !restore_room_xpos+1
+		STA $D2 ; mario x position high byte
 		
 		LDX #$03
 	.loop_tables:
@@ -115,6 +123,7 @@ setup_level_reset:
 		STA $0F31
 		STZ $0F32
 		STZ $0F33 ; in game timer
+		STZ $1B95 ; yoshi heaven flag
 		STZ !level_timer_minutes
 		STZ !level_timer_seconds
 		STZ !level_timer_frames
@@ -123,6 +132,10 @@ setup_level_reset:
 		STZ !record_used_yoshi
 		STZ !record_used_orb
 		STZ !record_lunar_dragon
+		LDA !restore_level_xpos
+		STA $D1 ; mario x position low byte
+		LDA !restore_level_xpos+1
+		STA $D2 ; mario x position high byte
 		
 		; set msb so it's not 00, which is a special case for entering the level
 		; we'll turn this byte into fnnnnnnn, f = 0 if just entered level, n = sublevel count
@@ -207,6 +220,10 @@ save_room_properties:
 		STA !restore_room_takeoff
 		LDA $0DBF ; coins
 		STA !restore_room_coins
+		LDA $D1 ; mario x position low byte
+		STA !restore_room_xpos
+		LDA $D2 ; mario x position high byte
+		STA !restore_room_xpos+1
 		
 		LDX #$0B
 	.loop_item:
@@ -263,6 +280,10 @@ save_level_properties:
 		LDA $13C7 ; yoshi color
 		STA !restore_level_yoshi
 	.yoshi_done:
+		LDA $D1 ; mario x position low byte
+		STA !restore_level_xpos
+		LDA $D2 ; mario x position high byte
+		STA !restore_level_xpos+1
 		
 		LDX #$03
 	.loop_tables:
@@ -271,6 +292,7 @@ save_level_properties:
 		DEX
 		BPL .loop_tables
 		
+		STZ $0DBF ; coins
 		STZ !level_timer_minutes
 		STZ !level_timer_seconds
 		STZ !level_timer_frames
@@ -375,16 +397,11 @@ load_slots_graphics:
 		RTL
 
 ; upload the tiles used for the timer during the bowser fight
-; this routine sucks and needs to be put elsewhere but ive spent
-; like an hour trying to find the best place to put it and i give up
 upload_bowser_timer_graphics:
 		PHP
 		SEP #$20
 		REP #$10
 		
-		LDA !room_timer_frames
-		CMP #$01
-		BNE .done
 		LDA $0D9B ; boss flag
 		CMP #$C1
 		BNE .done
@@ -423,14 +440,14 @@ sprite_slots_graphics:
 
 ; save mario's position on the overworld to sram
 save_marios_position:
-		LDA $1F11 ; submap
-		STA $700001
-		LDA $1F17 ; x low
-		STA $700002
-		LDA $1F18 ; x high
-		STA $700003
-		LDA $1F19 ; y low
-		STA $700004
-		LDA $1F1A ; y high
-		STA $700005
+		LDA $1F11
+		STA.L !save_overworld_submap
+		LDA $1F17
+		STA.L !save_overworld_x
+		LDA $1F18
+		STA.L !save_overworld_x+1
+		LDA $1F19
+		STA.L !save_overworld_y
+		LDA $1F1A
+		STA.L !save_overworld_y+1
 		RTS

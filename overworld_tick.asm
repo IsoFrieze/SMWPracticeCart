@@ -199,8 +199,10 @@ test_movement:
 draw_times:
 		LDA $144E ; overworld forward timer
 		CMP #$0E
-		BNE .done
+		BEQ .start
+		JMP .done
 		
+	.start:
 		REP #$20
 		LDA !potential_translevel
 		AND #$007F
@@ -209,9 +211,16 @@ draw_times:
 		ASL A
 		ASL A
 		ASL A
-		STA $00
+		STA !save_timer_address
 		SEP #$20
 		LDA #$70
+		STA !save_timer_address+2
+		
+		LDA !save_timer_address
+		STA $00
+		LDA !save_timer_address+1
+		STA $01
+		LDA !save_timer_address+2
 		STA $02
 		
 		LDY #$07
@@ -373,13 +382,18 @@ compare_to_gold:
 		PHP
 		
 		REP #$30
+		STY $03
 		LDA $00
 		AND #$0FFF
+		CLC
+		ADC $03
 		TAX
+		DEX
+		DEX
 		SEP #$20
 		INY
 		LDA [$00],Y
-		AND #$20
+		AND #%00100000
 		BNE .no_gold
 		DEY
 		DEY

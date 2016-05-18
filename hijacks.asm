@@ -19,11 +19,14 @@ ORG $009510
 nmi_hijack:
 		LDA #$80
 		STA $2100
-		JSL nmi_expand ; nmi.asm
+		JSL nmi_expand
 		RTS
 every_frame_hijack:
 		JSR $9322
-		JSL every_frame ; every_frame.asm
+		JSL every_frame
+		RTS
+temp_fade_hijack:
+		JSL temp_fade_tick
 		RTS
 
 ; run on every frame
@@ -36,11 +39,11 @@ ORG $00A087
 	
 ORG $00A249
 overworld_load_hijack:
-		JSL overworld_load ; overworld_load.asm
+		JSL overworld_load
 		JSR $937D
 		RTS
 overworld_hijack:
-		JSL overworld_tick ; overworld_tick.asm
+		JSL overworld_tick
 		JSR $9A74
 		RTS
 		
@@ -54,23 +57,27 @@ ORG $00A1DA
 		
 ORG $00F9F5
 level_hijack:
-		JSL level_tick ; level_tick.asm
+		JSL level_tick
 		LDA !level_loaded
 		BEQ .already_loaded
 		STZ !level_loaded
-		JSL level_mario_appear ; level_mario_appear.asm
+		JSL level_mario_appear
 	.already_loaded:
 		JSL test_last_frame
 		LDA $1426
 		RTS
 level_load_hijack:
-		JSL level_load ; level_load.asm
+		JSL level_load
 		STZ $4200 ; *
 		INC !level_loaded
 		RTS
 		
 ; * This will prevent NMI during level loading.
 ; Eventually I will re-enable it so that we can count frames during room transitions.
+
+; run on temporary fade game modes
+ORG $009F5B
+		JSR temp_fade_hijack
 		
 ; run on level load before fade in
 ORG $0096D5
@@ -105,7 +112,7 @@ test_last_frame:
 		RTL
 		
 	.trigger:
-		JSL level_finish ; level_finish.asm
+		JSL level_finish
 		RTL
 		
 ; hijack for overworld menu game modes
@@ -117,10 +124,22 @@ ORG $009367
 ; game modes for overworld menu
 ORG $00C578
 overworld_menu_load_gm:
-		JSL overworld_menu_load ; overworld_menu.asm
+		JSL overworld_menu_load
 		RTS
 overworld_menu_gm:
-		JSL overworld_menu ; overworld_menu.asm
+		JSL overworld_menu
+		RTS
+
+; prepare sram for new file
+; set all levels as beaten and enable all directions on all overworld tiles
+ORG $009F0E
+		JSL prepare_file
+		LDA #$8F
+		LDX #$5F
+	.loop:
+		STA $1EA2,X
+		DEX
+		BPL .loop
 		RTS
 
 ; run during level load, like while $17BB is available
@@ -204,12 +223,3 @@ ORG $048244
 ORG $0084F4
 		dl stripe_confirm
 		dl stripe_deleted
-
-; emergency data clear on title screen
-ORG $009C64
-		JSR emergency_clear_hijack
-ORG $00CDCE
-emergency_clear_hijack:
-		JSL emergency_clear
-		JSR $9A74
-		RTS

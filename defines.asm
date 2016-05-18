@@ -1,3 +1,8 @@
+; the version of this patch Va.b.c
+!version_a                   = $02
+!version_b                   = $00
+!version_c                   = $03
+
 ; number of frames dropped this execution frame
 !dropped_frames              = $FB ; 2 bytes, 16-bit value
 ; number of frames used this execution frame (basically !dropped_frames + 1)
@@ -17,16 +22,18 @@
 !restore_level_yoshi         = $19DA
 !restore_level_boo_ring      = $19DB ; 4 bytes
 !restore_level_igt           = $19DF
+!restore_level_xpos          = $19E0 ; 2 bytes, 16-bit value
 ; variables that are restored upon a room reset
-!restore_room_powerup        = $19E0
-!restore_room_itembox        = $19E1
-!restore_room_yoshi          = $19E2
-!restore_room_boo_ring       = $19E3 ; 4 bytes
-!restore_room_takeoff        = $19E7
-!restore_room_item           = $19E8
-!restore_room_rng            = $19E9 ; 4 bytes
-!restore_room_coins          = $19ED
-!restore_room_igt            = $19EE ; 3 bytes
+!restore_room_powerup        = $19E2
+!restore_room_itembox        = $19E3
+!restore_room_yoshi          = $19E4
+!restore_room_boo_ring       = $19E5 ; 4 bytes
+!restore_room_takeoff        = $19E9
+!restore_room_item           = $19EA
+!restore_room_rng            = $19EB ; 4 bytes
+!restore_room_coins          = $19EF
+!restore_room_igt            = $19F0 ; 3 bytes
+!restore_room_xpos           = $19F3 ; 2 bytes, 16-bit value
 
 ; location of cape interaction table at $1FE2
 !new_cape_interaction        = $0F5E
@@ -100,6 +107,11 @@
 
 ; the entire revamped status bar
 !status_bar                  = $1F2F ; 120 bytes
+
+; oam slots for added objects
+!oam_slot_sprite_slots       = $2C
+!oam_slot_bowser_level_timer = $30
+!oam_slot_bowser_room_timer  = $68
 
 ; flag = #$BD if save data exists
 !save_data_exists            = $700000

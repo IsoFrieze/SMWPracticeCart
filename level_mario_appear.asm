@@ -4,4 +4,5 @@ ORG $108000
 level_mario_appear:
 		STZ !dropped_frames
 		STZ !dropped_frames+1
+		JSL upload_bowser_timer_graphics
 		RTL

@@ -7,13 +7,19 @@ level_finish:
 		LDA #$01
 		STA !freeze_timer_flag
 		STA !level_finished
+		JSL set_time_save_address
+		PLP
+		RTL
+
+; set the appropriate pointer corresponding to this level and exit
+; X = 1 if the secret exit was activated, 0 otherwise
+set_time_save_address:
 		LDA.L !spliced_run
-		BEQ .not_spliced
+		BEQ .continue
 		LDA #$FF
 		STA !save_timer_address+2
-		JMP .done
-		
-	.not_spliced:
+		BRA .done
+	.continue:
 		LDA #$70
 		STA !save_timer_address+2
 		REP #$20
@@ -33,7 +39,5 @@ level_finish:
 		ASL A
 		ASL A
 		TSB !save_timer_address ; apply exit
-		
 	.done:
-		PLP
 		RTL
