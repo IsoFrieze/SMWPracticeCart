@@ -100,6 +100,10 @@ load_special_16:
 		AND #$00FF
 		RTS
 
+; clear unused exit table
+ORG $0DA533
+		NOP #3
+
 ; move layer 3 border data from $04A400 to $04A200
 ; insert new overworld tilemap, which is slightly larger than the original
 ORG $04A200

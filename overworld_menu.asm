@@ -473,7 +473,7 @@ minimum_selection_extended:
 
 ; the number of options to allow when not holding x or y
 minimum_selection_normal:
-		db $01,$01,$01,$01,$01,$03,$03,$04,$00,$01,$02,$01,$01,$01,$01,$03,$00
+		db $01,$01,$01,$01,$01,$03,$04,$04,$00,$01,$02,$01,$01,$01,$01,$03,$00
 		
 ; reset persistant enemy states
 ; right now this only includes boo cloud and boo ring angles

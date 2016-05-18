@@ -1,5 +1,3 @@
-!dynamic_stripe_image = $1938 ; 19 bytes
-
 ORG $148000
 
 ; this code is run on every frame during the overworld game mode (after fade in completes)

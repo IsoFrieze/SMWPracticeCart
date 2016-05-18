@@ -7,6 +7,10 @@
 ; 60Hz counter, resistant to lag frames
 !counter_sixty_hz            = $FF
 
+; stripe image buffer for the overworld record times on the border
+; actually overwrites some sprite table, but that doesn't matter because this is only used on the overworld
+!dynamic_stripe_image        = $1938 ; 19 bytes
+
 ; variables that are restored upon a level reset
 !restore_level_powerup       = $19D8
 !restore_level_itembox       = $19D9
