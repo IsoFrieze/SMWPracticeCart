@@ -2,8 +2,6 @@
 ; $00B091 - 7 / 15 bytes
 
 ; 1FE2 cape interaction table
-!new_cape_interaction = $0F5E
-
 ORG $00FCC2
 		STA !new_cape_interaction,X
 ORG $01810E

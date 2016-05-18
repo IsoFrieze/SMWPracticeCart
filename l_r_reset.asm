@@ -266,7 +266,7 @@ activate_save_state:
 		STA $2100 ; exit force blank
 		
 		LDA #$01
-		STA.L !save_state_used
+		STA.L !spliced_run
 		LDA #$BD
 		STA.L !save_state_exists
 		PLP

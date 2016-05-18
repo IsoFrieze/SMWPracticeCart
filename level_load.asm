@@ -1,23 +1,3 @@
-!restore_level_powerup  = $19D8
-!restore_level_itembox  = $19D9
-!restore_level_yoshi    = $19DA
-!restore_level_boo_ring = $19DB ; 4 bytes
-!restore_level_igt      = $19DF
-!restore_room_powerup   = $19E0
-!restore_room_itembox   = $19E1
-!restore_room_yoshi     = $19E2
-!restore_room_boo_ring  = $19E3 ; 4 bytes
-!restore_room_takeoff   = $19E7
-!restore_room_item      = $19E8
-!restore_room_rng       = $19E9 ; 4 bytes
-!restore_room_coins     = $19ED
-!restore_room_igt       = $19EE ; 3 bytes
-
-!recent_screen_exit     = $0F1A
-!recent_secondary_flag  = $0F1B
-!l_r_function           = $0F1D
-!save_timer_address     = $0F20 ; 3 bytes
-
 ORG $128000
 
 ; this code is run once on level load (during the black screen)
@@ -69,7 +49,7 @@ l_r_functions:
 ; prepare the level load if we just did a room reset
 setup_room_reset:
 		LDA #$01
-		STA !spliced_run
+		STA.L !spliced_run
 		
 		LDA !restore_room_powerup
 		STA $19 ; powerup
@@ -118,7 +98,8 @@ setup_room_reset:
 
 ; prepare the level load if we just did a level reset
 setup_level_reset:
-		STZ !spliced_run
+		LDA #$00
+		STA.L !spliced_run
 		
 		LDA !restore_level_powerup
 		STA $19 ; powerup
@@ -142,8 +123,6 @@ setup_level_reset:
 		STZ !record_used_yoshi
 		STZ !record_used_orb
 		STZ !record_lunar_dragon
-		LDA #$00
-		STA.L !save_state_used
 		
 		; set msb so it's not 00, which is a special case for entering the level
 		; we'll turn this byte into fnnnnnnn, f = 0 if just entered level, n = sublevel count
@@ -166,7 +145,7 @@ setup_level_reset:
 ; prepare the level load if we just did a room advance
 setup_room_advance:
 		LDA #$01
-		STA !spliced_run
+		STA.L !spliced_run
 		
 		JSR save_room_properties
 		JSR restore_common_aspects
@@ -301,8 +280,7 @@ save_level_properties:
 		STZ !record_used_orb
 		STZ !record_lunar_dragon
 		LDA #$00
-		STA.L !save_state_used
-		STZ !spliced_run
+		STA.L !spliced_run
 		
 		RTS
 

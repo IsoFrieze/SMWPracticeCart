@@ -10,9 +10,6 @@
 ; $01CD1E - 11 / 12 bytes
 ; $04FFB1 -  4 / 79 bytes
 
-!level_loaded           = $13C8
-!level_finished         = $1DEF
-
 ; run on nmi
 ORG $0081AA
 		JSR nmi_hijack

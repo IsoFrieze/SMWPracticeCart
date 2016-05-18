@@ -1,27 +1,3 @@
-!level_timer_minutes         = $0F3A
-!level_timer_seconds         = $0F3B
-!level_timer_frames          = $0F3C
-!restore_level_timer_minutes = $0F3D
-!restore_level_timer_seconds = $0F3E
-!restore_level_timer_frames  = $0F3F
-!room_timer_minutes          = $0F42
-!room_timer_seconds          = $0F43
-!room_timer_frames           = $0F44
-
-!spliced_run                 = $0F19
-!held_item_slot              = $0F1C
-!freeze_timer_flag           = $0F1E
-
-!record_used_powerup         = $0F23
-!record_used_cape            = $0F24
-!record_used_yoshi           = $0F25
-!record_used_orb             = $0F26
-!record_lunar_dragon         = $0F27
-
-!save_state_exists           = $700006
-!save_state_used             = $700007
-!disallow_save_states        = $70000E
-
 ORG $158000
 
 ; this code is run on every frame during fades to and from the level game mode (game modes #$0F & #$13)
@@ -177,9 +153,7 @@ display_timers:
 		STA $1F59 ; ones
 		
 	; draw flashing clock symbol if run was not spliced
-		LDA !spliced_run
-		BNE .merge
-		LDA.L !save_state_used
+		LDA.L !spliced_run
 		BNE .merge
 		LDA $13 ; true frame
 		AND #%00100000
@@ -805,9 +779,7 @@ draw_bowser_timer:
 		
 		LDA #$69 ; empty tile
 		STA $02C2
-		LDA !spliced_run
-		BNE .spliced
-		LDA.L !save_state_used
+		LDA.L !spliced_run
 		BNE .spliced
 		LDA $13 ; true frame
 		AND #%00100000

@@ -1,5 +1,3 @@
-!status_bar = $1F2F
-
 ; status bar default tiles and properties for each tile
 ORG $008C59
 Status_bar_tiles:

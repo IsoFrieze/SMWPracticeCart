@@ -6,8 +6,8 @@ level_finish:
 		PHP
 		LDA #$01
 		STA !freeze_timer_flag
-		LDA.L !save_state_used
-		ORA !spliced_run
+		STA !level_finished
+		LDA.L !spliced_run
 		BEQ .not_spliced
 		LDA #$FF
 		STA !save_timer_address+2

@@ -45,7 +45,7 @@ set_marios_overworld_position:
 	.done:
 		RTS
 
-
+; this is broken
 ;=========================================
 		LDA $700000
 		CMP #$BD
