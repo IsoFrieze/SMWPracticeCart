@@ -126,7 +126,7 @@ ORG $028D42
 
 ; prevent credits
 ORG $03AC12
-    db $93,$14
+		db $93,$14
 
 ; disable chocolate island 2 weirdness
 ORG $05DAE5

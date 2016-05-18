@@ -155,8 +155,6 @@ setup_level_reset:
 		LDA !restore_level_boo_ring,X
 		STA $0FAE,X ; boo ring angles
 		STZ $148B,X ; rng
-		STZ $1A,X ; layer 1 x/y positions
-		STZ $1E,X ; layer 2 x/y positions
 		DEX
 		BPL .loop_tables
 		
@@ -194,6 +192,14 @@ restore_common_aspects:
 		STZ !room_timer_minutes
 		STZ !room_timer_seconds
 		STZ !room_timer_frames
+		
+		LDX #$03
+	.loop_camera:
+		STZ $1A,X ; layer 1 x/y positions
+		STZ $1E,X ; layer 2 x/y positions
+		STZ $26,X ; layer 2 - layer 1 x/y positions
+		DEX
+		BPL .loop_camera
 		
 		REP #$10
 		LDX #$017F

@@ -24,12 +24,44 @@
 
 ORG $158000
 
-; this code is run on every frame during the level game mode (after fade in completes)
+; this code is run on every frame during fades to and from the level game mode (game modes #$0F & #$13)
+; TODO actually call this routine in a hijack
+level_fade_tick:
+		PHP
+		PHB
+		PHK
+		PLB
+		
+		JSR fade_and_in_level_common
+		
+		PLB
+		PLP
+		RTL
+
+; this code is run on every frame during the level game mode (after fade in completes) (game mode #$14)
 level_tick:
 		PHP
 		PHB
 		PHK
 		PLB
+		
+		JSR fade_and_in_level_common
+		
+		PEA !level_timer_minutes
+		JSR tick_timer
+		PEA !room_timer_minutes
+		JSR tick_timer
+		JSR test_ci2
+		JSR test_reset
+		JSR test_run_type
+		JSL upload_bowser_timer_graphics
+		
+		PLB
+		PLP
+		RTL
+
+; these routines are called on both level tick and level fade tick
+fade_and_in_level_common:
 		JSR display_coins
 ;		JSR display_time ; already done in original status bar routine
 		JSR display_speed
@@ -40,18 +72,8 @@ level_tick:
 		JSR display_input
 		JSR display_yoshi_subpixel
 		JSR display_held_subpixel
-		PEA !level_timer_minutes
-		JSR tick_timer
-		PEA !room_timer_minutes
-		JSR tick_timer
-		JSR test_ci2
-		JSR test_reset
 		JSR test_savestate
-		JSR test_run_type
-		JSL upload_bowser_timer_graphics
-		PLB
-		PLP
-		RTL
+		RTS
 
 ; draw the current amount of coins collected this level to the status bar
 display_coins:
