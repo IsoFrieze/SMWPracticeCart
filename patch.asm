@@ -1,6 +1,6 @@
 ;========================
 ; SMW Practice Cart
-; Version 2.0.3
+; Version 2.1.0
 ; Created by Dotsarecool
 ;========================
 
@@ -10,7 +10,7 @@ ORG $00FFC0
 
 ; nintendo presents sound
 ORG $0093C1
-		db $06
+		db $07
 
 ; include everything because I want to be organized this time
 

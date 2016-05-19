@@ -76,7 +76,7 @@ level_load_hijack:
 ; Eventually I will re-enable it so that we can count frames during room transitions.
 
 ; run on temporary fade game modes
-ORG $009F5B
+ORG $009F37
 		JSR temp_fade_hijack
 		
 ; run on level load before fade in

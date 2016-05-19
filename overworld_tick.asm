@@ -12,6 +12,7 @@ overworld_tick:
 		JSR test_for_swap
 		JSR test_for_menu
 		JSR draw_times
+		JSR save_marios_position
 		PLB
 		PLP
 		RTL
@@ -211,16 +212,9 @@ draw_times:
 		ASL A
 		ASL A
 		ASL A
-		STA !save_timer_address
+		STA $00
 		SEP #$20
 		LDA #$70
-		STA !save_timer_address+2
-		
-		LDA !save_timer_address
-		STA $00
-		LDA !save_timer_address+1
-		STA $01
-		LDA !save_timer_address+2
 		STA $02
 		
 		LDY #$07
@@ -492,3 +486,21 @@ blank_stripe:
 ; having a time better than the one here will result in a gold time
 gold_times:
 		incbin "bin/overworld_gold_times.bin"
+
+; save mario's position on the overworld to sram
+save_marios_position:
+		LDA $144E ; overworld forward timer
+		CMP #$0E
+		BNE .done
+		LDA $1F11
+		STA.L !save_overworld_submap
+		LDA $1F17
+		STA.L !save_overworld_x
+		LDA $1F18
+		STA.L !save_overworld_x+1
+		LDA $1F19
+		STA.L !save_overworld_y
+		LDA $1F1A
+		STA.L !save_overworld_y+1
+	.done:
+		RTS

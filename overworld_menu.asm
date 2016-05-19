@@ -159,7 +159,7 @@ draw_menu_selection:
 		CPX !current_selection
 		BNE .not_selected
 		CLC
-		ADC #$31D0 ; half the size of menu_option_tilemaps
+		ADC #$3250 ; half the size of menu_option_tilemaps
 	.not_selected:
 		REP #$10
 		TAX
@@ -206,9 +206,9 @@ location_in_tilemap:
 		dw $0000,$0002,$0004,$0006
 		dw $0008,      $000A,$010A
 		dw $020A,      $030A
-		dw $030B,      $030D,$0310
-		dw $0312,$0314,$0316,$0318
-		dw             $031C
+		dw $030B,      $0315,$0318
+		dw $031A,$031C,$031E,$0320
+		dw             $0324
 
 ; the tilemaps for each of the menu options and each of their selections
 menu_option_tilemaps:
@@ -242,26 +242,12 @@ overworld_menu:
 		SEP #$30
 		INC $14
 		
-	.test_l_r:
 		LDA !erase_records_flag
 		BEQ .test_up
 		LDA $0DA2 ; byetudlr
 		AND #%00100000
 		BEQ .test_up
-		LDA #$18 ; thunder
-		STA $1DFC ; apu i/o
-		LDA #$27 ; "the data has been erased"
-		STA $12 ; stripe image loader
-		LDA !erase_records_flag
-		CMP #$01
-		BEQ .delete_all
-		LDA !potential_translevel
-		JSL delete_translevel_data
-		BRA .merge
-	.delete_all:
-		JSL delete_all_data
-	.merge:
-		STZ !erase_records_flag
+		JSR delete_data
 		JMP .finish_no_sound
 		
 	.test_up:
@@ -469,11 +455,11 @@ check_bounds:
 
 ; the number of options to allow when holding x or y
 minimum_selection_extended:
-		db $01,$01,$01,$01,$01,$FF,$FF,$FF,$00,$01,$02,$01,$01,$01,$01,$03,$00
+		db $01,$01,$01,$01,$01,$FF,$FF,$FF,$00,$09,$02,$01,$01,$01,$01,$03,$00
 
 ; the number of options to allow when not holding x or y
 minimum_selection_normal:
-		db $01,$01,$01,$01,$01,$03,$04,$04,$00,$01,$02,$01,$01,$01,$01,$03,$00
+		db $01,$01,$01,$01,$01,$03,$04,$04,$00,$09,$02,$01,$01,$01,$01,$03,$00
 		
 ; reset persistant enemy states
 ; right now this only includes boo cloud and boo ring angles
@@ -561,6 +547,58 @@ delete_one_record:
 		PLA
 		PLP
 		RTL
+		
+; function that runs if select is pressed after choosing delete data
+delete_data:
+		LDA #$18 ; thunder
+		STA $1DFC ; apu i/o
+		LDA #$27 ; "the data has been erased"
+		STA $12 ; stripe image loader
+		LDA !erase_records_flag
+		DEC A
+		ASL A
+		TAX
+		JMP (.delete_table,X)
+	
+	.delete_table:
+		dw .delete_all
+		dw .delete_level
+		dw .delete_normal_low
+		dw .delete_normal_nocape
+		dw .delete_normal_cape
+		dw .delete_normal_lunardragon
+		dw .delete_secret_low
+		dw .delete_secret_nocape
+		dw .delete_secret_cape
+		dw .delete_secret_lunardragon
+		
+	.delete_all:
+		JSL delete_all_data
+		JMP .done
+	.delete_level:
+		LDA !potential_translevel
+		JSL delete_translevel_data
+		JMP .done
+	.delete_normal_low:
+	.delete_normal_nocape:
+	.delete_normal_cape:
+	.delete_normal_lunardragon:
+	.delete_secret_low:
+	.delete_secret_nocape:
+	.delete_secret_cape:
+	.delete_secret_lunardragon:
+		LDA !erase_records_flag
+		DEC A
+		DEC A
+		DEC A
+		TAX
+		LDA !potential_translevel
+		JSL delete_one_record
+		JMP .done
+		
+	.done:
+		STZ !erase_records_flag
+		RTS
 
 ; A|X = address of data, Y = number of bytes
 ; requires 8-bit accumulator, 16-bit index

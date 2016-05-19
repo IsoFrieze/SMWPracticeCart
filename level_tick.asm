@@ -9,11 +9,13 @@ temp_fade_tick:
 		PLB
 		
 		JSR fade_and_in_level_common
+		STZ !dropped_frames
+		STZ !dropped_frames+1
 		
 		PLB
 		PLP
 		
-		INC $0100
+		DEC $0DB1
 		RTL
 
 ; this code is run on every frame during the level game mode (after fade in completes) (game mode #$14)
@@ -613,8 +615,9 @@ test_reset:
 
 ; test if a savestate was activated, if so, call the appropriate routine
 test_savestate:
-		LDA.L !disallow_save_states
-		BNE .done
+		LDA $0D9B ; overworld flag
+		CMP #$02
+		BEQ .done
 		
 		LDA $0DA2 ; byetudlr
 		AND #%00100000

@@ -1,7 +1,7 @@
 ; the version of this patch Va.b.c
 !version_a                   = $02
-!version_b                   = $00
-!version_c                   = $03
+!version_b                   = $01
+!version_c                   = $00
 
 ; number of frames dropped this execution frame
 !dropped_frames              = $FB ; 2 bytes, 16-bit value
@@ -124,7 +124,8 @@
 ; flag if a save state or room reset/advance was used in this run
 ; used to detect when to not save the record (no cheating!)
 !spliced_run                 = $700007
-; flag = #$BD if it is detected that save states are not compatible with this platform
-; prevents save and load state features
-!disallow_save_states        = $70001F
+; flag = #$BD if it is detected that this platform does not support the needed sram
+; for complete save states; this will prevent save states from being saved across
+; levels and power cycles
+!use_poverty_save_states     = $70001F
 

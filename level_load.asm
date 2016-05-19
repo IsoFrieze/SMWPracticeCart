@@ -38,7 +38,6 @@ level_load:
 		LDA $0100 ; game mode
 		CMP #$06
 		BCC .done
-		JSR save_marios_position
 		
 	.done:
 		PLB
@@ -301,6 +300,7 @@ save_level_properties:
 		STZ !record_used_yoshi
 		STZ !record_used_orb
 		STZ !record_lunar_dragon
+		STZ !level_finished
 		LDA #$00
 		STA.L !spliced_run
 		
@@ -437,17 +437,3 @@ upload_bowser_timer_graphics:
 		
 sprite_slots_graphics:
 		incbin "bin/sprite_slots_graphics.bin"
-
-; save mario's position on the overworld to sram
-save_marios_position:
-		LDA $1F11
-		STA.L !save_overworld_submap
-		LDA $1F17
-		STA.L !save_overworld_x
-		LDA $1F18
-		STA.L !save_overworld_x+1
-		LDA $1F19
-		STA.L !save_overworld_y
-		LDA $1F1A
-		STA.L !save_overworld_y+1
-		RTS

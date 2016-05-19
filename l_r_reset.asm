@@ -152,10 +152,133 @@ room_advance_table:
 		
 ; this code is run when the player presses R + select to make a save state
 activate_save_state:
-		PHP
 		LDA #$0E ; swim sound
 		STA $1DF9 ; apu i/o
 		
+		LDA !use_poverty_save_states
+		BEQ .complete
+		JSR go_poverty_save_state
+		BRA .done
+	.complete:
+		JSR go_complete_save_state
+	.done:
+		LDA #$01
+		STA.L !spliced_run
+		LDA #$BD
+		STA.L !save_state_exists
+		RTL
+		
+go_poverty_save_state:
+		PHP
+		LDA #$80
+		STA $2100 ; force blank
+		STZ $4200 ; nmi disable
+		
+		REP #$10
+		
+		; save wram $0000-$1FFF to wram $7F9C7B-$7FBC7A
+		LDX #$1FFF
+	.loop_mirror:
+		LDA $7E0000,X
+		STA $7F9C7B,X
+		DEX
+		BPL .loop_mirror
+		
+		; save wram $C680-$C6DF to $707DA0-$707DFF
+		LDX #$005F
+	.loop_boss:
+		LDA $7EC680,X
+		STA $707DA0,X
+		DEX
+		BPL .loop_boss
+		
+		; save wram $7F9A7B-$7F9C7A to $707BA0-$707D9F
+		LDX #$01FF
+	.loop_wiggler:
+		LDA $7F9A7B,X
+		STA $707BA0,X
+		DEX
+		BPL .loop_wiggler
+		
+		; save wram $C800-$FFFF to $700BA0-$70439F
+		LDX #$37FF
+	.loop_tilemap_low:
+		LDA $7EC800,X
+		STA $700BA0,X
+		DEX
+		BPL .loop_tilemap_low
+		
+		; save wram $7FC800-$7FFFFF to $7043A0-$707B9F
+		LDX #$37FF
+	.loop_tilemap_high:
+		LDA $7FC800,X
+		STA $7043A0,X
+		DEX
+		BPL .loop_tilemap_high
+		
+		; save cgram w$00-w$FF to $707E00-$707FFF
+		LDX #$0000
+		STX $2121 ; cgram address
+		LDX #$7E00
+		STX $4302 ; dma0 destination address
+		LDA #$70
+		STA $4304 ; dma0 destination bank
+		LDX #$0200
+		STX $4305 ; dma0 length
+		LDA #$80 ; 1-byte
+		STA $4300 ; dma0 parameters
+		LDA #$3B ; $213B cgram data read
+		STA $4301 ; dma0 source
+		LDA #$01 ; channel 0
+		STA $420B ; dma enable
+		
+		; save vram w$1000-w$3FFF to wram $7F0000-$7F5FFF
+		LDA #$80
+		STA $2115 ; vram increment
+		LDX #$1000
+		STX $2116 ; vram address
+		LDX $2139 ; vram data read (dummy read)
+		LDX #$0000
+		STX $4302 ; dma0 destination address
+		LDA #$7F
+		STA $4304 ; dma0 destination bank
+		LDX #$6000
+		STX $4305 ; dma0 length
+		LDA #$81 ; 2-byte, low-high
+		STA $4300 ; dma0 parameters
+		LDA #$39 ; $2139 vram data read
+		STA $4301 ; dma0 source
+		LDA #$01 ; channel 0
+		STA $420B ; dma enable
+		
+		; save vram w$7000-w$7FFF to wram $7F6000-$7F7FFF
+		LDA #$80
+		STA $2115 ; vram increment
+		LDX #$7000
+		STX $2116 ; vram address
+		LDX $2139 ; vram data read (dummy read)
+		LDX #$6000
+		STX $4302 ; dma0 destination address
+		LDA #$7F
+		STA $4304 ; dma0 destination bank
+		LDX #$2000
+		STX $4305 ; dma0 length
+		LDA #$81 ; 2-byte, low-high
+		STA $4300 ; dma0 parameters
+		LDA #$39 ; $2139 vram data read
+		STA $4301 ; dma0 source
+		LDA #$01 ; channel 0
+		STA $420B ; dma enable
+		
+		LDA #$81
+		STA $4200 ; nmi enable
+		LDA #$0F
+		STA $2100 ; exit force blank
+		PLP
+		RTS
+		
+go_complete_save_state:
+		PHP
 		LDA #$80
 		STA $2100 ; force blank
 		STZ $4200 ; nmi disable
@@ -260,16 +383,127 @@ activate_save_state:
 		STA $4200 ; nmi enable
 		LDA #$0F
 		STA $2100 ; exit force blank
-		
-		LDA #$01
-		STA.L !spliced_run
-		LDA #$BD
-		STA.L !save_state_exists
 		PLP
-		RTL
+		RTS
 
 ; this code is run when the player presses L + select to load a save state
 activate_load_state:
+		LDA !use_poverty_save_states
+		BEQ .complete
+		JSR go_poverty_load_state
+		BRA .done
+	.complete:
+		JSR go_complete_load_state
+	.done:
+		RTL
+		
+go_poverty_load_state:
+		PHP
+		LDA #$80
+		STA $2100 ; force blank
+		STZ $4200 ; nmi disable
+		
+		REP #$10
+		
+		; load wram $7F9C7B-$7FBC7A to wram $0000-$1FFF 
+		LDX #$1FFF
+	.loop_mirror:
+		LDA $7F9C7B,X
+		STA $7E0000,X
+		DEX
+		BPL .loop_mirror
+		
+		; load $707DA0-$707DFF to wram $C680-$C6DF
+		LDX #$005F
+	.loop_boss:
+		LDA $707DA0,X
+		STA $7EC680,X
+		DEX
+		BPL .loop_boss
+		
+		; load $707BA0-$707D9F to wram $7F9A7B-$7F9C7A
+		LDX #$01FF
+	.loop_wiggler:
+		LDA $707BA0,X
+		STA $7F9A7B,X
+		DEX
+		BPL .loop_wiggler
+		
+		; load $700BA0-$70439F to wram $C800-$FFFF
+		LDX #$37FF
+	.loop_tilemap_low:
+		LDA $700BA0,X
+		STA $7EC800,X
+		DEX
+		BPL .loop_tilemap_low
+		
+		; load $7043A0-$707B9F to wram $7FC800-$7FFFFF
+		LDX #$37FF
+	.loop_tilemap_high:
+		LDA $7043A0,X
+		STA $7FC800,X
+		DEX
+		BPL .loop_tilemap_high
+		
+		; load $707E00-$707FFF to cgram w$00-w$FF
+		LDX #$0000
+		STX $2121 ; cgram address
+		LDX #$7E00
+		STX $4302 ; dma0 destination address
+		LDA #$70
+		STA $4304 ; dma0 destination bank
+		LDX #$0200
+		STX $4305 ; dma0 length
+		STZ $4300 ; dma0 parameters
+		LDA #$22 ; $2122 cgram data write
+		STA $4301 ; dma0 source
+		LDA #$01 ; channel 0
+		STA $420B ; dma enable
+		
+		; load wram $7F0000-$7F5FFF to vram w$1000-w$3FFF
+		LDA #$80
+		STA $2115 ; vram increment
+		LDX #$1000
+		STX $2116 ; vram address
+		LDX #$0000
+		STX $4302 ; dma0 destination address
+		LDA #$7F
+		STA $4304 ; dma0 destination bank
+		LDX #$6000
+		STX $4305 ; dma0 length
+		LDA #$01 ; 2-byte, low-high
+		STA $4300 ; dma0 parameters
+		LDA #$18 ; $2118 vram data write
+		STA $4301 ; dma0 source
+		LDA #$01 ; channel 0
+		STA $420B ; dma enable
+		
+		; load wram $7F6000-$7F7FFF to vram w$7000-w$7FFF
+		LDA #$80
+		STA $2115 ; vram increment
+		LDX #$7000
+		STX $2116 ; vram address
+		LDX #$6000
+		STX $4302 ; dma0 destination address
+		LDA #$7F
+		STA $4304 ; dma0 destination bank
+		LDX #$2000
+		STX $4305 ; dma0 length
+		LDA #$01 ; 2-byte, low-high
+		STA $4300 ; dma0 parameters
+		LDA #$18 ; $2118 vram data write
+		STA $4301 ; dma0 source
+		LDA #$01 ; channel 0
+		STA $420B ; dma enable
+		
+		LDA #$81
+		STA $4200 ; nmi enable
+		LDA #$0F
+		STA $2100 ; exit force blank
+		PLP
+		RTS
+		
+go_complete_load_state:
 		PHP
 		LDA #$80
 		STA $2100 ; force blank
@@ -373,4 +607,4 @@ activate_load_state:
 		LDA #$0F
 		STA $2100 ; exit force blank
 		PLP
-		RTL
+		RTS

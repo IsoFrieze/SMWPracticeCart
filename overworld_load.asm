@@ -42,6 +42,11 @@ overworld_load:
 		JSR attempt_timer_save
 		
 	.done:
+		LDA.L !use_poverty_save_states
+		BEQ .keep_state
+		LDA #$00
+		STA.L !save_state_exists
+	.keep_state:
 		LDA #$FF
 		STA !save_timer_address+2
 		STZ !l_r_function
@@ -151,7 +156,7 @@ set_overworld_position:
 		
 	.merge:
 		LDA #$00
-		STA.L !disallow_save_states
+		STA.L !use_poverty_save_states
 		LDA #$AA
 		STA $717FFF
 		LDA #$BB
@@ -161,7 +166,7 @@ set_overworld_position:
 		BEQ .done
 		
 		LDA #$BD
-		STA.L !disallow_save_states
+		STA.L !use_poverty_save_states
 		
 	.done:
 		RTS
