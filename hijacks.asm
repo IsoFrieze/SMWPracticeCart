@@ -223,3 +223,8 @@ ORG $048244
 ORG $0084F4
 		dl stripe_confirm
 		dl stripe_deleted
+
+; fix reznor/iggy/larry graphics upload
+ORG $00AB4A
+		JSL fix_iggy_larry_graphics
+		NOP #2

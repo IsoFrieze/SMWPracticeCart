@@ -1,18 +1,66 @@
 <NotepadPlus>
-    <Session activeView="0">
-        <mainView activeIndex="0">
-            <File firstVisibleLine="34" xOffset="0" scrollWidth="2114" startPos="3730" endPos="3730" selMode="0" lang="Normal Text" encoding="-1" filename="C:\Users\Alex\Downloads\LunarMagic\all.log\all.log" backupFilePath="C:\Users\Alex\AppData\Roaming\Notepad++\backup\all.log@2016-05-02_025235" originalFileLastModifTimestamp="1451766032" />
-            <File firstVisibleLine="162" xOffset="0" scrollWidth="2004" startPos="4534" endPos="4534" selMode="0" lang="Assembly" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\_old_patch.asm" backupFilePath="" originalFileLastModifTimestamp="1462302619">
+    <Session activeView="1">
+        <mainView activeIndex="4">
+            <File firstVisibleLine="667" xOffset="0" scrollWidth="2481" startPos="86245" endPos="86245" selMode="0" lang="65816" encoding="-1" filename="C:\Users\Alex\Downloads\LunarMagic\all.log\all.log" backupFilePath="C:\Users\Alex\AppData\Roaming\Notepad++\backup\all.log@2016-05-16_211251" originalFileLastModifTimestamp="1463402584" />
+            <File firstVisibleLine="1082" xOffset="0" scrollWidth="1617" startPos="21955" endPos="21960" selMode="0" lang="65816" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\_old_patch.asm" backupFilePath="" originalFileLastModifTimestamp="1463424425">
+                <Mark line="10" />
+                <Mark line="11" />
+                <Mark line="12" />
+                <Mark line="18" />
+                <Mark line="19" />
+                <Mark line="20" />
+                <Mark line="21" />
+                <Mark line="22" />
+                <Mark line="23" />
+                <Mark line="24" />
+                <Mark line="25" />
+                <Mark line="26" />
+                <Mark line="27" />
+                <Mark line="29" />
+                <Mark line="30" />
+                <Mark line="31" />
+                <Mark line="33" />
+                <Mark line="34" />
+                <Mark line="35" />
+                <Mark line="46" />
+                <Mark line="49" />
+                <Mark line="50" />
+                <Mark line="51" />
+                <Mark line="52" />
+                <Mark line="55" />
+                <Mark line="56" />
+                <Mark line="57" />
+                <Mark line="59" />
+                <Mark line="60" />
+                <Mark line="64" />
+                <Mark line="65" />
+                <Mark line="66" />
+                <Mark line="69" />
+                <Mark line="70" />
+                <Mark line="71" />
+                <Mark line="73" />
+                <Mark line="74" />
                 <Mark line="198" />
             </File>
-            <File firstVisibleLine="0" xOffset="0" scrollWidth="350" startPos="344" endPos="344" selMode="0" lang="Batch" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\PATCH.bat" backupFilePath="" originalFileLastModifTimestamp="1462246103" />
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="1617" startPos="63" endPos="63" selMode="0" lang="65816" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\patch.asm" backupFilePath="" originalFileLastModifTimestamp="1463750621" />
+            <File firstVisibleLine="24" xOffset="0" scrollWidth="2481" startPos="3513" endPos="3513" selMode="0" lang="HTML" encoding="-1" filename="C:\Users\Alex\Documents\web\twitch\practice.html" backupFilePath="" originalFileLastModifTimestamp="1463652648" />
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="1617" startPos="142" endPos="142" selMode="0" lang="65816" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\defines.asm" backupFilePath="" originalFileLastModifTimestamp="1463750627" />
         </mainView>
-        <subView activeIndex="4">
-            <File firstVisibleLine="0" xOffset="0" scrollWidth="622" startPos="610" endPos="610" selMode="0" lang="Assembly" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\hijacks.asm" backupFilePath="" originalFileLastModifTimestamp="1462251428" />
-            <File firstVisibleLine="70" xOffset="0" scrollWidth="1722" startPos="2448" endPos="2448" selMode="0" lang="Assembly" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\statusbar.asm" backupFilePath="" originalFileLastModifTimestamp="1462237571" />
-            <File firstVisibleLine="0" xOffset="0" scrollWidth="133" startPos="0" endPos="0" selMode="0" lang="Assembly" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\overworld_tick.asm" backupFilePath="" originalFileLastModifTimestamp="1462220851" />
-            <File firstVisibleLine="0" xOffset="0" scrollWidth="210" startPos="0" endPos="0" selMode="0" lang="Assembly" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\level_tick.asm" backupFilePath="" originalFileLastModifTimestamp="1462246123" />
-            <File firstVisibleLine="0" xOffset="0" scrollWidth="210" startPos="78" endPos="84" selMode="0" lang="Assembly" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\every_frame.asm" backupFilePath="" originalFileLastModifTimestamp="1462245540" />
+        <subView activeIndex="13">
+            <File firstVisibleLine="57" xOffset="0" scrollWidth="595" startPos="1671" endPos="1685" selMode="0" lang="65816" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\hijacks.asm" backupFilePath="" originalFileLastModifTimestamp="1463588944" />
+            <File firstVisibleLine="595" xOffset="0" scrollWidth="770" startPos="11287" endPos="11287" selMode="0" lang="65816" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\level_tick.asm" backupFilePath="" originalFileLastModifTimestamp="1463644315" />
+            <File firstVisibleLine="374" xOffset="0" scrollWidth="651" startPos="8667" endPos="8667" selMode="0" lang="65816" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\level_load.asm" backupFilePath="" originalFileLastModifTimestamp="1463591075" />
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="665" startPos="827" endPos="827" selMode="0" lang="65816" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\l_r_reset.asm" backupFilePath="" originalFileLastModifTimestamp="1463652552" />
+            <File firstVisibleLine="83" xOffset="0" scrollWidth="581" startPos="2830" endPos="2830" selMode="0" lang="65816" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\hex_edits.asm" backupFilePath="" originalFileLastModifTimestamp="1463647240" />
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="1750" startPos="1422" endPos="1422" selMode="0" lang="65816" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\statusbar.asm" backupFilePath="" originalFileLastModifTimestamp="1463587654" />
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="462" startPos="203" endPos="217" selMode="0" lang="65816" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\level_finish.asm" backupFilePath="" originalFileLastModifTimestamp="1463578268" />
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="539" startPos="0" endPos="0" selMode="0" lang="65816" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\every_frame.asm" backupFilePath="" originalFileLastModifTimestamp="1462773781" />
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="686" startPos="134" endPos="134" selMode="0" lang="65816" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\level_mario_appear.asm" backupFilePath="" originalFileLastModifTimestamp="1463588984" />
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="812" startPos="0" endPos="0" selMode="0" lang="65816" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\nmi.asm" backupFilePath="" originalFileLastModifTimestamp="1463566773" />
+            <File firstVisibleLine="24" xOffset="0" scrollWidth="833" startPos="987" endPos="987" selMode="0" lang="65816" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\overworld_load.asm" backupFilePath="" originalFileLastModifTimestamp="1463647076" />
+            <File firstVisibleLine="516" xOffset="0" scrollWidth="665" startPos="10100" endPos="10100" selMode="0" lang="65816" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\overworld_menu.asm" backupFilePath="" originalFileLastModifTimestamp="1463649805" />
+            <File firstVisibleLine="362" xOffset="0" scrollWidth="665" startPos="5715" endPos="5715" selMode="0" lang="65816" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\overworld_tick.asm" backupFilePath="" originalFileLastModifTimestamp="1463750603" />
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="826" startPos="757" endPos="757" selMode="0" lang="65816" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\relocations.asm" backupFilePath="" originalFileLastModifTimestamp="1463570196" />
         </subView>
     </Session>
 </NotepadPlus>

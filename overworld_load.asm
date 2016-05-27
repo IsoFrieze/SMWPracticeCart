@@ -173,6 +173,8 @@ set_overworld_position:
 
 ; set marios position on the overworld to yoshi's house
 set_position_to_yoshis_house:
+		LDA #$BD
+		STA.L !save_data_exists
 		LDA #$01
 		STA.L !save_overworld_submap
 		STA $1F11

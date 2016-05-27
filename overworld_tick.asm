@@ -442,7 +442,7 @@ translevel_types:
 		db $0F,$0F,$07,$FF
 		db $0F,$0F,$00,$77
 		db $07,$FF,$00,$00
-		db $0E,$00,$07,$07
+		db $0F,$00,$07,$07
 		db $0F,$0F,$00,$07
 		db $0F,$07,$0F,$FF
 		db $7F,$07,$0F,$0F
@@ -454,7 +454,7 @@ translevel_types:
 		db $FF,$0F,$FF,$07
 		db $07,$F7,$77,$FF
 		db $FF,$07,$0F,$FF
-		db $0F,$00,$0F,$0F
+		db $00,$0F,$0F,$0F
 		db $0F,$00,$0F,$0F
 		db $0F,$0F,$00,$00
 		db $77,$00,$77,$00

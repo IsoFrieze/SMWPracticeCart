@@ -270,6 +270,22 @@ go_poverty_save_state:
 		LDA #$01 ; channel 0
 		STA $420B ; dma enable
 		
+		; save some hardware registers to $7FC7F7 - $7FC7FF
+		; TODO this is theoretically correct; however, you can't read from any of these
+		; registers other than $2106 so I have to find a clever way to restore these...
+		LDA $2106 ; mosaic
+		STA $7FC7F7
+		LDA $212E ; through main
+		STA $7FC7F8
+		LDA $212F ; through sub
+		STA $7FC7F9
+		LDX #$0005
+	.loop_screens:
+		LDA $2107,X ; BG screen size, tilemap address, character address
+		STA $7FC7FA,X
+		DEX
+		BPL .loop_screens
+		
 		LDA #$81
 		STA $4200 ; nmi enable
 		LDA #$0F
@@ -378,6 +394,22 @@ go_complete_save_state:
 		STA $4301 ; dma0 source
 		LDA #$01 ; channel 0
 		STA $420B ; dma enable
+		
+		; save some hardware registers to $717FF7 - $717FFF
+		; TODO this is theoretically correct; however, you can't read from any of these
+		; registers other than $2106 so I have to find a clever way to restore these...
+		LDA $2106 ; mosaic
+		STA $717FF7
+		LDA $212E ; through main
+		STA $717FF8
+		LDA $212F ; through sub
+		STA $717FF9
+		LDX #$0005
+	.loop_screens:
+		LDA $2107,X ; BG screen size, tilemap address, character address
+		STA $717FFA,X
+		DEX
+		BPL .loop_screens
 		
 		LDA #$81
 		STA $4200 ; nmi enable
@@ -496,6 +528,20 @@ go_poverty_load_state:
 		LDA #$01 ; channel 0
 		STA $420B ; dma enable
 		
+		; load some hardware registers from $7FC7F7 - $7FC7FF
+		LDA $7FC7F7
+		STA $2106 ; mosaic
+		LDA $7FC7F8
+		STA $212E ; through main
+		LDA $7FC7F9
+		STA $212F ; through sub
+		LDX #$0005
+	.loop_screens:
+		LDA $7FC7FA,X
+		STA $2107,X ; BG screen size, tilemap address, character address
+		DEX
+		BPL .loop_screens
+		
 		LDA #$81
 		STA $4200 ; nmi enable
 		LDA #$0F
@@ -601,6 +647,20 @@ go_complete_load_state:
 		STA $4301 ; dma0 source
 		LDA #$01 ; channel 0
 		STA $420B ; dma enable
+		
+		; load some hardware registers from $717FF7 - $717FFF
+		LDA $717FF7
+		STA $2106 ; mosaic
+		LDA $717FF8
+		STA $212E ; through main
+		LDA $717FF9
+		STA $212F ; through sub
+		LDX #$0005
+	.loop_screens:
+		LDA $717FFA,X
+		STA $2107,X ; BG screen size, tilemap address, character address
+		DEX
+		BPL .loop_screens
 		
 		LDA #$81
 		STA $4200 ; nmi enable

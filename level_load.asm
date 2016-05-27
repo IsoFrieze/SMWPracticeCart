@@ -437,3 +437,13 @@ upload_bowser_timer_graphics:
 		
 sprite_slots_graphics:
 		incbin "bin/sprite_slots_graphics.bin"
+
+; fix the graphics upload routine for reznor, iggy, & larry
+; this really should have been done already, they were just lucky that
+; the last thing they uploaded ended at $7FFF :p
+fix_iggy_larry_graphics:
+		STZ $2116
+		STZ $2117 ; vram address write
+		LDY #$0000
+		LDX #$03FF
+		RTL
