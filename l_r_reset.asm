@@ -531,16 +531,16 @@ go_poverty_load_state:
 		; load some hardware registers from $7FC7F7 - $7FC7FF
 		LDA $7FC7F7
 		STA $2106 ; mosaic
-		LDA $7FC7F8
-		STA $212E ; through main
-		LDA $7FC7F9
-		STA $212F ; through sub
-		LDX #$0005
-	.loop_screens:
-		LDA $7FC7FA,X
-		STA $2107,X ; BG screen size, tilemap address, character address
-		DEX
-		BPL .loop_screens
+;		LDA $7FC7F8
+;		STA $212E ; through main
+;		LDA $7FC7F9
+;		STA $212F ; through sub
+;		LDX #$0005
+;	.loop_screens:
+;		LDA $7FC7FA,X
+;		STA $2107,X ; BG screen size, tilemap address, character address
+;		DEX
+;		BPL .loop_screens
 		
 		LDA #$81
 		STA $4200 ; nmi enable
@@ -651,16 +651,16 @@ go_complete_load_state:
 		; load some hardware registers from $717FF7 - $717FFF
 		LDA $717FF7
 		STA $2106 ; mosaic
-		LDA $717FF8
-		STA $212E ; through main
-		LDA $717FF9
-		STA $212F ; through sub
-		LDX #$0005
-	.loop_screens:
-		LDA $717FFA,X
-		STA $2107,X ; BG screen size, tilemap address, character address
-		DEX
-		BPL .loop_screens
+;		LDA $717FF8
+;		STA $212E ; through main
+;		LDA $717FF9
+;		STA $212F ; through sub
+;		LDX #$0005
+;	.loop_screens:
+;		LDA $717FFA,X
+;		STA $2107,X ; BG screen size, tilemap address, character address
+;		DEX
+;		BPL .loop_screens
 		
 		LDA #$81
 		STA $4200 ; nmi enable
