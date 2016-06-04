@@ -159,7 +159,7 @@ draw_menu_selection:
 		CPX !current_selection
 		BNE .not_selected
 		CLC
-		ADC #$3250 ; half the size of menu_option_tilemaps
+		ADC #$3270 ; half the size of menu_option_tilemaps
 	.not_selected:
 		REP #$10
 		TAX
@@ -199,7 +199,7 @@ location_in_vram_to_draw:
 		dw $228C,      $230C
 		dw $2090,      $2110,$2150
 		dw $2190,$21D0,$2210,$2250
-		dw             $2310
+		dw $2290,      $2310
 
 ; the index into menu_option_tilemaps where the menu option is stored
 location_in_tilemap:
@@ -208,7 +208,7 @@ location_in_tilemap:
 		dw $020A,      $030A
 		dw $030B,      $0315,$0318
 		dw $031A,$031C,$031E,$0320
-		dw             $0324
+		dw $0324,      $0326
 
 ; the tilemaps for each of the menu options and each of their selections
 menu_option_tilemaps:
@@ -331,6 +331,7 @@ overworld_menu:
 		dw .select_timedeath
 		dw .select_music
 		dw .select_drop
+		dw .select_states
 		dw .select_save
 		
 	.select_yoshi:
@@ -349,6 +350,7 @@ overworld_menu:
 	.select_timedeath:
 	.select_music:
 	.select_drop:
+	.select_states:
 		JMP .finish_no_sound
 	.select_records:
 		LDA #$24 ; "press select to confirm"
@@ -455,11 +457,11 @@ check_bounds:
 
 ; the number of options to allow when holding x or y
 minimum_selection_extended:
-		db $01,$01,$01,$01,$01,$FF,$FF,$FF,$00,$09,$02,$01,$01,$01,$01,$03,$00
+		db $01,$01,$01,$01,$01,$FF,$FF,$FF,$00,$09,$02,$01,$01,$01,$01,$03,$01,$00
 
 ; the number of options to allow when not holding x or y
 minimum_selection_normal:
-		db $01,$01,$01,$01,$01,$03,$04,$04,$00,$09,$02,$01,$01,$01,$01,$03,$00
+		db $01,$01,$01,$01,$01,$03,$04,$04,$00,$09,$02,$01,$01,$01,$01,$03,$01,$00
 		
 ; reset persistant enemy states
 ; right now this only includes boo cloud and boo ring angles
@@ -473,6 +475,7 @@ reset_enemy_states:
 		LDX #$004E
 	.loop_boo_cloud:
 		STZ $1E52,X ; cluster sprite table
+		STZ $190A,X ; cluster sprite table
 		DEX
 		DEX
 		BPL .loop_boo_cloud

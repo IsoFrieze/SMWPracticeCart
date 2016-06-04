@@ -159,8 +159,18 @@ setup_room_advance:
 		LDA #$01
 		STA.L !spliced_run
 		
+		LDA !restore_room_xpos
+		PHA
+		LDA !restore_room_xpos+1
+		PHA
 		JSR save_room_properties
 		JSR restore_common_aspects
+		PLA
+		STA !restore_room_xpos+1
+		STA $D2 ; mario xposition high byte
+		PLA
+		STA !restore_room_xpos
+		STA $D1 ; mario xposition low byte
 		
 		RTS
 
@@ -231,6 +241,7 @@ save_room_properties:
 		BEQ .restore_item
 		DEX
 		BPL .loop_item
+		STZ !restore_room_item
 		BRA .item_done
 	.restore_item:
 		LDA $9E,X ; sprite id
@@ -253,6 +264,8 @@ save_room_properties:
 		DEX
 		BPL .loop_time
 		
+		JSR temp_account_for_loading_time
+		
 		LDA !level_timer_minutes
 		STA !restore_level_timer_minutes
 		LDA !level_timer_seconds
@@ -263,6 +276,40 @@ save_room_properties:
 		STZ !room_timer_seconds
 		STZ !room_timer_frames
 		
+		RTS
+		
+; add a flat #$28 frames to the timer to account for level load
+; TODO - move this to level load routine to count the actual number of frames
+temp_account_for_loading_time:
+		LDA !level_timer_frames
+		CLC
+		ADC #$28
+		CMP #$3C
+		BCS .carry_frame
+		STA !level_timer_frames
+		BRA .done
+	.carry_frame:
+		SEC
+		SBC #$3C
+		STA !level_timer_frames
+		LDA !level_timer_seconds
+		INC A
+		CMP #$3C
+		BCS .carry_seconds
+		STA !level_timer_seconds
+		BRA .done
+	.carry_seconds:
+		SEC
+		SBC #$3C
+		STA !level_timer_seconds
+		LDA !level_timer_minutes
+		INC A
+		CMP #$09
+		BCC .no_carry_minutes
+		LDA #$09
+	.no_carry_minutes:
+		STA !level_timer_minutes
+	.done:
 		RTS
 		
 ; save everything after entering a new level
@@ -309,6 +356,10 @@ save_level_properties:
 ; copy screen exit to backup registers
 ; this isn't done in the above code because $17BB is only available during the load routine
 level_load_exit_table:
+		CPX #$20
+		BCC .no_fix
+		LDX #$00
+	.no_fix:
 		LDA $1B93
 		STA !recent_secondary_flag
 		LDA $19B8,X ; exit table

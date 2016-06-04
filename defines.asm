@@ -1,7 +1,7 @@
 ; the version of this patch Va.b.c
 !version_a                   = $02
 !version_b                   = $01
-!version_c                   = $02
+!version_c                   = $03
 
 ; number of frames dropped this execution frame
 !dropped_frames              = $FB ; 2 bytes, 16-bit value
@@ -56,8 +56,9 @@
 !status_timedeath            = $0F06
 !status_music                = $0F07
 !status_drop                 = $0F08
-!status_exit                 = $0F09
-; $0F0A - $0F18 reserved for future expansion
+!status_states               = $0F09
+!status_exit                 = $0F0A
+; $0F0B - $0F18 reserved for future expansion
 
 ; the number of the most recent primary/secondary exit used
 ; technically applicable on level enter, but not used
@@ -86,7 +87,7 @@
 !record_lunar_dragon         = $0F27
 
 ; the number of options in the overworld menu
-!number_of_options           = 17
+!number_of_options           = 18
 ; the currently highlighted selection on the overworld menu
 !current_selection           = $0F28
 ; flag to show "delete mode", that is, if the player presses select to delete data

@@ -574,11 +574,17 @@ ci2_goal:
 
 ; test if a reset was activated, if so, call the appropriate routine
 test_reset:
-;		LDA $9D ; sprite lock flag
-;		BNE .done
-		LDA $1493 ; end level timer
+		LDA $71 ; player animation
+		CMP #$09
+		BEQ .continue
+		LDA $9D ; sprite lock flag
+		ORA $1493 ; end level timer
+		ORA $1434 ; keyhole timer
+		ORA $1426 ; message block timer
+		ORA $13D4 ; paused flag
 		BNE .done
 		
+	.continue:
 		LDA $0DA4 ; axlr----
 		AND #%00110000
 		CMP #%00110000
@@ -615,6 +621,9 @@ test_reset:
 
 ; test if a savestate was activated, if so, call the appropriate routine
 test_savestate:
+		LDA !status_states
+		BNE .done
+		
 		LDA $0D9B ; overworld flag
 		CMP #$02
 		BEQ .done

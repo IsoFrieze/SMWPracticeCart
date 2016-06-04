@@ -34,6 +34,7 @@ activate_level_reset:
 
 ; this code is run when the player presses L + R + X + Y in a level to advance to the next room
 activate_room_advance:
+		PHP
 		LDA #$03
 		STA !l_r_function
 		
@@ -61,9 +62,20 @@ activate_room_advance:
 	
 	.merge:
 		JSR get_next_sensible_exit
+		PHX
 		JSL set_global_exit
 		JSR trigger_screen_exit
+		PLA
+		REP #$20
+		AND #$00FF
+		ASL A
+		ASL A
+		ASL A
+		ASL A
+		ASL A
+		STA !restore_room_xpos
 		
+		PLP
 		RTL
 
 ; set the screen exit for all screens to be set to the exit number in A
@@ -100,7 +112,7 @@ trigger_screen_exit:
 
 ; given the current sub/level, return a sub/level that 'advances' one room forward
 ; given A = level number low byte, X = level number high byte, Y = secondary exit flag
-; return A = level number low byte / secondary exit number, Y = secondary exit flag
+; return A = level number low byte / secondary exit number, Y = secondary exit flag, X = mario x position
 get_next_sensible_exit:
 		PHP
 		PHB
@@ -112,23 +124,35 @@ get_next_sensible_exit:
 		CPY #$00
 		BEQ .high_level_number
 		LDA room_advance_table+$000,X
+		LDY room_advance_table+$200,X
+		PHY
 		LDY room_advance_table+$100,X
+		PLX
 		BRA .done
 	.high_level_number:
-		LDA room_advance_table+$200,X
-		LDY room_advance_table+$300,X
+		LDA room_advance_table+$300,X
+		LDY room_advance_table+$500,X
+		PHY
+		LDY room_advance_table+$400,X
+		PLX
 		BRA .done
 		
 	.low_bank:
 		TAX
 		CPY #$00
 		BEQ .low_level_number
-		LDA room_advance_table+$400,X
-		LDY room_advance_table+$500,X
+		LDA room_advance_table+$600,X
+		LDY room_advance_table+$800,X
+		PHY
+		LDY room_advance_table+$700,X
+		PLX
 		BRA .done
 	.low_level_number:
-		LDA room_advance_table+$600,X
-		LDY room_advance_table+$700,X
+		LDA room_advance_table+$900,X
+		LDY room_advance_table+$B00,X
+		PHY
+		LDY room_advance_table+$A00,X
+		PLX
 		
 	.done:
 		PLB
@@ -137,16 +161,20 @@ get_next_sensible_exit:
 		
 room_advance_table:
 		; =======================================
-		; This bin file contains 8 tables that hold screen exit data to be used
+		; This bin file contains 12 tables that hold screen exit data to be used
 		; by the advance room function. Each table is 0x100 bytes long.
-		; Table 1: exit number to take if last exit was a secondary exit, bank 1
-		; Table 2: secondary exit flag for above table number
-		; Table 3: exit number to take if last exit was a level exit, bank 1
-		; Table 4: secondary exit flag for above table number
-		; Table 5: exit number to take if last exit was a secondary exit, bank 0
-		; Table 6: secondary exit flag for above table number
-		; Table 7: exit number to take if last exit was a level exit, bank 0
-		; Table 8: secondary exit flag for above table number
+		; Table 01: exit number to take if last exit was a secondary exit, bank 1
+		; Table 02: secondary exit flag for above table number
+		; Table 03: player x position data for above table (sssssxxx, s = screen, x = x pos / 2)
+		; Table 04: exit number to take if last exit was a level exit, bank 1
+		; Table 05: secondary exit flag for above table number
+		; Table 06: player x position data for above table (sssssxxx, s = screen, x = x pos / 2)
+		; Table 07: exit number to take if last exit was a secondary exit, bank 0
+		; Table 08: secondary exit flag for above table number
+		; Table 09: player x position data for above table (sssssxxx, s = screen, x = x pos / 2)
+		; Table 10: exit number to take if last exit was a level exit, bank 0
+		; Table 11: secondary exit flag for above table number
+		; Table 12: player x position data for above table (sssssxxx, s = screen, x = x pos / 2)
 		incbin "bin/room_advance_table.bin"
 		; =======================================
 		
