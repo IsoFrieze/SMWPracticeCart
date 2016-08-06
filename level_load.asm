@@ -42,6 +42,10 @@ level_load:
 	.done:
 		PLB
 		PLP
+		
+		LDA #$01
+		STA !level_is_loading
+		LDA #$80 ; gets stored to $4200
 		RTL
 		
 l_r_functions:
@@ -183,8 +187,10 @@ restore_common_aspects:
 		STZ $1432 ; coin snake
 		STZ $1B9F ; reznor floor
 		STZ $14B1
+		STZ $14B5
 		STZ $14B6 ; bowser timers
-		STZ $1884 ; bowser HP
+		LDA #$02
+		STA $1884 ; bowser HP
 		STZ $1496
 		STZ $1497 ; mario animation timers
 		LDA #$FF
@@ -422,6 +428,7 @@ load_slots_graphics:
 		REP #$10
 		SEP #$20
 		LDA !status_slots
+		ORA !status_dynmeter
 		BEQ .done
 		
 		LDY #$0080
@@ -438,9 +445,14 @@ load_slots_graphics:
 		LDX #sprite_slots_graphics+$80
 		JSL load_vram
 		
-		LDX #$6780
+		LDX #$6680
 		STX $2116 ; vram address
 		LDX #sprite_slots_graphics+$100
+		JSL load_vram
+		
+		LDX #$6780
+		STX $2116 ; vram address
+		LDX #sprite_slots_graphics+$180
 		JSL load_vram
 		
 	.done:
@@ -474,7 +486,7 @@ upload_bowser_timer_graphics:
 		LDY #$0060
 		LDX #$6F00
 		STX $2116 ; vram address
-		LDX #sprite_slots_graphics+$180
+		LDX #sprite_slots_graphics+$200
 		JSL load_vram
 		
 		LDA #$81
@@ -497,4 +509,18 @@ fix_iggy_larry_graphics:
 		STZ $2117 ; vram address write
 		LDY #$0000
 		LDX #$03FF
+		RTL
+
+; relocate APU update routine from NMI
+update_apu_port_2:
+		LDA $1DFB
+		BNE .skip_music
+		LDY $2142
+		CPY $1DFF
+		BNE .done
+	.skip_music:
+		STA $2142
+		STA $1DFF
+		STZ $1DFB
+	.done:
 		RTL

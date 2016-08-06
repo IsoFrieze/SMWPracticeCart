@@ -14,10 +14,6 @@ ORG $009CA5
 ; disable no-yoshi intros
 ORG $05DA19
 		JMP $DAD7
-		
-; disable tempo hike at 99 seconds
-ORG $008E59
-		db $80
 
 ; don't go to bonus game
 ORG $008F67
@@ -26,6 +22,10 @@ ORG $008F67
 ; reload music on death
 ORG $00F610
 		db $00
+		
+; disable losing lives
+ORG $00D0D8
+		NOP #3
 
 ; disable midway points
 ORG $00CA2C

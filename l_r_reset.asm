@@ -182,6 +182,9 @@ room_advance_table:
 activate_save_state:
 		LDA #$0E ; swim sound
 		STA $1DF9 ; apu i/o
+		LDA #$80
+		STA $2100 ; force blank
+		STZ $4200 ; nmi disable
 		
 		LDA !use_poverty_save_states
 		BEQ .complete
@@ -194,13 +197,15 @@ activate_save_state:
 		STA.L !spliced_run
 		LDA #$BD
 		STA.L !save_state_exists
+		
+		LDA #$81
+		STA $4200 ; nmi enable
+		LDA #$0F
+		STA $2100 ; exit force blank
 		RTL
 		
 go_poverty_save_state:
 		PHP
-		LDA #$80
-		STA $2100 ; force blank
-		STZ $4200 ; nmi disable
 		
 		REP #$10
 		
@@ -298,34 +303,17 @@ go_poverty_save_state:
 		LDA #$01 ; channel 0
 		STA $420B ; dma enable
 		
-		; save some hardware registers to $7FC7F7 - $7FC7FF
-		; TODO this is theoretically correct; however, you can't read from any of these
-		; registers other than $2106 so I have to find a clever way to restore these...
-		LDA $2106 ; mosaic
+		; save the stack pointer to $7FC7F7 - $7FC7F8
+		REP #$30
+		TSX
+		TXA
 		STA $7FC7F7
-		LDA $212E ; through main
-		STA $7FC7F8
-		LDA $212F ; through sub
-		STA $7FC7F9
-		LDX #$0005
-	.loop_screens:
-		LDA $2107,X ; BG screen size, tilemap address, character address
-		STA $7FC7FA,X
-		DEX
-		BPL .loop_screens
 		
-		LDA #$81
-		STA $4200 ; nmi enable
-		LDA #$0F
-		STA $2100 ; exit force blank
 		PLP
 		RTS
 		
 go_complete_save_state:
 		PHP
-		LDA #$80
-		STA $2100 ; force blank
-		STZ $4200 ; nmi disable
 		
 		REP #$10
 		
@@ -423,31 +411,21 @@ go_complete_save_state:
 		LDA #$01 ; channel 0
 		STA $420B ; dma enable
 		
-		; save some hardware registers to $717FF7 - $717FFF
-		; TODO this is theoretically correct; however, you can't read from any of these
-		; registers other than $2106 so I have to find a clever way to restore these...
-		LDA $2106 ; mosaic
+		; save the stack pointer to $717FF7 - $717FF8
+		REP #$30
+		TSX
+		TXA
 		STA $717FF7
-		LDA $212E ; through main
-		STA $717FF8
-		LDA $212F ; through sub
-		STA $717FF9
-		LDX #$0005
-	.loop_screens:
-		LDA $2107,X ; BG screen size, tilemap address, character address
-		STA $717FFA,X
-		DEX
-		BPL .loop_screens
 		
-		LDA #$81
-		STA $4200 ; nmi enable
-		LDA #$0F
-		STA $2100 ; exit force blank
 		PLP
 		RTS
 
 ; this code is run when the player presses L + select to load a save state
 activate_load_state:
+		LDA #$80
+		STA $2100 ; force blank
+		STZ $4200 ; nmi disable
+		
 		LDA !use_poverty_save_states
 		BEQ .complete
 		JSR go_poverty_load_state
@@ -455,13 +433,17 @@ activate_load_state:
 	.complete:
 		JSR go_complete_load_state
 	.done:
+	redirect_load_state:
+		JSR restore_hardware_regs
+		
+		LDA #$81
+		STA $4200 ; nmi enable
+		LDA #$0F
+		STA $2100 ; exit force blank
 		RTL
 		
 go_poverty_load_state:
 		PHP
-		LDA #$80
-		STA $2100 ; force blank
-		STZ $4200 ; nmi disable
 		
 		REP #$10
 		
@@ -556,32 +538,24 @@ go_poverty_load_state:
 		LDA #$01 ; channel 0
 		STA $420B ; dma enable
 		
-		; load some hardware registers from $7FC7F7 - $7FC7FF
+		; load the stack pointer from $7FC7F7 - $7FC7F8
+		REP #$30
 		LDA $7FC7F7
-		STA $2106 ; mosaic
-;		LDA $7FC7F8
-;		STA $212E ; through main
-;		LDA $7FC7F9
-;		STA $212F ; through sub
-;		LDX #$0005
-;	.loop_screens:
-;		LDA $7FC7FA,X
-;		STA $2107,X ; BG screen size, tilemap address, character address
-;		DEX
-;		BPL .loop_screens
+		TAX
+		TXS
 		
-		LDA #$81
-		STA $4200 ; nmi enable
-		LDA #$0F
-		STA $2100 ; exit force blank
+		; since we restored the stack, we need to update the return
+		; address of this routine to what we want it to be. otherwise,
+		; it would return to the save state routine.
+		LDX #redirect_load_state-1
+		TXA
+		STA $02,S
+		
 		PLP
 		RTS
 		
 go_complete_load_state:
 		PHP
-		LDA #$80
-		STA $2100 ; force blank
-		STZ $4200 ; nmi disable
 		
 		REP #$10
 		
@@ -676,23 +650,46 @@ go_complete_load_state:
 		LDA #$01 ; channel 0
 		STA $420B ; dma enable
 		
-		; load some hardware registers from $717FF7 - $717FFF
+		; load the stack pointer from $717FF7 - $717FF8
+		REP #$30
 		LDA $717FF7
-		STA $2106 ; mosaic
-;		LDA $717FF8
-;		STA $212E ; through main
-;		LDA $717FF9
-;		STA $212F ; through sub
-;		LDX #$0005
-;	.loop_screens:
-;		LDA $717FFA,X
-;		STA $2107,X ; BG screen size, tilemap address, character address
-;		DEX
-;		BPL .loop_screens
+		TAX
+		TXS
 		
-		LDA #$81
-		STA $4200 ; nmi enable
-		LDA #$0F
-		STA $2100 ; exit force blank
+		; since we restored the stack, we need to update the return
+		; address of this routine to what we want it to be. otherwise,
+		; it would return to the save state routine.
+		LDX #redirect_load_state-1
+		TXA
+		STA $02,S
+
 		PLP
+		RTS
+
+; since we can't restore the hardware registers directly (they are non-readable),
+; we have to use smw's hardware register mirrors to restore the actual registers.
+; we do this manually because smw only restores mirrors to registers at certain
+; points in the game, we want to do this immediately after a load state.
+restore_hardware_regs:
+		LDA $0DB0 ; mosaic mirror
+		ORA #$03
+		STA $2106 ; mosaic
+		
+		LDA $0D9D ; tm mirror
+		STA $212C ; tm
+		STA $212E ; tmw
+		LDA $0D9E ; ts mirror
+		STA $212D ; ts
+		STA $212F ; tsw
+		
+		LDA #$23 ; sometimes #$59 ($008416)
+		STA $2107 ; gb1sc
+		LDA #$33
+		STA $2108 ; gb2sc
+		LDA #$53
+		STA $2109 ; gb3sc
+		LDA #$00 ; sometimes #$07 ($008416)
+		STA $210B ; bg12nba
+		LDA #$04
+		STA $210C ; bg34nba
 		RTS

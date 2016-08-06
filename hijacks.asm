@@ -3,9 +3,10 @@
 ; $00F9F5 - 35 / 36 bytes
 ; $00C578 - 10 / 13 bytes
 ; $00CC86 - 53 / 53 bytes
-; $009510 - 18 / 25 bytes
+; $009510 - 13 / 25 bytes
 ; $00D27C -  8 / 11 bytes
 ; $00CDCE -  8 / 14 bytes
+; $00B091 -  6 / 15 bytes
 ; $01C062 - 17 / 19 bytes
 ; $01CD1E - 11 / 12 bytes
 ; $04FFB1 -  4 / 79 bytes
@@ -17,8 +18,6 @@ ORG $0081AA
 		
 ORG $009510
 nmi_hijack:
-		LDA #$80
-		STA $2100
 		JSL nmi_expand
 		RTS
 every_frame_hijack:
@@ -71,9 +70,23 @@ level_load_hijack:
 		STZ $4200 ; *
 		INC !level_loaded
 		RTS
-		
-; * This will prevent NMI during level loading.
-; Eventually I will re-enable it so that we can count frames during room transitions.
+
+; run on level load complete
+ORG $00A5F6
+;		JMP exit_loading
+ORG $00B091
+exit_loading:
+;		STZ !level_is_loading
+;		JMP $93F4
+
+; run at start of NMI
+ORG $008179
+;		LDA !level_is_loading
+;		BEQ .continue
+;		JMP $83B2
+;	.continue:
+;		JSL update_apu_port_2
+;		NOP #4
 
 ; run on temporary fade game modes
 ORG $009F37
@@ -182,10 +195,11 @@ ORG $00A22C
 		JSL pause_timer
 		NOP
 		
-; run subroutine on 0 seconds left
-ORG $008E60
+; run subroutine on 99 and 0 seconds left
+ORG $008E4C
+		JSL hurry_up
 		JSL out_of_time
-		NOP #5
+		JMP $8E69
 
 ; disable score sprites if sprite slot numbers are enabled
 ORG $02AEA5
@@ -195,6 +209,11 @@ score_sprites:
 		RTS
 	.not_disabled:
 		NOP #5
+		
+; draw dymeter
+ORG $01809E
+		JSL display_dynmeter
+		NOP #2
 
 ; draw sprite slots
 ORG $0180AF

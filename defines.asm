@@ -1,7 +1,7 @@
 ; the version of this patch Va.b.c
 !version_a                   = $02
-!version_b                   = $01
-!version_c                   = $03
+!version_b                   = $02
+!version_c                   = $01
 
 ; number of frames dropped this execution frame
 !dropped_frames              = $FB ; 2 bytes, 16-bit value
@@ -11,6 +11,8 @@
 !previous_sixty_hz           = $FE
 ; 60Hz counter, resistant to lag frames
 !counter_sixty_hz            = $FF
+; flag to tell if level is loading, used because now we fire NMI during level load
+!level_is_loading            = $0DDB
 
 ; stripe image buffer for the overworld record times on the border
 ; actually overwrites some sprite table, but that doesn't matter because this is only used on the overworld
@@ -57,8 +59,9 @@
 !status_music                = $0F07
 !status_drop                 = $0F08
 !status_states               = $0F09
-!status_exit                 = $0F0A
-; $0F0B - $0F18 reserved for future expansion
+!status_dynmeter             = $0F0A
+!status_exit                 = $0F0B
+; $0F0C - $0F18 reserved for future expansion
 
 ; the number of the most recent primary/secondary exit used
 ; technically applicable on level enter, but not used
@@ -87,7 +90,7 @@
 !record_lunar_dragon         = $0F27
 
 ; the number of options in the overworld menu
-!number_of_options           = 18
+!number_of_options           = 19
 ; the currently highlighted selection on the overworld menu
 !current_selection           = $0F28
 ; flag to show "delete mode", that is, if the player presses select to delete data

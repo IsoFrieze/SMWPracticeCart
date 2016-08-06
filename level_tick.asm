@@ -53,7 +53,175 @@ fade_and_in_level_common:
 		JSR display_input
 		JSR display_yoshi_subpixel
 		JSR display_held_subpixel
+		JSR display_rng
 		JSR test_savestate
+		RTS
+
+; draw the current dymeter to where it belongs on the screen
+display_dynmeter:
+		PHB
+		PHK
+		PLB
+		LDA !status_dynmeter
+		ASL A
+		TAX
+		JMP (.dynmeter_types,X)
+		
+	.dynmeter_types:
+		dw .done
+		dw .mario_speed
+		dw .mario_takeoff
+		dw .mario_pmeter
+		dw .yoshi_subpixel
+		dw .item_subpixel
+		
+	.mario_speed:
+		LDA $7B ; speed
+		BPL .positive_speed
+		EOR #$FF
+		INC A
+	.positive_speed:
+		JSL $00974C ; hex2dec
+		STX $00 ; tens
+		STA $01 ; ones
+		JMP .attach_to_mario
+		
+	.mario_takeoff:
+		LDA $149F ; takeoff meter
+		JSL $00974C ; hex2dec
+		STX $00 ; tens
+		STA $01 ; ones
+		JMP .attach_to_mario
+		
+	.mario_pmeter:
+		LDA $13E4 ; pmeter
+		AND #$0F
+		STA $01 ; ones
+		LDA $13E4 ; pmeter
+		AND #$F0
+		LSR #4
+		STA $00 ; 16s
+		JMP .attach_to_mario
+		
+	.yoshi_subpixel:
+		LDA $18DF ; yoshi slot
+		BNE .yoshi_continue
+		BRL .done
+	.yoshi_continue
+		DEC A
+		TAX
+		LDA $14F8,X ; sprite x subpixel
+		LSR #4
+		STA $00
+		LDA $14EC,X ; sprite y subpixel
+		LSR #4
+		STA $01
+		JMP .attach_to_sprite
+		
+	.item_subpixel:
+		LDA !held_item_slot
+		BPL .item_continue
+		BRL .done
+	.item_continue
+		TAX
+		LDA $14F8,X ; sprite x subpixel
+		LSR #4
+		STA $00
+		LDA $14EC,X ; sprite y subpixel
+		LSR #4
+		STA $01
+		JMP .attach_to_sprite
+	
+	.attach_to_mario:
+		REP #$20
+		LDA $D1
+		STA $02
+		LDA $D3
+		SEC
+		SBC #$0008
+		STA $04
+		JMP .merge
+	
+	.attach_to_sprite:
+		LDA $E4,X ; sprite x pos low
+		STA $02
+		LDA $14E0,X ; sprite x pos high
+		STA $03
+		LDA $D8,X ; sprite y pos low
+		STA $04
+		LDA $14D4,X ; sprite y pos high
+		STA $05
+		REP #$20
+		LDA $04
+		CLC
+		ADC #$0012
+		STA $04
+		JMP .merge
+		
+	.merge:
+		REP #$20
+		LDA $02
+		SEC
+		SBC $1A ; layer 1 x pos
+		STA $02
+		LDA $04
+		SEC
+		SBC $1C ; layer 1 y pos
+		STA $04
+		
+		LDA $02
+		BMI .done
+		CMP #$0F8
+		BCS .done
+		LDA $04
+		BMI .done
+		CMP #$00F0
+		BCS .done
+		
+		SEP #$20
+	.draw:
+		LDA $02
+		STA $0200+(0*4) ; oam slot 0 x pos
+		CLC
+		ADC #$08
+		STA $0200+(1*4) ; oam slot 1 x pos
+		LDA $04
+		STA $0201+(0*4) ; oam slot 0 y pos
+		STA $0201+(1*4) ; oam slot 1 y pos
+		LDA #$38
+		STA $0203+(0*4) ; oam slot 0 properties
+		STA $0203+(1*4) ; oam slot 1 properties
+		LDA $00
+		TAX
+		LDA sprite_numbers,X
+		STA $0202+(0*4) ; oam slot 0 tile
+		LDA $01
+		TAX
+		LDA sprite_numbers,X
+		STA $0202+(1*4) ; oam slot 1 tile
+		STZ $0420+(0) ; oam slot 0 size
+		STZ $0420+(1) ; oam slot 1 size
+	.done:
+		PLB
+		LDA $18DF
+		STA $18E2
+		RTL
+
+; draw the current rng output to the status bar
+display_rng: ; 1f44 1f62
+		LDA $148D ; rng output 1
+		LSR #4
+		STA $1F44
+		LDA $148B
+		AND #$0F
+		STA $1F45
+		
+		LDA $148E ; rng output 2
+		LSR #4
+		STA $1F62
+		LDA $148C
+		AND #$0F
+		STA $1F63
 		RTS
 
 ; draw the current amount of coins collected this level to the status bar
@@ -291,16 +459,10 @@ display_yoshi_subpixel:
 		DEC A
 		TAX
 		LDA $14F8,X ; sprite x subpixel
-		LSR A
-		LSR A
-		LSR A
-		LSR A
+		LSR #4
 		STA $1F32
 		LDA $14EC,X ; sprite y subpixel
-		LSR A
-		LSR A
-		LSR A
-		LSR A
+		LSR #4
 		STA $1F33
 		BRA .done
 	.erase:
@@ -344,16 +506,10 @@ display_held_subpixel:
 		BMI .done
 		TAX
 		LDA $14F8,X ; sprite x subpixel
-		LSR A
-		LSR A
-		LSR A
-		LSR A
+		LSR #4
 		STA $1F50
 		LDA $14EC,X ; sprite y subpixel
-		LSR A
-		LSR A
-		LSR A
-		LSR A
+		LSR #4
 		STA $1F51
 		
 	.done:
@@ -390,7 +546,7 @@ display_slot:
 		BNE .erase_tile
 		XBA
 		STA $02B0,Y ; oam x position
-		LDA sprite_slot_tiles,X
+		LDA sprite_numbers,X
 		STA $02B2,Y ; oam tile
 		LDA #$38
 		STA $02B3,Y ; oam properties
@@ -404,9 +560,10 @@ display_slot:
 		PLB
 		RTL
 
-sprite_slot_tiles:
+sprite_numbers:
 		db $44,$45,$46,$47
 		db $54,$55,$56,$57
+		db $68,$69,$6A,$6B
 		db $78,$79,$7A,$7B
 
 get_screen_x:
@@ -725,30 +882,19 @@ collect_orb:
 
 ; test if we should drop the item out of the item box
 drop_item_box:
-		PHB
-		PHK
-		PLB
-		PHX
-		
 		LDA $16 ; byetudlr frame
 		AND #%00100000
 		BEQ .no_select
 		LDA !status_drop
-		TAX
-		LDA $15 ; byetudlr
-		AND button_masks,X
-		EOR button_masks,X
-		BRA .yes_select
+		BEQ .yes_select
+		LDA $17 ; axlr----
+		AND #%00110000
+		BEQ .yes_select
 		
 	.no_select:
 		INC A
-	.yes_select:		
-		PLX
-		PLB
+	.yes_select:
 		RTL
-
-button_masks:
-		db $20,$28,$24,$60
 
 ; set the pause timer depending on our current setting
 pause_timer:
@@ -767,6 +913,21 @@ pause_timer:
 pause_lengths:
 		db $3C,$00
 		
+; play hurry up sound effect only if option is on
+hurry_up:
+		LDA !status_timedeath
+		BNE .done
+		LDA $0F31
+		BNE .done
+		ORA $0F32
+		AND $0F33 ; timer
+		CMP #$09
+		BNE .done
+		LDA #$FF
+		STA $1DF9 ; apu i/o
+	.done:
+		RTL
+		
 ; kill mario when time runs out only if option is on
 ; return 0 in A to kill mario
 out_of_time:
@@ -781,6 +942,7 @@ out_of_time:
 ; display a score sprite only if sprite slot numbers are disabled
 check_score_sprites:
 		LDA !status_slots
+		ORA !status_dynmeter
 		CMP #$00
 		PHP
 		BNE .done
