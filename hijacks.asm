@@ -6,7 +6,6 @@
 ; $009510 - 13 / 25 bytes
 ; $00D27C -  8 / 11 bytes
 ; $00CDCE -  8 / 14 bytes
-; $00B091 -  6 / 15 bytes
 ; $01C062 - 17 / 19 bytes
 ; $01CD1E - 11 / 12 bytes
 ; $04FFB1 -  4 / 79 bytes
@@ -67,34 +66,21 @@ level_hijack:
 		RTS
 level_load_hijack:
 		JSL level_load
-		STZ $4200 ; *
+		INC $0100
 		INC !level_loaded
 		RTS
-
-; run on level load complete
-ORG $00A5F6
-;		JMP exit_loading
-ORG $00B091
-exit_loading:
-;		STZ !level_is_loading
-;		JMP $93F4
-
-; run at start of NMI
-ORG $008179
-;		LDA !level_is_loading
-;		BEQ .continue
-;		JMP $83B2
-;	.continue:
-;		JSL update_apu_port_2
-;		NOP #4
 
 ; run on temporary fade game modes
 ORG $009F37
 		JSR temp_fade_hijack
 		
 ; run on level load before fade in
-ORG $0096D5
+ORG $0093F4
 		JSR level_load_hijack
+
+; run on level load in between game modes
+ORG $0096D5
+		JSR camera_fix_hijack
 		
 ; test if level completed this frame
 ; X = 0 for normal exit, 1 for secret exit

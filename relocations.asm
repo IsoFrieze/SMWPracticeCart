@@ -1,5 +1,5 @@
 ; empty/unreachable bytes overwritten:
-; $00B091 - 7 / 15 bytes
+; $00B091 - 15 / 15 bytes
 
 ; 1FE2 cape interaction table
 ORG $00FCC2
@@ -99,6 +99,10 @@ load_special_16:
 		LDA !status_special
 		AND #$00FF
 		RTS
+camera_fix_hijack:
+		JSL camera_fix
+		STZ $4200
+		RTS
 
 ; clear unused exit table
 ORG $0DA533
@@ -139,3 +143,24 @@ ORG $008159
 		LDX #$02
 		JSL set_music_bank
 		JMP $8168
+
+; relocate modified spc engine
+ORG $0080F3
+		db $1F
+ORG $1F8000
+		incbin "bin/spc_engine.bin"
+		
+; SPC700 modification
+;ORG $0577 ; @0x7B - 3F3E13
+;		CALL $133E
+;ORG $133E ; @0xE42 - 6D2DBA44DAF4AEEE6084496F
+;		PUSH Y
+;		PUSH A
+;		MOVW YA, $44
+;		MOVW $F4, YA
+;		POP A
+;		POP Y
+;		CLRC
+;		ADC A, $49
+;		RET
+; @0x00 - 4A

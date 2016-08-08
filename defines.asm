@@ -11,8 +11,9 @@
 !previous_sixty_hz           = $FE
 ; 60Hz counter, resistant to lag frames
 !counter_sixty_hz            = $FF
-; flag to tell if level is loading, used because now we fire NMI during level load
-!level_is_loading            = $0DDB
+; the timer copied from the apu
+!apu_timer_latch             = $146C ; 2 bytes, 16-bit value
+!apu_timer_difference        = $146E ; 2 bytes, 16-bit value
 
 ; stripe image buffer for the overworld record times on the border
 ; actually overwrites some sprite table, but that doesn't matter because this is only used on the overworld

@@ -8,6 +8,9 @@ level_load:
 		PLB
 		SEP #$20
 		
+		LDA $0100
+		CMP #$12
+		BNE .done
 		LDA !l_r_function
 		BEQ .no_l_r_reset
 		
@@ -35,17 +38,10 @@ level_load:
 		LDA #$FF
 		STA !save_timer_address+2
 		
-		LDA $0100 ; game mode
-		CMP #$06
-		BCC .done
-		
 	.done:
 		PLB
 		PLP
 		
-		LDA #$01
-		STA !level_is_loading
-		LDA #$80 ; gets stored to $4200
 		RTL
 		
 l_r_functions:
@@ -200,14 +196,6 @@ restore_common_aspects:
 		STZ !room_timer_seconds
 		STZ !room_timer_frames
 		
-		LDX #$03
-	.loop_camera:
-		STZ $1A,X ; layer 1 x/y positions
-		STZ $1E,X ; layer 2 x/y positions
-		STZ $26,X ; layer 2 - layer 1 x/y positions
-		DEX
-		BPL .loop_camera
-		
 		REP #$10
 		LDX #$017F
 	.loop_memory:
@@ -270,7 +258,7 @@ save_room_properties:
 		DEX
 		BPL .loop_time
 		
-		JSR temp_account_for_loading_time
+		JSR account_for_loading_time
 		
 		LDA !level_timer_minutes
 		STA !restore_level_timer_minutes
@@ -284,12 +272,28 @@ save_room_properties:
 		
 		RTS
 		
-; add a flat #$28 frames to the timer to account for level load
-; TODO - move this to level load routine to count the actual number of frames
-temp_account_for_loading_time:
+; use the apu timer to account for level load and fade in/out time
+account_for_loading_time:
+		REP #$20
+		LDA $2140
+		SEC
+		SBC !apu_timer_latch ; divide difference by 0x1C0
+		STA !apu_timer_difference
+		STA $4204 ; dividend
+		LDX #$07
+		STX $4206 ; divisor
+		NOP #10
+		LDA $4214 ; quotient
+		LSR #6
+		CLC
+		ADC #$003E ; add #$1F * 2 to account for the fade in/out time
+		SEP #$20
+		STA $00
+		STA $1489
+
 		LDA !level_timer_frames
 		CLC
-		ADC #$28
+		ADC $00
 		CMP #$3C
 		BCS .carry_frame
 		STA !level_timer_frames
@@ -511,16 +515,18 @@ fix_iggy_larry_graphics:
 		LDX #$03FF
 		RTL
 
-; relocate APU update routine from NMI
-update_apu_port_2:
-		LDA $1DFB
-		BNE .skip_music
-		LDY $2142
-		CPY $1DFF
-		BNE .done
-	.skip_music:
-		STA $2142
-		STA $1DFF
-		STZ $1DFB
-	.done:
+; fix the camera during a room reset
+; this is done at a different time than all other level loading stuff
+camera_fix:
+		LDX #$03
+	.loop_camera:
+		STZ $1A,X ; layer 1 x/y positions
+		STZ $1E,X ; layer 2 x/y positions
+		STZ $26,X ; layer 2 - layer 1 x/y positions
+		DEX
+		BPL .loop_camera
+		LDA $2140
+		STA !apu_timer_latch
+		LDA $2141
+		STA !apu_timer_latch+1
 		RTL
