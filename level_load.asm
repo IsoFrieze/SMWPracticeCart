@@ -17,7 +17,7 @@ level_load:
 		DEC A
 		ASL A
 		TAX
-		JSR (l_r_functions,X)
+		JSR (late_l_r_functions,X)
 		BRA .merge
 		
 	.no_l_r_reset:
@@ -44,7 +44,7 @@ level_load:
 		
 		RTL
 		
-l_r_functions:
+late_l_r_functions:
 		dw setup_room_reset
 		dw setup_level_reset
 		dw setup_room_advance
@@ -58,20 +58,10 @@ setup_room_reset:
 		STA $19 ; powerup
 		LDA !restore_room_itembox
 		STA $0DC2 ; item box
-		LDA !restore_room_yoshi
-		STA $13C7 ; yoshi color
-		STA $0DBA ; ow yoshi color
-		STA $0DC1 ; persistent yoshi
 		LDA !restore_room_coins
 		STA $0DBF ; coins
 		LDA !restore_room_takeoff
 		STA $149F ; takeoff
-		LDA !restore_room_igt
-		STA $0F31
-		LDA !restore_room_igt+1
-		STA $0F32
-		LDA !restore_room_igt+2
-		STA $0F33 ; in game timer
 		LDA !restore_level_timer_minutes
 		STA !level_timer_minutes
 		LDA !restore_level_timer_seconds
@@ -112,16 +102,6 @@ setup_level_reset:
 		STA $19 ; powerup
 		LDA !restore_level_itembox
 		STA $0DC2 ; item box
-		LDA !restore_level_yoshi
-		STA $13C7 ; yoshi color
-		STA $0DBA ; ow yoshi color
-		STA $0DC1 ; persistent yoshi
-		STZ $0DBF ; coins
-		STZ $149F ; takeoff
-		LDA !restore_level_igt
-		STA $0F31
-		STZ $0F32
-		STZ $0F33 ; in game timer
 		STZ $1B95 ; yoshi heaven flag
 		STZ !level_timer_minutes
 		STZ !level_timer_seconds
@@ -177,8 +157,6 @@ setup_room_advance:
 ; restore things that are common to both room and level resets
 restore_common_aspects:
 		STZ $1420 ; dragon coins
-		STZ $36
-		STZ $37 ; mode 7 angle
 		STZ $14AF ; on/off switch
 		STZ $1432 ; coin snake
 		STZ $1B9F ; reznor floor
@@ -294,26 +272,29 @@ account_for_loading_time:
 		LDA !level_timer_frames
 		CLC
 		ADC $00
+	.check_frames:
 		CMP #$3C
 		BCS .carry_frame
 		STA !level_timer_frames
-		BRA .done
+		LDA !level_timer_seconds
+		BRA .check_seconds
 	.carry_frame:
 		SEC
 		SBC #$3C
-		STA !level_timer_frames
-		LDA !level_timer_seconds
-		INC A
+		INC !level_timer_seconds
+		BRA .check_frames
+	.check_seconds:
 		CMP #$3C
 		BCS .carry_seconds
 		STA !level_timer_seconds
-		BRA .done
+		LDA !level_timer_minutes
+		BRA .check_minutes
 	.carry_seconds:
 		SEC
 		SBC #$3C
-		STA !level_timer_seconds
-		LDA !level_timer_minutes
-		INC A
+		INC !level_timer_minutes
+		BRA .check_seconds
+	.check_minutes:
 		CMP #$09
 		BCC .no_carry_minutes
 		LDA #$09
@@ -518,6 +499,13 @@ fix_iggy_larry_graphics:
 ; fix the camera during a room reset
 ; this is done at a different time than all other level loading stuff
 camera_fix:
+		LDA !l_r_function
+		BEQ .no_l_r_reset
+		DEC A
+		ASL A
+		TAX
+		JSR (mid_l_r_functions,X)
+	.no_l_r_reset:
 		LDX #$03
 	.loop_camera:
 		STZ $1A,X ; layer 1 x/y positions
@@ -529,4 +517,46 @@ camera_fix:
 		STA !apu_timer_latch
 		LDA $2141
 		STA !apu_timer_latch+1
+		STZ $9D ; sprite lock
+		STZ $36
+		STZ $37 ; mode 7 angle
 		RTL
+
+; some exceptions for loading things that need to be loaded before game mode #$12
+mid_l_r_functions:
+		dw mid_setup_room_reset
+		dw mid_setup_level_reset
+		dw mid_setup_room_advance
+		
+
+; prepare the level load if we just did a room reset
+mid_setup_room_reset:
+		LDA !restore_room_yoshi
+		STA $13C7 ; yoshi color
+		STA $0DBA ; ow yoshi color
+		STA $0DC1 ; persistent yoshi
+		LDA !restore_room_igt
+		STA $0F31
+		LDA !restore_room_igt+1
+		STA $0F32
+		LDA !restore_room_igt+2
+		STA $0F33 ; in game timer
+		RTS
+
+; prepare the level load if we just did a level reset
+mid_setup_level_reset:
+		LDA !restore_level_yoshi
+		STA $13C7 ; yoshi color
+		STA $0DBA ; ow yoshi color
+		STA $0DC1 ; persistent yoshi
+		STZ $0DBF ; coins
+		STZ $149F ; takeoff
+		LDA !restore_level_igt
+		STA $0F31
+		STZ $0F32
+		STZ $0F33 ; in game timer
+		RTS
+
+; prepare the level load if we just did a room advance
+mid_setup_room_advance:
+		RTS

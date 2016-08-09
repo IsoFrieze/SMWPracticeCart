@@ -153,6 +153,9 @@ set_overworld_position:
 		CMP #$02
 		BCS .reset
 		STA $1F1A
+		LDA.L !save_overworld_animation
+		STA $1F13
+		JSL update_ow_position_pointers
 		
 	.merge:
 		LDA #$00
@@ -190,4 +193,21 @@ set_position_to_yoshis_house:
 		LDA #$00
 		STA.L !save_overworld_y+1
 		STA $1F1A
+		LDA #$02
+		STA.L !save_overworld_animation
+		STA $1F13
+		JSL update_ow_position_pointers
+		RTL
+
+; update the pointers to overworld poitions
+update_ow_position_pointers:
+		REP #$20
+		LDX #$06
+	.loop:
+		LDA $1F17,X
+		LSR #4
+		STA $1F1F,X
+		DEX #2
+		BPL .loop
+		SEP #$20
 		RTL

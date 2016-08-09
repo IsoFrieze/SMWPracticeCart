@@ -1,7 +1,7 @@
 ; the version of this patch Va.b.c
 !version_a                   = $02
-!version_b                   = $02
-!version_c                   = $01
+!version_b                   = $03
+!version_c                   = $00
 
 ; number of frames dropped this execution frame
 !dropped_frames              = $FB ; 2 bytes, 16-bit value
@@ -124,6 +124,7 @@
 !save_overworld_submap       = $700001
 !save_overworld_x            = $700002 ; 2 bytes, 16-bit value
 !save_overworld_y            = $700004 ; 2 bytes, 16-bit value
+!save_overworld_animation    = $700008
 ; flag = #$BD if a save state exists and to allow load state
 !save_state_exists           = $700006
 ; flag if a save state or room reset/advance was used in this run

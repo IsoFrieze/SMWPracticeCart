@@ -502,5 +502,7 @@ save_marios_position:
 		STA.L !save_overworld_y
 		LDA $1F1A
 		STA.L !save_overworld_y+1
+		LDA $1F13
+		STA.L !save_overworld_animation
 	.done:
 		RTS

@@ -54,6 +54,10 @@ ORG $00EEB1
 ORG $0DEC9A
 		NOP #2
 
+; make switch palace message go away fast
+ORG $00C963
+		db $08
+
 ; disable overworld panning
 ORG $048380
 		db $00

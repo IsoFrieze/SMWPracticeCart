@@ -193,7 +193,9 @@ activate_save_state:
 	.complete:
 		JSR go_complete_save_state
 	.done:
-		LDA #$01
+		LDA !level_timer_minutes
+		ORA !level_timer_seconds
+		ORA !level_timer_frames
 		STA.L !spliced_run
 		LDA #$BD
 		STA.L !save_state_exists
@@ -435,6 +437,11 @@ activate_load_state:
 	.done:
 	redirect_load_state:
 		JSR restore_hardware_regs
+		
+		LDA !level_timer_minutes
+		ORA !level_timer_seconds
+		ORA !level_timer_frames
+		STA !spliced_run
 		
 		LDA #$81
 		STA $4200 ; nmi enable

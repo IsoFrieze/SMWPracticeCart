@@ -886,7 +886,7 @@ drop_item_box:
 		AND #%00100000
 		BEQ .no_select
 		LDA !status_drop
-		BEQ .yes_select
+		BNE .yes_select
 		LDA $17 ; axlr----
 		AND #%00110000
 		BEQ .yes_select
