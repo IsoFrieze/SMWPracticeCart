@@ -37,11 +37,12 @@ overworld_menu_load:
 		
 		LDA #$80
 		STA $2100 ; force blank
+		STZ $4200 ; nmi disable
 		
 		JSR upload_overworld_menu_graphics
 		
 		REP #$10
-		LDA #$23
+		LDA #$33
 		STA $2108 ; bg2 base address & size
 		STZ $210B ; bg12 name base address
 		LDA #$06
@@ -60,12 +61,16 @@ overworld_menu_load:
 		DEX
 		BPL .loop_item
 		
+		JSL $0084C8
+		
 		LDX #$07
 	.loop_graphics_files:
 		STZ $0101,X
 		DEX
 		BPL .loop_graphics_files
 		
+		LDA #$81
+		STA $4200 ; nmi enable
 		STZ $2100 ; exit force blank
 		INC $0100
 		
@@ -88,7 +93,7 @@ upload_overworld_menu_graphics:
 		LDY #$4000
 		JSL load_vram
 		
-		LDX #$2000
+		LDX #$3000
 		STX $2116 ; vram address
 		LDA #$19 ; #bank of menu_layer2_tilemap
 		LDX #menu_layer2_tilemap
@@ -114,105 +119,122 @@ upload_overworld_menu_graphics:
 
 ; draw one of the menu options to the screen, where X = menu index
 draw_menu_selection:
+		PHX
 		PHP
 		PHB
 		PHK
 		PLB
 		
-		SEP #$10
-		PHX
-		PHX
-		TXA
-		ASL A
-		TAX
-		REP #$10
-		LDY location_in_vram_to_draw,X
-		STY $2116 ; vram address
-		SEP #$10
-		PLX
+		LDA option_x_position,X
+		STA $00
+		LDA option_y_position,X
+		STA $01
 		
-		TXA
-		ASL A
-		TAX
-		REP #$20
-		LDA location_in_tilemap,X
-		PHA
-		TXA
-		LSR A
-		TAX
-		PLA
-		SEP #$20
-		CLC
-		ADC !status_table,X
-		XBA
-		ADC #$00
-		XBA
-		
-		REP #$30
-		ASL A
-		ASL A
-		ASL A
-		ASL A
-		CLC
-		ADC #menu_option_tilemaps
-		SEP #$10
+		LDA #$00
 		CPX !current_selection
 		BNE .not_selected
-		CLC
-		ADC #$32B0 ; half the size of menu_option_tilemaps
+		LDA option_arrow_type,X
 	.not_selected:
-		REP #$10
-		TAX
-		SEP #$20
-		LDA #$18 ; #$bank of menu_option_tilemaps
-		LDY #$0008
-		JSL load_vram
-		REP #$10
-		PHX
-		SEP #$10
-		LDA $03,S
+		TAY
+		LDA arrow_tiles,Y
+		STA $02
+		
+		REP #$30
+		LDA !status_table,X
+		AND #$00FF
+		STA $0E
+		TXA
 		ASL A
 		TAX
-		REP #$20
-		LDA location_in_vram_to_draw,X
+		LDA $0E
 		CLC
-		ADC #$0020
-		STA $2116 ; vram address
-		SEP #$20
-		REP #$10
-		PLX
-		INX #8
-		LDA #$18 ; #$bank of menu_option_tilemaps
-		LDY #$0008
-		JSL load_vram
-		SEP #$10
+		ADC option_index,X
+		STA $03
 		
-		PLX
+		LDA $7F837B
+		TAX
+		SEP #$20
+		
+		LDA $01
+		LSR #3
+		ORA #$30
+		STA $7F837D+00,X
+		LDA $01
+		INC A
+		LSR #3
+		ORA #$30
+		STA $7F837D+12,X
+		LDA $01
+		ASL #5
+		ORA $00
+		STA $7F837D+01,X
+		LDA $01
+		INC A
+		ASL #5
+		ORA $00
+		STA $7F837D+13,X
+		LDA #$00
+		STA $7F837D+02,X
+		STA $7F837D+14,X
+		LDA #$07
+		STA $7F837D+03,X
+		STA $7F837D+15,X
+		LDA $02
+		STA $7F837D+04,X
+		STA $7F837D+16,X
+		STA $7F837D+10,X
+		STA $7F837D+22,X
+		LDA #$50
+		STA $7F837D+05,X
+		LDA #$D0
+		STA $7F837D+17,X
+		LDA #$10
+		STA $7F837D+11,X
+		LDA #$90
+		STA $7F837D+23,X
+		LDA #$FF
+		STA $7F837D+24,X
+		
+		REP #$20
+		LDA $03
+		ASL #3
+		TAY
+		LDA menu_option_tiles,Y
+		STA $7F837D+06,X
+		LDA menu_option_tiles+2,Y
+		STA $7F837D+08,X
+		LDA menu_option_tiles+4,Y
+		STA $7F837D+18,X
+		LDA menu_option_tiles+6,Y
+		STA $7F837D+20,X
+		
+		TXA
+		CLC
+		ADC #$0018
+		STA $7F837B
+		
 		PLB
 		PLP
+		PLX
 		RTL
-		
-; the address in vram to draw each menu option
-location_in_vram_to_draw:
-		dw $204C,$208C,$20CC,$210C
-		dw $214C,      $21CC,$220C
-		dw $224C,      $22CC
-		dw $2050,      $20D0,$2110
-		dw $2150,$2190,$21D0,$2210
-		dw $2250,$2290,      $2310
 
-; the index into menu_option_tilemaps where the menu option is stored
-location_in_tilemap:
+option_arrow_type:
+		db $01,$01,$01,$01,$01,$01,$01,$01,$02,$01,$01,$01,$01,$01,$01,$01,$01,$01,$02
+option_x_position:
+		db $0C,$0C,$0C,$0C,$0C,$0C,$0C,$0C,$0C,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10
+option_y_position:
+		db $02,$04,$06,$08,$0A,$0E,$10,$12,$16,$02,$06,$08,$0A,$0C,$0E,$10,$12,$14,$18
+option_index:
 		dw $0000,$0002,$0004,$0006
 		dw $0008,      $000A,$010A
 		dw $020A,      $030A
 		dw $030B,      $0315,$0318
 		dw $031A,$031C,$031E,$0320
-		dw $0322,$0324,      $032A
-
-; the tilemaps for each of the menu options and each of their selections
-menu_option_tilemaps:
-		incbin "bin/menu_option_tilemaps.bin"
+		dw $0322,$0324,      $032B
+arrow_tiles:
+		db $70,$4A,$4B
+menu_option_tiles:
+		incbin "bin/menu_option_tiles.bin"
 
 ORG $198000
 
@@ -241,6 +263,9 @@ overworld_menu:
 		PLB
 		SEP #$30
 		INC $14
+		
+		LDA !current_selection
+		STA $00
 		
 		LDA !erase_records_flag
 		BEQ .test_up
@@ -412,6 +437,10 @@ overworld_menu:
 	.finish_sound:
 		LDA #$06 ; fireball sound
 		STA $1DFC ; apu i/o
+		LDX $00
+		JSL draw_menu_selection
+		LDX !current_selection
+		JSL draw_menu_selection
 		
 	.finish_no_sound:
 		PLB
@@ -459,11 +488,11 @@ check_bounds:
 
 ; the number of options to allow when holding x or y
 minimum_selection_extended:
-		db $01,$01,$01,$01,$01,$FF,$FF,$FF,$00,$09,$02,$01,$01,$01,$01,$01,$01,$05,$00
+		db $01,$01,$01,$01,$01,$FF,$FF,$FF,$00,$09,$02,$01,$01,$01,$01,$01,$01,$06,$00
 
 ; the number of options to allow when not holding x or y
 minimum_selection_normal:
-		db $01,$01,$01,$01,$01,$03,$04,$04,$00,$09,$02,$01,$01,$01,$01,$01,$01,$05,$00
+		db $01,$01,$01,$01,$01,$03,$04,$04,$00,$09,$02,$01,$01,$01,$01,$01,$01,$06,$00
 		
 ; reset persistant enemy states
 ; right now this only includes boo cloud and boo ring angles

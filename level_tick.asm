@@ -62,6 +62,10 @@ display_dynmeter:
 		PHB
 		PHK
 		PLB
+		STZ $08
+		STZ $09
+		STZ $0A
+		STZ $0B
 		LDA !status_dynmeter
 		ASL A
 		TAX
@@ -74,16 +78,22 @@ display_dynmeter:
 		dw .mario_pmeter
 		dw .yoshi_subpixel
 		dw .item_subpixel
+		dw .item_speed
 		
 	.mario_speed:
 		LDA $7B ; speed
 		BPL .positive_speed
 		EOR #$FF
 		INC A
+		INC $08
+		INC $09
 	.positive_speed:
 		JSL $00974C ; hex2dec
 		STX $00 ; tens
 		STA $01 ; ones
+		LDA #$FF
+		STA $02
+		STA $03
 		JMP .attach_to_mario
 		
 	.mario_takeoff:
@@ -91,6 +101,9 @@ display_dynmeter:
 		JSL $00974C ; hex2dec
 		STX $00 ; tens
 		STA $01 ; ones
+		LDA #$FF
+		STA $02
+		STA $03
 		JMP .attach_to_mario
 		
 	.mario_pmeter:
@@ -101,6 +114,9 @@ display_dynmeter:
 		AND #$F0
 		LSR #4
 		STA $00 ; 16s
+		LDA #$FF
+		STA $02
+		STA $03
 		JMP .attach_to_mario
 		
 	.yoshi_subpixel:
@@ -113,9 +129,11 @@ display_dynmeter:
 		LDA $14F8,X ; sprite x subpixel
 		LSR #4
 		STA $00
+		STZ $01
 		LDA $14EC,X ; sprite y subpixel
 		LSR #4
-		STA $01
+		STA $02
+		STZ $03
 		JMP .attach_to_sprite
 		
 	.item_subpixel:
@@ -127,86 +145,134 @@ display_dynmeter:
 		LDA $14F8,X ; sprite x subpixel
 		LSR #4
 		STA $00
+		STZ $01
 		LDA $14EC,X ; sprite y subpixel
 		LSR #4
-		STA $01
+		STA $02
+		STZ $03
+		JMP .attach_to_sprite
+		
+	.item_speed:
+		LDA !held_item_slot
+		BPL .item_speed_continue
+		BRL .done
+	.item_speed_continue:
+		TAX
+		LDA $B6,X ; sprite x speed
+		BPL .item_positive_x_speed
+		EOR #$FF
+		INC A
+		INC $08
+		INC $09
+	.item_positive_x_speed:
+		JSL $00974C ; hex2dec
+		STX $00 ; tens
+		STA $01 ; ones
+		LDX !held_item_slot
+		LDA $AA,X ; sprite y speed
+		BPL .item_positive_y_speed
+		EOR #$FF
+		INC A
+		INC $0A
+		INC $0B
+	.item_positive_y_speed:
+		JSL $00974C ; hex2dec
+		STX $02 ; tens
+		STA $03 ; ones
+		LDX !held_item_slot
 		JMP .attach_to_sprite
 	
 	.attach_to_mario:
 		REP #$20
 		LDA $D1
-		STA $02
+		STA $04
 		LDA $D3
 		SEC
 		SBC #$0008
-		STA $04
+		STA $06
 		JMP .merge
 	
 	.attach_to_sprite:
 		LDA $E4,X ; sprite x pos low
-		STA $02
-		LDA $14E0,X ; sprite x pos high
-		STA $03
-		LDA $D8,X ; sprite y pos low
 		STA $04
-		LDA $14D4,X ; sprite y pos high
+		LDA $14E0,X ; sprite x pos high
 		STA $05
+		LDA $D8,X ; sprite y pos low
+		STA $06
+		LDA $14D4,X ; sprite y pos high
+		STA $07
 		REP #$20
-		LDA $04
+		LDA $06
 		CLC
 		ADC #$0012
-		STA $04
+		STA $06
 		JMP .merge
 		
 	.merge:
 		REP #$20
-		LDA $02
-		SEC
-		SBC $1A ; layer 1 x pos
-		STA $02
 		LDA $04
 		SEC
-		SBC $1C ; layer 1 y pos
+		SBC $1A ; layer 1 x pos
 		STA $04
+		LDA $06
+		SEC
+		SBC $1C ; layer 1 y pos
+		STA $06
 		
-		LDA $02
+		LDA $04
 		BMI .done
 		CMP #$0F8
 		BCS .done
-		LDA $04
+		LDA $06
 		BMI .done
 		CMP #$00F0
 		BCS .done
 		
 		SEP #$20
-	.draw:
-		LDA $02
-		STA $0200+(0*4) ; oam slot 0 x pos
+		LDY #$03
+		LDX #$0C
+	.draw_loop:
+		LDA $0000,Y
+		CMP #$10
+		BCS .next_tile
+		PHX
+		TAX
+		LDA sprite_numbers,X
+		PLX
+		STA $0232,X ; oam tile
+		LDA #$32
 		CLC
-		ADC #$08
-		STA $0200+(1*4) ; oam slot 1 x pos
+		ADC $0008,Y
+		ADC $0008,Y
+		STA $0233,X ; oam properties
 		LDA $04
-		STA $0201+(0*4) ; oam slot 0 y pos
-		STA $0201+(1*4) ; oam slot 1 y pos
-		LDA #$38
-		STA $0203+(0*4) ; oam slot 0 properties
-		STA $0203+(1*4) ; oam slot 1 properties
-		LDA $00
-		TAX
-		LDA sprite_numbers,X
-		STA $0202+(0*4) ; oam slot 0 tile
-		LDA $01
-		TAX
-		LDA sprite_numbers,X
-		STA $0202+(1*4) ; oam slot 1 tile
-		STZ $0420+(0) ; oam slot 0 size
-		STZ $0420+(1) ; oam slot 1 size
+		CLC
+		ADC tile_x_offsets,Y
+		STA $0230,X ; oam x pos
+		LDA $06
+		CLC
+		ADC tile_y_offsets,Y
+		STA $0231,X ; oam y pos
+		PHX
+		TYX
+		STZ $042C,X ; oam size
+		PLX
+	.next_tile:
+		DEX #4
+		DEY
+		BPL .draw_loop		
+		
 	.done:
 		SEP #$20
 		PLB
 		LDA $18DF
 		STA $18E2
 		RTL
+
+tile_x_offsets:
+		db $00,$08,$00,$08
+tile_y_offsets:
+		db $00,$00,$08,$08
 
 ; draw the current rng output to the status bar
 display_rng: ; 1f44 1f62

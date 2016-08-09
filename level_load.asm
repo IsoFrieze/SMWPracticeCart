@@ -21,8 +21,6 @@ level_load:
 		BRA .merge
 		
 	.no_l_r_reset:
-		JSR save_room_properties
-		
 		LDA $141A ; sublevel count
 		BNE .merge
 		JSR save_level_properties
@@ -131,7 +129,6 @@ setup_room_advance:
 		LDA #$01
 		STA.L !spliced_run
 		
-		JSR save_room_properties
 		JSR restore_common_aspects
 				
 		RTS
@@ -477,13 +474,17 @@ fix_iggy_larry_graphics:
 ; fix the camera during a room reset
 ; this is done at a different time than all other level loading stuff
 camera_fix:
+		PHB
+		PHK
+		PLB
 		LDA !l_r_function
 		BEQ .no_l_r_reset
 		DEC A
 		ASL A
 		TAX
 		JSR (mid_l_r_functions,X)
-	.no_l_r_reset:
+	.no_l_r_reset:		
+		JSR save_room_properties
 		LDX #$03
 	.loop_camera:
 		STZ $1A,X ; layer 1 x/y positions
@@ -495,13 +496,8 @@ camera_fix:
 		STA !apu_timer_latch
 		LDA $2141
 		STA !apu_timer_latch+1
-		STZ $9D ; sprite lock
 		STZ $36
 		STZ $37 ; mode 7 angle
-		LDA !restore_room_xpos
-		STA $D1 ; mario x position low byte
-		LDA !restore_room_xpos+1
-		STA $D2 ; mario x position high byte
 		
 		REP #$10
 		LDX #$017F
@@ -510,6 +506,7 @@ camera_fix:
 		DEX
 		BPL .loop_memory
 		SEP #$10
+		PLB
 		RTL
 
 ; some exceptions for loading things that need to be loaded before game mode #$12
@@ -517,7 +514,6 @@ mid_l_r_functions:
 		dw mid_setup_room_reset
 		dw mid_setup_level_reset
 		dw mid_setup_room_advance
-		
 
 ; prepare the level load if we just did a room reset
 mid_setup_room_reset:
@@ -531,6 +527,10 @@ mid_setup_room_reset:
 		STA $0F32
 		LDA !restore_room_igt+2
 		STA $0F33 ; in game timer
+		LDA !restore_room_xpos
+		STA $D1 ; mario x position low byte
+		LDA !restore_room_xpos+1
+		STA $D2 ; mario x position high byte
 		RTS
 
 ; prepare the level load if we just did a level reset
@@ -545,8 +545,25 @@ mid_setup_level_reset:
 		STA $0F31
 		STZ $0F32
 		STZ $0F33 ; in game timer
+		
+		LDA $13BF ; translevel
+		LDX #$05
+	.loop:
+		CMP water_entrance_levels,X
+		BEQ .disable_lock
+		DEX
+		BPL .loop
+		BRA .done
+	.disable_lock:
+		STZ $9D ; sprite lock
+	.done:
 		RTS
 
 ; prepare the level load if we just did a room advance
 mid_setup_room_advance:
 		RTS
+
+; translevels that start with an underwater pipe entrance
+; and coincidentally start with sprite lock OFF for some reason
+water_entrance_levels:
+		db $0A,$0B,$11,$18,$44,$54
