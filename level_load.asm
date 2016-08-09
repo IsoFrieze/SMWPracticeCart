@@ -69,10 +69,6 @@ setup_room_reset:
 		LDA !restore_level_timer_frames
 		STA !level_timer_frames
 		DEC $141A ; sublevel count
-		LDA !restore_room_xpos
-		STA $D1 ; mario x position low byte
-		LDA !restore_room_xpos+1
-		STA $D2 ; mario x position high byte
 		
 		LDX #$03
 	.loop_tables:
@@ -111,10 +107,6 @@ setup_level_reset:
 		STZ !record_used_yoshi
 		STZ !record_used_orb
 		STZ !record_lunar_dragon
-		LDA !restore_level_xpos
-		STA $D1 ; mario x position low byte
-		LDA !restore_level_xpos+1
-		STA $D2 ; mario x position high byte
 		
 		; set msb so it's not 00, which is a special case for entering the level
 		; we'll turn this byte into fnnnnnnn, f = 0 if just entered level, n = sublevel count
@@ -139,19 +131,9 @@ setup_room_advance:
 		LDA #$01
 		STA.L !spliced_run
 		
-		LDA !restore_room_xpos
-		PHA
-		LDA !restore_room_xpos+1
-		PHA
 		JSR save_room_properties
 		JSR restore_common_aspects
-		PLA
-		STA !restore_room_xpos+1
-		STA $D2 ; mario xposition high byte
-		PLA
-		STA !restore_room_xpos
-		STA $D1 ; mario xposition low byte
-		
+				
 		RTS
 
 ; restore things that are common to both room and level resets
@@ -163,8 +145,12 @@ restore_common_aspects:
 		STZ $14B1
 		STZ $14B5
 		STZ $14B6 ; bowser timers
+		LDA $0D9B ; boss flag
+		CMP #$C1
+		BNE .not_bowser
 		LDA #$02
 		STA $1884 ; bowser HP
+	.not_bowser:
 		STZ $1496
 		STZ $1497 ; mario animation timers
 		LDA #$FF
@@ -173,14 +159,6 @@ restore_common_aspects:
 		STZ !room_timer_minutes
 		STZ !room_timer_seconds
 		STZ !room_timer_frames
-		
-		REP #$10
-		LDX #$017F
-	.loop_memory:
-		STZ $19F8,X ; item memory
-		DEX
-		BPL .loop_memory
-		SEP #$10
 		RTS
 		
 ; save everything after entering a new room
@@ -520,6 +498,18 @@ camera_fix:
 		STZ $9D ; sprite lock
 		STZ $36
 		STZ $37 ; mode 7 angle
+		LDA !restore_room_xpos
+		STA $D1 ; mario x position low byte
+		LDA !restore_room_xpos+1
+		STA $D2 ; mario x position high byte
+		
+		REP #$10
+		LDX #$017F
+	.loop_memory:
+		STZ $19F8,X ; item memory
+		DEX
+		BPL .loop_memory
+		SEP #$10
 		RTL
 
 ; some exceptions for loading things that need to be loaded before game mode #$12

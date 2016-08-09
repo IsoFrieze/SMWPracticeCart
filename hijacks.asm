@@ -197,7 +197,7 @@ score_sprites:
 	.not_disabled:
 		NOP #5
 		
-; draw dymeter
+; draw dynmeter
 ORG $01809E
 		JSL display_dynmeter
 		NOP #2
@@ -239,7 +239,7 @@ ORG $00AB4A
 ORG $0086A0
 combine_controllers:
 		JSR empty_controller_regs
-		LDX #$00
+		LDX #$01
 	.loop:
 		LDA $0DA4,X
 		AND #$C0

@@ -1,7 +1,7 @@
 ; the version of this patch Va.b.c
 !version_a                   = $02
 !version_b                   = $03
-!version_c                   = $00
+!version_c                   = $01
 
 ; number of frames dropped this execution frame
 !dropped_frames              = $FB ; 2 bytes, 16-bit value

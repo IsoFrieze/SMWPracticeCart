@@ -202,6 +202,7 @@ display_dynmeter:
 		STZ $0420+(0) ; oam slot 0 size
 		STZ $0420+(1) ; oam slot 1 size
 	.done:
+		SEP #$20
 		PLB
 		LDA $18DF
 		STA $18E2
