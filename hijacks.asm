@@ -6,7 +6,7 @@
 ; $009510 - 18 / 25 bytes
 ; $00D27C -  8 / 11 bytes
 ; $00CDCE -  8 / 14 bytes
-; $00FC23 -  9 / 80 bytes
+; $00FC23 - 17 / 80 bytes
 ; $01C062 - 17 / 19 bytes
 ; $01CD1E - 11 / 12 bytes
 ; $04FFB1 -  4 / 79 bytes
@@ -67,21 +67,17 @@ level_hijack:
 		RTS
 level_load_hijack:
 		JSL level_load
-		INC $0100
+		STZ $4200
 		INC !level_loaded
 		RTS
 
 ; run on temporary fade game modes
 ORG $009F37
 		JSR temp_fade_hijack
-		
-; run on level load before fade in
-ORG $0093F4
-		JSR level_load_hijack
 
 ; run on level load in between game modes
 ORG $0096D5
-		JSR camera_fix_hijack
+		JSR level_load_hijack
 		
 ; test if level completed this frame
 ; X = 0 for normal exit, 1 for secret exit
@@ -257,6 +253,14 @@ combine_controllers:
 		BPL .loop
 		RTS
 
+; run at the very start of level load
+ORG $00968E
+		JSR begin_loading_level
+		
+; run at the very end of level load
+ORG $0093F4
+		JSR conclude_loading_level
+
 ; clear the controller registers so we can tsb them
 ORG $00FC23
 empty_controller_regs:
@@ -264,4 +268,16 @@ empty_controller_regs:
 		STZ $16
 		STZ $17
 		STZ $18
+		RTS
+begin_loading_level:
+		JSL latch_apu
+		JSR $85FA
+		RTS
+conclude_loading_level:
+		LDA $0100
+		CMP #$12
+		BNE .exit
+		JSL do_final_loading
+	.exit:
+		INC $0100
 		RTS

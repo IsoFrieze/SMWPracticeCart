@@ -8,19 +8,18 @@ level_load:
 		PLB
 		SEP #$20
 		
-		LDA $0100
-		CMP #$12
-		BNE .done
 		LDA !l_r_function
 		BEQ .no_l_r_reset
 		
 		DEC A
 		ASL A
 		TAX
-		JSR (late_l_r_functions,X)
+		JSR (l_r_functions,X)
 		BRA .merge
 		
 	.no_l_r_reset:
+		JSR save_room_properties
+	
 		LDA $141A ; sublevel count
 		BNE .merge
 		JSR save_level_properties
@@ -29,7 +28,6 @@ level_load:
 		LDA $148F ; held item flag
 		DEC A
 		STA !held_item_slot
-		STZ !l_r_function
 		STZ !freeze_timer_flag
 		LDA #$28
 		STA $0F30 ; igt timer
@@ -42,7 +40,7 @@ level_load:
 		
 		RTL
 		
-late_l_r_functions:
+l_r_functions:
 		dw setup_room_reset
 		dw setup_level_reset
 		dw setup_room_advance
@@ -56,10 +54,20 @@ setup_room_reset:
 		STA $19 ; powerup
 		LDA !restore_room_itembox
 		STA $0DC2 ; item box
+		LDA !restore_room_yoshi
+		STA $13C7 ; yoshi color
+		STA $0DBA ; ow yoshi color
+		STA $0DC1 ; persistent yoshi
 		LDA !restore_room_coins
 		STA $0DBF ; coins
 		LDA !restore_room_takeoff
 		STA $149F ; takeoff
+		LDA !restore_room_igt
+		STA $0F31
+		LDA !restore_room_igt+1
+		STA $0F32
+		LDA !restore_room_igt+2
+		STA $0F33 ; in game timer
 		LDA !restore_level_timer_minutes
 		STA !level_timer_minutes
 		LDA !restore_level_timer_seconds
@@ -67,6 +75,10 @@ setup_room_reset:
 		LDA !restore_level_timer_frames
 		STA !level_timer_frames
 		DEC $141A ; sublevel count
+		LDA !restore_room_xpos
+		STA $D1 ; mario x position low byte
+		LDA !restore_room_xpos+1
+		STA $D2 ; mario x position high byte
 		
 		LDX #$03
 	.loop_tables:
@@ -96,6 +108,16 @@ setup_level_reset:
 		STA $19 ; powerup
 		LDA !restore_level_itembox
 		STA $0DC2 ; item box
+		LDA !restore_level_yoshi
+		STA $13C7 ; yoshi color
+		STA $0DBA ; ow yoshi color
+		STA $0DC1 ; persistent yoshi
+		STZ $0DBF ; coins
+		STZ $149F ; takeoff
+		LDA !restore_level_igt
+		STA $0F31
+		STZ $0F32
+		STZ $0F33 ; in game timer
 		STZ $1B95 ; yoshi heaven flag
 		STZ !level_timer_minutes
 		STZ !level_timer_seconds
@@ -105,6 +127,10 @@ setup_level_reset:
 		STZ !record_used_yoshi
 		STZ !record_used_orb
 		STZ !record_lunar_dragon
+		LDA !restore_level_xpos
+		STA $D1 ; mario x position low byte
+		LDA !restore_level_xpos+1
+		STA $D2 ; mario x position high byte
 		
 		; set msb so it's not 00, which is a special case for entering the level
 		; we'll turn this byte into fnnnnnnn, f = 0 if just entered level, n = sublevel count
@@ -121,14 +147,31 @@ setup_level_reset:
 		
 		JSR restore_common_aspects
 		
+		LDA $13BF ; translevel
+		LDX #$05
+	.loop:
+		CMP water_entrance_levels,X
+		BEQ .disable_lock
+		DEX
+		BPL .loop
+		BRA .done
+	.disable_lock:
+		STZ $9D ; sprite lock
+		
 	.done:
 		RTS
+
+; translevels that start with an underwater pipe entrance
+; and coincidentally start with sprite lock OFF for some reason
+water_entrance_levels:
+		db $0A,$0B,$11,$18,$44,$54
 
 ; prepare the level load if we just did a room advance
 setup_room_advance:
 		LDA #$01
 		STA.L !spliced_run
 		
+		JSR save_room_properties
 		JSR restore_common_aspects
 				
 		RTS
@@ -136,6 +179,8 @@ setup_room_advance:
 ; restore things that are common to both room and level resets
 restore_common_aspects:
 		STZ $1420 ; dragon coins
+		STZ $36
+		STZ $37 ; mode 7 angle
 		STZ $14AF ; on/off switch
 		STZ $1432 ; coin snake
 		STZ $1B9F ; reznor floor
@@ -156,6 +201,22 @@ restore_common_aspects:
 		STZ !room_timer_minutes
 		STZ !room_timer_seconds
 		STZ !room_timer_frames
+		
+		LDX #$03
+	.loop_camera:
+		STZ $1A,X ; layer 1 x/y positions
+		STZ $1E,X ; layer 2 x/y positions
+		STZ $26,X ; layer 2 - layer 1 x/y positions
+		DEX
+		BPL .loop_camera
+		
+		REP #$10
+		LDX #$017F
+	.loop_memory:
+		STZ $19F8,X ; item memory
+		DEX
+		BPL .loop_memory
+		SEP #$10
 		RTS
 		
 ; save everything after entering a new room
@@ -211,8 +272,6 @@ save_room_properties:
 		DEX
 		BPL .loop_time
 		
-		JSR account_for_loading_time
-		
 		LDA !level_timer_minutes
 		STA !restore_level_timer_minutes
 		LDA !level_timer_seconds
@@ -227,26 +286,9 @@ save_room_properties:
 		
 ; use the apu timer to account for level load and fade in/out time
 account_for_loading_time:
-		REP #$20
-		LDA $2140
-		SEC
-		SBC !apu_timer_latch ; divide difference by 0x1C0
-		STA !apu_timer_difference
-		STA $4204 ; dividend
-		LDX #$07
-		STX $4206 ; divisor
-		NOP #10
-		LDA $4214 ; quotient
-		LSR #6
-		CLC
-		ADC #$003E ; add #$1F * 2 to account for the fade in/out time
-		SEP #$20
-		STA $00
-		STA $1489
-
 		LDA !level_timer_frames
 		CLC
-		ADC $00
+		ADC !apu_timer_difference
 	.check_frames:
 		CMP #$3C
 		BCS .carry_frame
@@ -382,7 +424,7 @@ muted_music_location:
 muted_music_bank:
 		incbin "bin/music_empty_bank.bin"
 
-; upload the graphics for the slots 0-B
+; upload the graphics for the sprite slots and dynmeter, if they are enabled
 load_slots_graphics:
 		PHP
 		REP #$10
@@ -471,99 +513,53 @@ fix_iggy_larry_graphics:
 		LDX #$03FF
 		RTL
 
-; fix the camera during a room reset
-; this is done at a different time than all other level loading stuff
-camera_fix:
-		PHB
-		PHK
-		PLB
-		LDA !l_r_function
-		BEQ .no_l_r_reset
-		DEC A
-		ASL A
-		TAX
-		JSR (mid_l_r_functions,X)
-	.no_l_r_reset:		
-		JSR save_room_properties
-		LDX #$03
-	.loop_camera:
-		STZ $1A,X ; layer 1 x/y positions
-		STZ $1E,X ; layer 2 x/y positions
-		STZ $26,X ; layer 2 - layer 1 x/y positions
-		DEX
-		BPL .loop_camera
+; at the very start of level loading, latch the apu timer so we can figure out the load time
+latch_apu:		
 		LDA $2140
 		STA !apu_timer_latch
 		LDA $2141
 		STA !apu_timer_latch+1
-		STZ $36
-		STZ $37 ; mode 7 angle
-		
-		REP #$10
-		LDX #$017F
-	.loop_memory:
-		STZ $19F8,X ; item memory
-		DEX
-		BPL .loop_memory
-		SEP #$10
-		PLB
 		RTL
 
-; some exceptions for loading things that need to be loaded before game mode #$12
-mid_l_r_functions:
-		dw mid_setup_room_reset
-		dw mid_setup_level_reset
-		dw mid_setup_room_advance
-
-; prepare the level load if we just did a room reset
-mid_setup_room_reset:
-		LDA !restore_room_yoshi
-		STA $13C7 ; yoshi color
-		STA $0DBA ; ow yoshi color
-		STA $0DC1 ; persistent yoshi
-		LDA !restore_room_igt
-		STA $0F31
-		LDA !restore_room_igt+1
-		STA $0F32
-		LDA !restore_room_igt+2
-		STA $0F33 ; in game timer
-		LDA !restore_room_xpos
-		STA $D1 ; mario x position low byte
-		LDA !restore_room_xpos+1
-		STA $D2 ; mario x position high byte
-		RTS
-
-; prepare the level load if we just did a level reset
-mid_setup_level_reset:
-		LDA !restore_level_yoshi
-		STA $13C7 ; yoshi color
-		STA $0DBA ; ow yoshi color
-		STA $0DC1 ; persistent yoshi
-		STZ $0DBF ; coins
-		STZ $149F ; takeoff
-		LDA !restore_level_igt
-		STA $0F31
-		STZ $0F32
-		STZ $0F33 ; in game timer
+; complete the level load by updating the timer with the calculated load time
+do_final_loading:
+		LDA $141A ; subleve count
+		BEQ .final_level_reset
+		LDA !l_r_function
+		ASL A
+		TAX
+		JMP (.final_l_r_functions,X)
 		
-		LDA $13BF ; translevel
-		LDX #$05
-	.loop:
-		CMP water_entrance_levels,X
-		BEQ .disable_lock
-		DEX
-		BPL .loop
-		BRA .done
-	.disable_lock:
-		STZ $9D ; sprite lock
-	.done:
-		RTS
+	.final_l_r_functions:
+		dw .final_normal_advance
+		dw .final_room_reset
+		dw .final_level_reset
+		dw .final_room_advance
+		
+	.final_normal_advance:
+	.final_room_advance:
+		JSL calculate_load_time
+	.final_room_reset:
+		JSR account_for_loading_time
+	.final_level_reset:
+		
+		STZ !l_r_function
+		RTL
 
-; prepare the level load if we just did a room advance
-mid_setup_room_advance:
-		RTS
-
-; translevels that start with an underwater pipe entrance
-; and coincidentally start with sprite lock OFF for some reason
-water_entrance_levels:
-		db $0A,$0B,$11,$18,$44,$54
+; at the very end of level loading, latch the apu timer and calculate the load time
+calculate_load_time:
+		REP #$20
+		LDA $2140
+		SEC
+		SBC !apu_timer_latch ; divide difference by 0x1C0
+		STA $4204 ; dividend
+		LDX #$07
+		STX $4206 ; divisor
+		NOP #10
+		LDA $4214 ; quotient
+		LSR #6
+		CLC
+		ADC #$003E ; add #$1F * 2 to account for the fade in/out time
+		SEP #$20
+		STA !apu_timer_difference
+		RTL

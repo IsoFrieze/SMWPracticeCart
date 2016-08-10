@@ -4,6 +4,7 @@ ORG $168000
 nmi_expand:
 		INC !counter_sixty_hz
 		
+		LDA $0100
 		CMP #$13 ; level fade in
 		BNE .done
 		JSL load_slots_graphics

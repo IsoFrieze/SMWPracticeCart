@@ -100,9 +100,9 @@ load_special_16:
 		AND #$00FF
 		RTS
 camera_fix_hijack:
-		JSL camera_fix
-		STZ $4200
-		RTS
+;		JSL camera_fix
+;		STZ $4200
+;		RTS
 
 ; clear unused exit table
 ORG $0DA533
