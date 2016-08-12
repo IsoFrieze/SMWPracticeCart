@@ -99,8 +99,13 @@ ORG $049E69
 		NOP #10
 
 ; create gold palette for overworld
-ORG $00B5EE
-		dw $573B,$03FF,$0000
+ORG $00B5EC
+		dw $7393,$573B,$03FF,$0000
+		dw $7393,$573B,$551E,$0000
+		dw $7393,$573B,$7FFF,$0000
+		dw $7393,$573B,$47F1,$0000
+
+gold_palettes:
 		
 ; remove intro sequence
 ORG $009CB1

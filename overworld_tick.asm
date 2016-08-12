@@ -28,26 +28,16 @@ update_potential_translevel:
 		STA $00
 		LDA $1F21
 		AND #$000F
-		ASL A
-		ASL A
-		ASL A
-		ASL A
+		ASL #4
 		STA $02
 		LDA $1F1F
 		AND #$0010
-		ASL A
-		ASL A
-		ASL A
-		ASL A
+		ASL #4
 		ORA $00
 		STA $00
 		LDA $1F21
 		AND #$0010
-		ASL A
-		ASL A
-		ASL A
-		ASL A
-		ASL A
+		ASL #5
 		ORA $02
 		ORA $00
 		TAX
@@ -207,11 +197,7 @@ draw_times:
 		REP #$20
 		LDA !potential_translevel
 		AND #$007F
-		ASL A
-		ASL A
-		ASL A
-		ASL A
-		ASL A
+		ASL #5
 		STA $00
 		SEP #$20
 		LDA #$70
@@ -262,6 +248,8 @@ draw_times:
 		STA !dynamic_stripe_image+16
 		PLX
 		JSR compare_to_gold
+		JSR compare_to_platinum
+		JSR check_if_used_orb
 		JSR load_stripe_from_buffer
 		PLY
 	
@@ -389,9 +377,7 @@ compare_to_gold:
 		LDA [$00],Y
 		AND #%00100000
 		BNE .no_gold
-		DEY
-		DEY
-		DEY
+		DEY #3
 		
 		LDA [$00],Y
 		CMP gold_times,X
@@ -423,6 +409,106 @@ compare_to_gold:
 		STA !dynamic_stripe_image+17
 		
 	.no_gold:
+		PLP
+		PLY
+		PLX
+		PLB
+		RTS
+
+compare_to_platinum:
+		PHB
+		PHK
+		PLB
+		PHX
+		PHY
+		PHP
+		
+		REP #$30
+		STY $03
+		LDA $00
+		AND #$0FFF
+		CLC
+		ADC $03
+		TAX
+		DEX
+		DEX
+		SEP #$20
+		INY
+		LDA [$00],Y
+		AND #%00100000
+		BNE .no_platinum
+		DEY #3
+		
+		LDA [$00],Y
+		CMP platinum_times,X
+		BCC .yes_platinum
+		BNE .no_platinum
+		INY
+		INX
+		
+		LDA [$00],Y
+		CMP platinum_times,X
+		BCC .yes_platinum
+		BNE .no_platinum
+		INY
+		INX
+		
+		LDA [$00],Y
+		CMP platinum_times,X
+		BCC .yes_platinum
+		BRA .no_platinum
+		
+	.yes_platinum:
+		LDA #$2D
+		STA !dynamic_stripe_image+5
+		STA !dynamic_stripe_image+7
+		STA !dynamic_stripe_image+9
+		STA !dynamic_stripe_image+11
+		STA !dynamic_stripe_image+13
+		STA !dynamic_stripe_image+15
+		STA !dynamic_stripe_image+17
+		
+	.no_platinum:
+		PLP
+		PLY
+		PLX
+		PLB
+		RTS
+
+check_if_used_orb:
+		PHB
+		PHK
+		PLB
+		PHX
+		PHY
+		PHP
+		
+		REP #$30
+		STY $03
+		LDA $00
+		AND #$0FFF
+		CLC
+		ADC $03
+		TAX
+		DEX
+		DEX
+		SEP #$20
+		INY
+		LDA [$00],Y
+		AND #%00100000
+		BEQ .no_orb
+		
+	.yes_orb:
+		LDA #$3D
+		STA !dynamic_stripe_image+5
+		STA !dynamic_stripe_image+7
+		STA !dynamic_stripe_image+9
+		STA !dynamic_stripe_image+11
+		STA !dynamic_stripe_image+13
+		STA !dynamic_stripe_image+15
+		STA !dynamic_stripe_image+17
+		
+	.no_orb:
 		PLP
 		PLY
 		PLX
@@ -486,6 +572,10 @@ blank_stripe:
 ; having a time better than the one here will result in a gold time
 gold_times:
 		incbin "bin/overworld_gold_times.bin"
+
+; having a time better than the one here will result in a platinum time
+platinum_times:
+		incbin "bin/overworld_platinum_times.bin"
 
 ; save mario's position on the overworld to sram
 save_marios_position:

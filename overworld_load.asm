@@ -13,6 +13,11 @@ overworld_load:
 		BEQ .done
 		
 	.continue:
+		; failsafe: if level was beaten in under 1 second, just discard the time, it was probably a glitch
+		LDA !level_timer_minutes
+		ORA !level_timer_seconds
+		BEQ .done
+	
 		LDA !record_used_powerup
 		BNE .deny_low
 		JSR attempt_timer_save
@@ -52,6 +57,38 @@ overworld_load:
 		STZ !l_r_function
 		JSL $04DAAD ; layer 2 tilemap upload routine
 		RTL
+
+; this code is run once on overworld load, but after everything else has loaded already
+late_overworld_load:
+		PHP
+		SEP #$20
+		REP #$10
+		
+		LDA #$80
+		STA $2115 ; vram increment
+		LDX #$4490
+		STX $2116 ; vram address
+		PHK
+		PLA ; #bank of overworld_layer_3_tiles
+		LDX #overworld_layer_3_tiles
+		LDY #$0030
+		JSL load_vram
+		
+		LDA #$80
+		STA $2115 ; vram increment
+		LDX #$46A0
+		STX $2116 ; vram address
+		PHK
+		PLA ; #bank of overworld_layer_3_tiles
+		LDX #overworld_layer_3_tiles+$30
+		LDY #$0030
+		JSL load_vram
+		
+		PLP
+		RTL
+
+overworld_layer_3_tiles:
+		incbin "bin/overworld_layer3_tiles.bin"
 		
 ; compare the timer stored at !save_timer_address against the current time, and save it if it is faster
 attempt_timer_save:

@@ -34,7 +34,6 @@ level_tick:
 		JSR test_ci2
 		JSR test_reset
 		JSR test_run_type
-		JSR test_grab_wings
 		JSR test_translevel_0_failsafe
 		
 		PLB
@@ -275,7 +274,7 @@ tile_y_offsets:
 		db $00,$00,$08,$08
 
 ; draw the current rng output to the status bar
-display_rng: ; 1f44 1f62
+display_rng:
 		LDA $148D ; rng output 1
 		LSR #4
 		STA $1F44
@@ -873,16 +872,6 @@ test_savestate:
 		
 		JSL activate_load_state
 	
-	.done:
-		RTS
-
-; test if player grabbed wings
-test_grab_wings:
-		LDA $71 ; player animation
-		CMP #$08
-		BNE .done
-		LDX #$00
-		JSL set_time_save_address
 	.done:
 		RTS
 

@@ -35,11 +35,13 @@ ORG $008072
 ; run on overworld load
 ORG $00A087
 		JSR overworld_load_hijack
+ORG $00A192
+		JSR overworld_late_load_hijack
 	
 ORG $00A249
 overworld_load_hijack:
-		JSL overworld_load
 		JSR $937D
+		JSL overworld_load
 		RTS
 overworld_hijack:
 		JSL overworld_tick
@@ -81,35 +83,44 @@ ORG $0096D5
 		
 ; test if level completed this frame
 ; X = 0 for normal exit, 1 for secret exit
-ORG $00CC86
+; return 1 in A for finished, 0 for not finished
+ORG $00CC68
+		JMP $CCBB
 test_last_frame:
 		LDA !level_finished
 		BNE .exit
-		LDX $141C
-		LDA $9E
+		LDX $141C ; secret flag
+		LDA $9E ; sprite id
 		CMP #$C5
 		BNE .not_big_boo
 		LDX #$01
 	.not_big_boo:
-		LDA $1493
+		LDA $1493 ; end level timer
 		BNE .trigger
-		LDA $190D
+		LDA $190D ; bowser dead
 		BNE .trigger
 		LDX #$01
-		LDA $1434
+		LDA $1434 ; keyhole timer
 		BNE .trigger
-		LDA $1B95
+		LDA $1B95 ; wings flag
 		BEQ .exit
-		LDA $0DD5
-		BEQ .exit
+		LDA $0DD5 ; exit level flag
+		CMP #$01
+		BNE .exit
 		LDX #$00
 		BRA .trigger
 	.exit:
+		LDA #$00
 		RTL
 		
 	.trigger:
 		JSL level_finish
+		LDA #$01
 		RTL
+
+; hijack temp fade exit level
+ORG $00933F
+		dw tmp_fade_begin_hijack
 		
 ; hijack for overworld menu game modes
 ORG $009363
@@ -276,8 +287,23 @@ begin_loading_level:
 conclude_loading_level:
 		LDA $0100
 		CMP #$12
+		BEQ .load
+		CMP #$13
 		BNE .exit
+	.load:
 		JSL do_final_loading
 	.exit:
 		INC $0100
 		RTS
+; tick the timer and co. for one frame after exiting the level with wings
+; this is because the game exits out of this state abruptly
+tmp_fade_begin_hijack:
+		JSL test_last_frame
+		BEQ .done
+		JSL level_tick
+	.done:
+		JMP $9F6F
+; run on overworld load, after everything else has loaded already
+overworld_late_load_hijack:
+		JSL late_overworld_load
+		JMP $93F4

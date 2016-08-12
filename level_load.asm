@@ -284,11 +284,10 @@ save_room_properties:
 		
 		RTS
 		
-; use the apu timer to account for level load and fade in/out time
-account_for_loading_time:
-		LDA !level_timer_frames
+; add the frame count stored in A to the timer
+add_many_to_timer:
 		CLC
-		ADC !apu_timer_difference
+		ADC !level_timer_frames
 	.check_frames:
 		CMP #$3C
 		BCS .carry_frame
@@ -318,7 +317,7 @@ account_for_loading_time:
 	.no_carry_minutes:
 		STA !level_timer_minutes
 	.done:
-		RTS
+		RTL
 		
 ; save everything after entering a new level
 save_level_properties:
@@ -514,7 +513,7 @@ fix_iggy_larry_graphics:
 		RTL
 
 ; at the very start of level loading, latch the apu timer so we can figure out the load time
-latch_apu:		
+latch_apu:
 		LDA $2140
 		STA !apu_timer_latch
 		LDA $2141
@@ -523,7 +522,7 @@ latch_apu:
 
 ; complete the level load by updating the timer with the calculated load time
 do_final_loading:
-		LDA $141A ; subleve count
+		LDA $141A ; sublevel count
 		BEQ .final_level_reset
 		LDA !l_r_function
 		ASL A
@@ -540,7 +539,8 @@ do_final_loading:
 	.final_room_advance:
 		JSL calculate_load_time
 	.final_room_reset:
-		JSR account_for_loading_time
+		LDA !apu_timer_difference
+		JSL add_many_to_timer
 	.final_level_reset:
 		
 		STZ !l_r_function
@@ -559,7 +559,12 @@ calculate_load_time:
 		LDA $4214 ; quotient
 		LSR #6
 		CLC
-		ADC #$003E ; add #$1F * 2 to account for the fade in/out time
+		ADC #$001F ; add #$1F to account for the fade in time
+		LDX $2A ; mode 7 center
+		BNE .done
+		CLC
+		ADC #$001F ; add #$1F to account for the fade out time
+	.done:
 		SEP #$20
 		STA !apu_timer_difference
 		RTL
