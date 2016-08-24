@@ -311,12 +311,16 @@ add_many_to_timer:
 		INC !level_timer_minutes
 		BRA .check_seconds
 	.check_minutes:
-		CMP #$09
-		BCC .no_carry_minutes
-		LDA #$09
-	.no_carry_minutes:
+		CMP #$0A
+		BCS .timer_overflow
 		STA !level_timer_minutes
-	.done:
+		RTL
+	.timer_overflow:
+		LDA #$09
+		STA !level_timer_minutes
+		LDA #$3B
+		STA !level_timer_seconds
+		STA !level_timer_frames
 		RTL
 		
 ; save everything after entering a new level
@@ -388,7 +392,7 @@ set_music_bank:
 		PHK
 		PLB
 		
-		LDA !status_music
+		LDA.L !status_music
 		BEQ .not_muted
 		LDA muted_music_location
 		STA $00
@@ -428,10 +432,12 @@ load_slots_graphics:
 		PHP
 		REP #$10
 		SEP #$20
-		LDA !status_slots
-		ORA !status_dynmeter
+		LDA.L !status_slots
+		BNE .continue
+		LDA.L !status_dynmeter
 		BEQ .done
 		
+	.continue:
 		LDY #$0080
 		PHK
 		PLA

@@ -25,6 +25,11 @@ level_tick:
 		PHK
 		PLB
 		
+		; this makes sure we aren't on the title screen
+		LDA $0100
+		CMP #$14
+		BNE .done
+		
 		JSR fade_and_in_level_common
 		
 		PEA !level_timer_minutes
@@ -35,7 +40,9 @@ level_tick:
 		JSR test_reset
 		JSR test_run_type
 		JSR test_translevel_0_failsafe
+		JSR wait_slowdown
 		
+	.done:
 		PLB
 		PLP
 		RTL
@@ -53,7 +60,29 @@ fade_and_in_level_common:
 		JSR display_yoshi_subpixel
 		JSR display_held_subpixel
 		JSR display_rng
+		JSR display_slowdown
 		JSR test_savestate
+		JSR test_slowdown
+		RTS
+
+; slow down the game depending on how large the slowdown number is
+wait_slowdown:
+		LDA !slowdown_speed
+		BEQ .done
+		INC A
+		TAX
+	.loop:
+		DEX
+		BEQ .invalidate
+		WAI ; wait for NMI
+		WAI ; wait for IRQ
+		BRA .loop
+		
+	.invalidate:
+		LDA #$01
+		STA.L !spliced_run
+		
+	.done:
 		RTS
 
 ; draw the current dymeter to where it belongs on the screen
@@ -61,11 +90,17 @@ display_dynmeter:
 		PHB
 		PHK
 		PLB
+		LDA $0100 ; game mode
+		CMP #$0B
+		BCS .begin
+		BRL .done
+	
+	.begin:	
 		STZ $08
 		STZ $09
 		STZ $0A
 		STZ $0B
-		LDA !status_dynmeter
+		LDA.L !status_dynmeter
 		ASL A
 		TAX
 		JMP (.dynmeter_types,X)
@@ -75,6 +110,7 @@ display_dynmeter:
 		dw .mario_speed
 		dw .mario_takeoff
 		dw .mario_pmeter
+		dw .mario_subpixel
 		dw .yoshi_subpixel
 		dw .item_subpixel
 		dw .item_speed
@@ -116,6 +152,17 @@ display_dynmeter:
 		LDA #$FF
 		STA $02
 		STA $03
+		JMP .attach_to_mario
+		
+	.mario_subpixel:
+		LDA $7A ; mario x subpixel
+		LSR #4
+		STA $00
+		STZ $01
+		LDA $7C ; mario y subpixel (?)
+		LSR #4
+		STA $02
+		STZ $03
 		JMP .attach_to_mario
 		
 	.yoshi_subpixel:
@@ -277,17 +324,17 @@ tile_y_offsets:
 display_rng:
 		LDA $148D ; rng output 1
 		LSR #4
-		STA $1F44
+		STA $1F7C
 		LDA $148B
 		AND #$0F
-		STA $1F45
+		STA $1F7D
 		
 		LDA $148E ; rng output 2
 		LSR #4
-		STA $1F62
+		STA $1F7E
 		LDA $148C
 		AND #$0F
-		STA $1F63
+		STA $1F7F
 		RTS
 
 ; draw the current amount of coins collected this level to the status bar
@@ -351,7 +398,7 @@ display_timers:
 		JSL $00974C ; hex2dec
 		STX $1F37 ; tens
 		STA $1F38 ; ones
-		LDA !status_fractions
+		LDA.L !status_fractions
 		BEQ .draw_level_fractions
 		LDA !level_timer_frames
 		JSL $00974C ; hex2dec
@@ -375,7 +422,7 @@ display_timers:
 		JSL $00974C ; hex2dec
 		STX $1F55 ; tens
 		STA $1F56 ; ones
-		LDA !status_fractions
+		LDA.L !status_fractions
 		BEQ .draw_room_fractions
 		LDA !room_timer_frames
 		JSL $00974C ; hex2dec
@@ -383,7 +430,7 @@ display_timers:
 		STA $1F59 ; ones
 		LDA #$85
 		STA $1F57
-		JMP .merge
+		JMP .draw_clock
 	.draw_room_fractions:
 		LDX !room_timer_frames
 		LDA fractional_seconds,X
@@ -392,6 +439,7 @@ display_timers:
 		STA $1F59 ; ones
 		
 	; draw flashing clock symbol if run was not spliced
+	.draw_clock:
 		LDA.L !spliced_run
 		BNE .merge
 		LDA $13 ; true frame
@@ -419,20 +467,14 @@ fractional_seconds:
 display_dropped_frames:
 		LDA !dropped_frames+1
 		PHA
-		LSR A
-		LSR A
-		LSR A
-		LSR A
+		LSR #4
 		STA $1F73 ; 0x1000's
 		PLA
 		AND #$0F
 		STA $1F74 ; 0x100's
 		LDA !dropped_frames
 		PHA
-		LSR A
-		LSR A
-		LSR A
-		LSR A
+		LSR #4
 		STA $1F75 ; 0x10's
 		PLA
 		AND #$0F
@@ -469,7 +511,7 @@ display_input:
 		BCS .draw_cont_a
 		LDA input_locs_1,X
 		STA $00
-		LDA #$FC
+		LDA input_tile_no_button
 		BRA .finish_cont_a
 	.draw_cont_a:
 		LDA input_locs_1,X
@@ -482,10 +524,7 @@ display_input:
 		
 	.next_cont:
 		LDA $0DA4 ; axlr----
-		LSR A
-		LSR A
-		LSR A
-		LSR A
+		LSR #4
 		LDX #$04
 	.loop_cont_b:
 		DEX
@@ -495,7 +534,7 @@ display_input:
 		BCS .draw_cont_b
 		LDA input_locs_2,X
 		STA $00
-		LDA #$FC
+		LDA input_tile_no_button
 		BRA .finish_cont_b
 	.draw_cont_b:
 		LDA input_locs_2,X
@@ -510,13 +549,27 @@ display_input:
 		RTS
 
 input_locs_1:
-		db $A5,$87,$A4,$86,$4C,$A6,$6A,$88
+		db $87,$68,$84,$85,$46,$82,$63,$65
 input_locs_2:
-		db $69,$4B,$4A,$68
+		db $6A,$4B,$48,$49
 input_tiles_1:
-		db $0B,$22,$0E,$1C,$1E,$0D,$15,$1B
+		db $0B,$22,$44,$1C,$41,$42,$40,$43
 input_tiles_2:
 		db $0A,$21,$15,$1B
+input_tile_no_button:
+		db $27
+
+; display the slowdown number if it is not zero to the status bar
+display_slowdown:
+		LDA !slowdown_speed
+		BNE .not_zero
+		LDA #$FC
+		BRA .store
+	.not_zero:
+		INC A
+	.store:
+		STA $1F44
+		RTS
 
 ; if yoshi is present, draw his x and y subpixels to the status bar
 display_yoshi_subpixel:
@@ -587,7 +640,11 @@ display_slot:
 		PHB
 		PHK
 		PLB
-		LDA !status_slots
+		; don't display slots on title screen
+		LDA $0100
+		CMP #$0B
+		BCC .done
+		LDA.L !status_slots
 		BEQ .done
 		
 		TXA
@@ -596,7 +653,7 @@ display_slot:
 		TAY
 		LDA $14C8,X ; sprite status
 		BNE .not_dead
-		LDA !status_slots
+		LDA.L !status_slots
 		CMP #$01
 		BEQ .erase_tile
 	.not_dead:
@@ -759,10 +816,7 @@ ci2_time:
 		BRA .and_go
 	.ge_200:
 		LDA $0F32 ; timer tens
-		ASL A
-		ASL A
-		ASL A
-		ASL A
+		ASL #4
 		ORA $0F33 ; timer ones
 		CMP #$35
 		BCS .ge_235
@@ -844,7 +898,7 @@ test_reset:
 
 ; test if a savestate was activated, if so, call the appropriate routine
 test_savestate:
-		LDA !status_states
+		LDA.L !status_states
 		BNE .done
 		
 		LDA $0D9B ; overworld flag
@@ -872,6 +926,42 @@ test_savestate:
 		
 		JSL activate_load_state
 	
+	.done:
+		RTS
+		
+; test if slowdown was activated, if so, update the register for that
+test_slowdown:
+		LDA !status_slowdown
+		BNE .done
+		
+		LDA $0DA6 ; byetudlr frame
+		AND #%00010000
+		BEQ .done
+		
+		LDA $0DA4 ; axlr----
+		AND #%00010000
+		BEQ .test_undo
+		
+		LDA !slowdown_speed
+		INC A
+		CMP #$0F
+		BCC .store_speed
+		LDA #$0E
+		BRA .store_speed
+		
+	.test_undo:
+		LDA $0DA4 ; axlr----
+		AND #%00100000
+		BEQ .done
+		
+		LDA !slowdown_speed
+		DEC A
+		BPL .store_speed
+		LDA #$00
+	
+	.store_speed:
+		STA !slowdown_speed
+		
 	.done:
 		RTS
 
@@ -941,7 +1031,7 @@ drop_item_box:
 		LDA $16 ; byetudlr frame
 		AND #%00100000
 		BEQ .no_select
-		LDA !status_drop
+		LDA.L !status_drop
 		BNE .yes_select
 		LDA $17 ; axlr----
 		AND #%00110000
@@ -952,13 +1042,30 @@ drop_item_box:
 	.yes_select:
 		RTL
 
+; test the start button to see if we should pause the game (return 0 in A for no pause, pause otherwisxe)
+test_pause:
+		LDA $16 ; byetudlr frame
+		AND #%00010000
+		BEQ .done
+		LDA.L !status_drop
+		BNE .do_pause
+		LDA $17 ; axlr----
+		AND #%00110000
+		BEQ .do_pause
+		LDA #$00
+		BRA .done
+	.do_pause:
+		LDA #$01		
+	.done:
+		RTL
+
 ; set the pause timer depending on our current setting
 pause_timer:
 		PHB
 		PHK
 		PLB
 		
-		LDA !status_pause
+		LDA.L !status_pause
 		TAX
 		LDA pause_lengths,X
 		STA $13D3 ; pause timer
@@ -971,7 +1078,7 @@ pause_lengths:
 		
 ; play hurry up sound effect only if option is on
 hurry_up:
-		LDA !status_timedeath
+		LDA.L !status_timedeath
 		BNE .done
 		LDA $0F31
 		BNE .done
@@ -991,24 +1098,27 @@ out_of_time:
 		ORA $0F32
 		ORA $0F33 ; timer
 		BNE .done
-		LDA !status_timedeath
+		LDA.L !status_timedeath
 	.done:
 		RTL
 
 ; display a score sprite only if sprite slot numbers are disabled
+; return A = 0 if enabled
 check_score_sprites:
-		LDA !status_slots
-		ORA !status_dynmeter
-		CMP #$00
-		PHP
+		LDA.L !status_slots
 		BNE .done
+		LDA.L !status_dynmeter
+		BNE .done
+	.continue:
 		LDA $16E7,X ; score sprite y position low byte
 		SEC
 		SBC $02
 		STA $0201,Y ; oam tile
 		STA $0205,Y ; oam tile
+		LDA #$00
+		RTL
 	.done:
-		PLP
+		LDA #$01
 		RTL
 
 ; draw the level and room timers, but on the sprite layer instead if in the bowser fight
@@ -1040,7 +1150,7 @@ draw_bowser_timer:
 		JSR hex_to_bowser
 		STX $0262
 		STA $0266
-		LDA !status_fractions
+		LDA.L !status_fractions
 		BEQ .draw_level_fractions
 		LDA !level_timer_frames
 		JSR hex_to_bowser
@@ -1087,7 +1197,7 @@ draw_bowser_timer:
 		JSR hex_to_bowser
 		STX $03AA
 		STA $03AE
-		LDA !status_fractions
+		LDA.L !status_fractions
 		BEQ .draw_room_fractions
 		LDA !level_timer_frames
 		JSR hex_to_bowser
@@ -1164,4 +1274,31 @@ test_translevel_0_failsafe:
 		JSL set_position_to_yoshis_house
 	.done:
 		RTS
+		
+; only reset layer 3 Y position if not in overworld menu
+layer_3_y:
+		LDA !in_overworld_menu
+		BNE .copy
+		STZ $2112
+		STZ $2112
+		BRA .done
+	.copy:
+		LDA $24
+		STA $2112
+		LDA $25
+		STA $2112
+	.done:
+		RTL
+
+; disable layer 3 priority if in overworld menu
+layer_3_priority:
+		LDA !in_overworld_menu
+		BNE .disable
+		LDA #$09
+		BRA .merge
+	.disable:
+		LDA #$01
+	.merge:
+		STA $2105
+		RTL
 		

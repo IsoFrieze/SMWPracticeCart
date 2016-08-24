@@ -285,7 +285,7 @@ draw_times:
 		
 get_fractions_of_time:
 		PHA
-		LDA !status_fractions
+		LDA.L !status_fractions
 		BNE .frames
 		PLA
 		TAX
@@ -308,7 +308,7 @@ load_unran_time:
 		PLY
 		LDA times_position,Y
 		STA !dynamic_stripe_image+1
-		LDA !status_fractions
+		LDA.L !status_fractions
 		BEQ .done
 		LDA #$5D
 		STA !dynamic_stripe_image+12
@@ -538,7 +538,7 @@ translevel_types:
 		db $0F,$07,$0F,$0F
 		db $FF,$7F,$0F,$07
 		db $FF,$0F,$FF,$07
-		db $07,$F7,$77,$FF
+		db $07,$7F,$77,$FF
 		db $FF,$07,$0F,$FF
 		db $00,$0F,$0F,$0F
 		db $0F,$00,$0F,$0F

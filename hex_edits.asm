@@ -88,7 +88,7 @@ ORG $049D22
 
 ; remove lives counter on overworld
 ORG $05DBC9
-		dw $8858
+		dw $885A
 
 ; faster star road warp
 ORG $049E5E
@@ -104,8 +104,6 @@ ORG $00B5EC
 		dw $7393,$573B,$551E,$0000
 		dw $7393,$573B,$7FFF,$0000
 		dw $7393,$573B,$47F1,$0000
-
-gold_palettes:
 		
 ; remove intro sequence
 ORG $009CB1

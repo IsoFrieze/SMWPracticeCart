@@ -1,7 +1,7 @@
 ; the version of this patch Va.b.c
 !version_a                   = $02
-!version_b                   = $03
-!version_c                   = $02
+!version_b                   = $04
+!version_c                   = $00
 
 ; number of frames dropped this execution frame
 !dropped_frames              = $FB ; 2 bytes, 16-bit value
@@ -38,31 +38,49 @@
 !restore_room_igt            = $19F0 ; 3 bytes
 !restore_room_xpos           = $19F3 ; 2 bytes, 16-bit value
 
-; location of cape interaction table at $1FE2
-!new_cape_interaction        = $0F5E
+; determines when to start scrolling fast through options
+!fast_scroll_timer           = $0EF9
+!fast_scroll_delay           = $20
+; timer to display the text on the overworld menu
+!text_timer                  = $0EFA
+
+; the number of frames to skip for the slowdown feature (0 = normal)
+!slowdown_speed              = $0EFB
+
+; flag that is set if we are in the overworld menu
+!in_overworld_menu           = $0EFC
+; flag that is set if we are in the help menu part of the overworld menu
+!in_help_menu                = $0EFD
+; the currently selected help menu item
+!help_menu_item              = $0EFE
 
 ; status flags for each of the overworld menu options
-!status_table                = $0EF9 ; $20 bytes
-!status_yellow               = $0EF9
-!status_green                = $0EFA
-!status_red                  = $0EFB
-!status_blue                 = $0EFC
-!status_special              = $0EFD
-!status_powerup              = $0EFE
-!status_itembox              = $0EFF
-!status_yoshi                = $0F00
-!status_enemy                = $0F01
-!status_erase                = $0F02
-!status_slots                = $0F03
-!status_fractions            = $0F04
-!status_pause                = $0F05
-!status_timedeath            = $0F06
-!status_music                = $0F07
-!status_drop                 = $0F08
-!status_states               = $0F09
-!status_dynmeter             = $0F0A
-!status_exit                 = $0F0B
-; $0F0C - $0F18 reserved for future expansion
+!status_table                = $700320 ; $20 bytes
+!status_yellow               = $700320
+!status_green                = $700321
+!status_red                  = $700322
+!status_blue                 = $700323
+!status_special              = $700324
+!status_powerup              = $700325
+!status_itembox              = $700326
+!status_yoshi                = $700327
+!status_enemy                = $700328
+!status_erase                = $700329
+!status_slots                = $70032A
+!status_fractions            = $70032B
+!status_pause                = $70032C
+!status_timedeath            = $70032D
+!status_music                = $70032E
+!status_drop                 = $70032F
+!status_states               = $700330
+!status_statedelay           = $700331
+!status_dynmeter             = $700332
+!status_slowdown             = $700333
+!status_exit                 = $700334
+; $700335 - $70033F reserved for future expansion
+
+; location of cape interaction table at $1FE2
+!new_cape_interaction        = $0F5E
 
 ; the number of the most recent primary/secondary exit used
 ; technically applicable on level enter, but not used
@@ -91,7 +109,7 @@
 !record_lunar_dragon         = $0F27
 
 ; the number of options in the overworld menu
-!number_of_options           = 19
+!number_of_options           = 21
 ; the currently highlighted selection on the overworld menu
 !current_selection           = $0F28
 ; flag to show "delete mode", that is, if the player presses select to delete data
@@ -127,7 +145,7 @@
 !save_overworld_animation    = $700008
 ; flag = #$BD if a save state exists and to allow load state
 !save_state_exists           = $700006
-; flag if a save state or room reset/advance was used in this run
+; flag if a save state or room reset/advance or slowdown was used in this run
 ; used to detect when to not save the record (no cheating!)
 !spliced_run                 = $700007
 ; flag = #$BD if it is detected that this platform does not support the needed sram

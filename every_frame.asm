@@ -5,6 +5,12 @@ every_frame:
 		PHP
 		SEP #$20
 		JSR update_dropped_frames
+		
+		LDA !in_overworld_menu
+		BEQ .done
+		JSL update_background
+		
+	.done:
 		PLP
 		RTL
 		

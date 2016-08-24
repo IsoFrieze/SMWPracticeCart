@@ -68,11 +68,7 @@ activate_room_advance:
 		PLA
 		REP #$20
 		AND #$00FF
-		ASL A
-		ASL A
-		ASL A
-		ASL A
-		ASL A
+		ASL #5
 		STA !restore_room_xpos
 		
 		PLP
@@ -201,7 +197,7 @@ activate_save_state:
 		STA.L !save_state_exists
 		
 		LDA #$81
-		STA $4200 ; nmi enable
+		STA $4200 ; nmi enable		
 		LDA #$0F
 		STA $2100 ; exit force blank
 		RTL
@@ -243,13 +239,71 @@ go_poverty_save_state:
 		DEX
 		BPL .loop_tilemap_low
 		
-		; save wram $7FC800-$7FFFFF to $7043A0-$707B9F
-		LDX #$37FF
+		; save wram $7FC800-$7FFFFF to $7043A0-$704ABF
+		; since only bit 0 is used for this data, crunch it into a 1:8 ratio
+		; unrolled inner loop is used for the speed increase
+		PHB
+		LDA #$70
+		PHA
+		PLB
+		
+		LDX #$37F8
+		LDY #$06FF
 	.loop_tilemap_high:
 		LDA $7FC800,X
-		STA $7043A0,X
-		DEX
+		STA $00
+		LDA $7FC801,X
+		STA $01
+		LDA $7FC802,X
+		STA $02
+		LDA $7FC803,X
+		STA $03
+		LDA $7FC804,X
+		STA $04
+		LDA $7FC805,X
+		STA $05
+		LDA $7FC806,X
+		STA $06
+		LDA $7FC807,X
+		STA $07
+		LDA #$00
+		LSR $00
+		ROL A
+		LSR $01
+		ROL A
+		LSR $02
+		ROL A
+		LSR $03
+		ROL A
+		LSR $04
+		ROL A
+		LSR $05
+		ROL A
+		LSR $06
+		ROL A
+		LSR $07
+		ROL A
+		STA $43A0,Y ; $7043A0,Y
+		DEX #8
+		DEY
 		BPL .loop_tilemap_high
+		
+		; do these separately because they actually use the upper 7 bits
+		LDX #$000F
+	.loop_mode7_bridge_a:
+		LDA $7FC8B0,X
+		STA $704AA0,X
+		DEX
+		BPL .loop_mode7_bridge_a
+		
+		LDX #$000F
+	.loop_mode7_bridge_b:
+		LDA $7FCA60,X
+		STA $704AB0,X
+		DEX
+		BPL .loop_mode7_bridge_b
+		
+		PLB
 		
 		; save cgram w$00-w$FF to $707E00-$707FFF
 		LDX #$0000
@@ -267,6 +321,82 @@ go_poverty_save_state:
 		LDA #$01 ; channel 0
 		STA $420B ; dma enable
 		
+		; save vram w$0000-w$03FF to wram $7FBC7B-$7FC47A
+		LDA #$80
+		STA $2115 ; vram increment
+		LDX #$0000
+		STX $2116 ; vram address
+		LDX $2139 ; vram data read (dummy read)
+		LDX #$BC7B
+		STX $4302 ; dma0 destination address
+		LDA #$7F
+		STA $4304 ; dma0 destination bank
+		LDX #$0800
+		STX $4305 ; dma0 length
+		LDA #$81 ; 2-byte, low-high
+		STA $4300 ; dma0 parameters
+		LDA #$39 ; $2139 vram data read
+		STA $4301 ; dma0 source
+		LDA #$01 ; channel 0
+		STA $420B ; dma enable
+		
+		; save vram w$0400-w$06BF to wram $7EC100-$7EC67F
+		LDA #$80
+		STA $2115 ; vram increment
+		LDX #$0400
+		STX $2116 ; vram address
+		LDX $2139 ; vram data read (dummy read)
+		LDX #$C100
+		STX $4302 ; dma0 destination address
+		LDA #$7E
+		STA $4304 ; dma0 destination bank
+		LDX #$0580
+		STX $4305 ; dma0 length
+		LDA #$81 ; 2-byte, low-high
+		STA $4300 ; dma0 parameters
+		LDA #$39 ; $2139 vram data read
+		STA $4301 ; dma0 source
+		LDA #$01 ; channel 0
+		STA $420B ; dma enable
+		
+		; save vram w$06C0-w$07FF to wram $7FC47B-$7EC6FA
+		LDA #$80
+		STA $2115 ; vram increment
+		LDX #$06C0
+		STX $2116 ; vram address
+		LDX $2139 ; vram data read (dummy read)
+		LDX #$C47B
+		STX $4302 ; dma0 destination address
+		LDA #$7F
+		STA $4304 ; dma0 destination bank
+		LDX #$0280
+		STX $4305 ; dma0 length
+		LDA #$81 ; 2-byte, low-high
+		STA $4300 ; dma0 parameters
+		LDA #$39 ; $2139 vram data read
+		STA $4301 ; dma0 source
+		LDA #$01 ; channel 0
+		STA $420B ; dma enable
+		
+		; save vram w$0800-w$0FFF to wram $7F877B-$7F977A
+		LDA #$80
+		STA $2115 ; vram increment
+		LDX #$0800
+		STX $2116 ; vram address
+		LDX $2139 ; vram data read (dummy read)
+		LDX #$877B
+		STX $4302 ; dma0 destination address
+		LDA #$7F
+		STA $4304 ; dma0 destination bank
+		LDX #$1000
+		STX $4305 ; dma0 length
+		LDA #$81 ; 2-byte, low-high
+		STA $4300 ; dma0 parameters
+		LDA #$39 ; $2139 vram data read
+		STA $4301 ; dma0 source
+		LDA #$01 ; channel 0
+		STA $420B ; dma enable
+		
 		; save vram w$1000-w$3FFF to wram $7F0000-$7F5FFF
 		LDA #$80
 		STA $2115 ; vram increment
@@ -278,6 +408,25 @@ go_poverty_save_state:
 		LDA #$7F
 		STA $4304 ; dma0 destination bank
 		LDX #$6000
+		STX $4305 ; dma0 length
+		LDA #$81 ; 2-byte, low-high
+		STA $4300 ; dma0 parameters
+		LDA #$39 ; $2139 vram data read
+		STA $4301 ; dma0 source
+		LDA #$01 ; channel 0
+		STA $420B ; dma enable
+		
+		; save vram w$5000-w$5FFF to wram $704AC0-$706ABF
+		LDA #$80
+		STA $2115 ; vram increment
+		LDX #$5000
+		STX $2116 ; vram address
+		LDX $2139 ; vram data read (dummy read)
+		LDX #$4AC0
+		STX $4302 ; dma0 destination address
+		LDA #$70
+		STA $4304 ; dma0 destination bank
+		LDX #$2000
 		STX $4305 ; dma0 length
 		LDA #$81 ; 2-byte, low-high
 		STA $4300 ; dma0 parameters
@@ -445,8 +594,21 @@ activate_load_state:
 		
 		LDA #$81
 		STA $4200 ; nmi enable
-		LDA #$0F
-		STA $2100 ; exit force blank
+
+		LDA.L !status_statedelay
+		INC A
+		ASL #3
+		TAX
+	.loop:
+		DEX
+		BEQ .done_waiting
+		WAI ; wait for NMI
+		STZ $2100
+		WAI ; wait for IRQ
+		STZ $2100
+		BRA .loop
+	
+	.done_waiting:	
 		RTL
 		
 go_poverty_load_state:
@@ -486,13 +648,84 @@ go_poverty_load_state:
 		DEX
 		BPL .loop_tilemap_low
 		
-		; load $7043A0-$707B9F to wram $7FC800-$7FFFFF
-		LDX #$37FF
-	.loop_tilemap_high:
-		LDA $7043A0,X
-		STA $7FC800,X
+		; load $7043A0-$704ABF to wram $7FC800-$7FFFFF
+		; since only bit 0 is used for this data, expand it into a 8:1 ratio
+		; unrolled inner loop is used for the speed increase
+		LDX #$0007
+	.loop_prepare_scratch:
+		STZ $00,X
 		DEX
+		BPL .loop_prepare_scratch
+		
+		PHB
+		LDA #$70
+		PHA
+		PLB
+		
+		LDX #$37F8
+		LDY #$06FF
+	.loop_tilemap_high:
+		LDA $43A0,Y ; $7043A0,Y
+		LSR $07
+		ROR A
+		ROL $07
+		LSR $06
+		ROR A
+		ROL $06
+		LSR $05
+		ROR A
+		ROL $05
+		LSR $04
+		ROR A
+		ROL $04
+		LSR $03
+		ROR A
+		ROL $03
+		LSR $02
+		ROR A
+		ROL $02
+		LSR $01
+		ROR A
+		ROL $01
+		LSR $00
+		ROR A
+		ROL $00
+		LDA $00
+		STA $7FC800,X
+		LDA $01
+		STA $7FC801,X
+		LDA $02
+		STA $7FC802,X
+		LDA $03
+		STA $7FC803,X
+		LDA $04
+		STA $7FC804,X
+		LDA $05
+		STA $7FC805,X
+		LDA $06
+		STA $7FC806,X
+		LDA $07
+		STA $7FC807,X
+		DEX #8
+		DEY
 		BPL .loop_tilemap_high
+		
+		; do these separately because they actually use the upper 7 bits
+		LDX #$000F
+	.loop_mode7_bridge_a:
+		LDA $704AA0,X
+		STA $7FC8B0,X
+		DEX
+		BPL .loop_mode7_bridge_a
+		
+		LDX #$000F
+	.loop_mode7_bridge_b:
+		LDA $704AB0,X
+		STA $7FCA60,X
+		DEX
+		BPL .loop_mode7_bridge_b
+		
+		PLB
 		
 		; load $707E00-$707FFF to cgram w$00-w$FF
 		LDX #$0000
@@ -509,6 +742,78 @@ go_poverty_load_state:
 		LDA #$01 ; channel 0
 		STA $420B ; dma enable
 		
+		; load wram $7FBC7B-$7FC47A to vram w$0000-w$03FF
+		LDA #$80
+		STA $2115 ; vram increment
+		LDX #$0000
+		STX $2116 ; vram address
+		LDX #$BC7B
+		STX $4302 ; dma0 destination address
+		LDA #$7F
+		STA $4304 ; dma0 destination bank
+		LDX #$0800
+		STX $4305 ; dma0 length
+		LDA #$01 ; 2-byte, low-high
+		STA $4300 ; dma0 parameters
+		LDA #$18 ; $2118 vram data write
+		STA $4301 ; dma0 source
+		LDA #$01 ; channel 0
+		STA $420B ; dma enable
+		
+		; load wram $7EC100-$7EC67F to vram w$0400-w$06BF
+		LDA #$80
+		STA $2115 ; vram increment
+		LDX #$0400
+		STX $2116 ; vram address
+		LDX #$C100
+		STX $4302 ; dma0 destination address
+		LDA #$7E
+		STA $4304 ; dma0 destination bank
+		LDX #$0580
+		STX $4305 ; dma0 length
+		LDA #$01 ; 2-byte, low-high
+		STA $4300 ; dma0 parameters
+		LDA #$18 ; $2118 vram data write
+		STA $4301 ; dma0 source
+		LDA #$01 ; channel 0
+		STA $420B ; dma enable
+		
+		; load wram $7FC47B-$7EC6FA to vram w$06C0-w$07FF
+		LDA #$80
+		STA $2115 ; vram increment
+		LDX #$06C0
+		STX $2116 ; vram address
+		LDX #$C47B
+		STX $4302 ; dma0 destination address
+		LDA #$7F
+		STA $4304 ; dma0 destination bank
+		LDX #$0280
+		STX $4305 ; dma0 length
+		LDA #$01 ; 2-byte, low-high
+		STA $4300 ; dma0 parameters
+		LDA #$18 ; $2118 vram data write
+		STA $4301 ; dma0 source
+		LDA #$01 ; channel 0
+		STA $420B ; dma enable
+		
+		; load wram $7F877B-$7F977A to vram w$0800-w$0FFF
+		LDA #$80
+		STA $2115 ; vram increment
+		LDX #$0800
+		STX $2116 ; vram address
+		LDX #$877B
+		STX $4302 ; dma0 destination address
+		LDA #$7F
+		STA $4304 ; dma0 destination bank
+		LDX #$1000
+		STX $4305 ; dma0 length
+		LDA #$01 ; 2-byte, low-high
+		STA $4300 ; dma0 parameters
+		LDA #$18 ; $2118 vram data write
+		STA $4301 ; dma0 source
+		LDA #$01 ; channel 0
+		STA $420B ; dma enable
+		
 		; load wram $7F0000-$7F5FFF to vram w$1000-w$3FFF
 		LDA #$80
 		STA $2115 ; vram increment
@@ -519,6 +824,24 @@ go_poverty_load_state:
 		LDA #$7F
 		STA $4304 ; dma0 destination bank
 		LDX #$6000
+		STX $4305 ; dma0 length
+		LDA #$01 ; 2-byte, low-high
+		STA $4300 ; dma0 parameters
+		LDA #$18 ; $2118 vram data write
+		STA $4301 ; dma0 source
+		LDA #$01 ; channel 0
+		STA $420B ; dma enable
+		
+		; load wram $704AC0-$706ABF to vram w$5000-w$5FFF
+		LDA #$80
+		STA $2115 ; vram increment
+		LDX #$5000
+		STX $2116 ; vram address
+		LDX #$4AC0
+		STX $4302 ; dma0 destination address
+		LDA #$70
+		STA $4304 ; dma0 destination bank
+		LDX #$2000
 		STX $4305 ; dma0 length
 		LDA #$01 ; 2-byte, low-high
 		STA $4300 ; dma0 parameters

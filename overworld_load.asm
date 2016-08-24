@@ -55,7 +55,10 @@ overworld_load:
 		LDA #$FF
 		STA !save_timer_address+2
 		STZ !l_r_function
+		STZ !slowdown_speed
+		STZ !in_overworld_menu
 		JSL $04DAAD ; layer 2 tilemap upload routine
+		
 		RTL
 
 ; this code is run once on overworld load, but after everything else has loaded already
@@ -74,14 +77,28 @@ late_overworld_load:
 		LDY #$0030
 		JSL load_vram
 		
-		LDA #$80
-		STA $2115 ; vram increment
 		LDX #$46A0
 		STX $2116 ; vram address
 		PHK
 		PLA ; #bank of overworld_layer_3_tiles
 		LDX #overworld_layer_3_tiles+$30
 		LDY #$0030
+		JSL load_vram
+		
+		LDX #$4200
+		STX $2116 ; vram address
+		PHK
+		PLA ; #bank of overworld_layer_3_tiles
+		LDX #overworld_layer_3_tiles+$60
+		LDY #$0050
+		JSL load_vram
+		
+		LDX #$4D30
+		STX $2116 ; vram address
+		PHK
+		PLA ; #bank of overworld_layer_3_tiles
+		LDX #overworld_layer_3_tiles+$B0
+		LDY #$0040
 		JSL load_vram
 		
 		PLP
@@ -144,7 +161,7 @@ attempt_timer_save:
 		ORA $1F29 ; blue switch blocks
 		STA $04
 		CLC
-		LDA !status_special
+		LDA.L !status_special
 		ROR A
 		ROR A
 		TSB $04

@@ -1,5 +1,8 @@
 ; empty/unreachable bytes overwritten:
 ; $00B091 - 15 / 15 bytes
+; $01FFBF -  5 / 65 bytes
+; $02FFE2 -  6 / 30 bytes
+; $0CFFDF -  5 / 33 bytes
 
 ; 1FE2 cape interaction table
 ORG $00FCC2
@@ -76,33 +79,54 @@ ORG $049046
 
 ; change special effects flag to use the new one we made instead of checking if Funky is beaten
 ORG $00AA73
-		LDA !status_special
+		JSR load_special_8_bank_0
 		db $F0 ; BEQ
 ORG $00AD2A
 		JSR load_special_16
 		db $F0 ; BEQ
 ORG $019825
-		LDA !status_special
+		JSR load_special_8_bank_1
 		db $D0 ; BNE
 ORG $01B9CC
-		LDA !status_special
+		JSR load_special_8_bank_1
 		db $F0 ; BEQ
 ORG $02A985
-		LDY !status_special
+		JSR load_special_8_bank_2_y
 		db $F0 ; BEQ
 ORG $0CAE0E
-		LDA !status_special
+		JSR load_special_8_bank_c
 		db $F0 ; BEQ
 	
 ORG $00B091
 load_special_16:
-		LDA !status_special
+		LDA.L !status_special
 		AND #$00FF
 		RTS
-camera_fix_hijack:
-;		JSL camera_fix
-;		STZ $4200
-;		RTS
+load_special_8_bank_0:
+		LDA.L !status_special
+		RTS
+ORG $01FFBF
+load_special_8_bank_1:
+		LDA.L !status_special
+		RTS
+ORG $02FFE2
+; terrible hack to disable special effects on title screen
+load_special_8_bank_2_y:
+		PHA
+		LDY #$00
+		LDA $0100
+		CMP #$0B
+		BCC .done
+		LDA.L !status_special
+		TAY
+	.done:
+		PLA
+		CPY #$00
+		RTS
+ORG $0CFFDF
+load_special_8_bank_c:
+		LDA.L !status_special
+		RTS
 
 ; clear unused exit table
 ORG $0DA533

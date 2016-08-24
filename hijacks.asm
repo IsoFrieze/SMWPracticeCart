@@ -80,6 +80,16 @@ ORG $009F37
 ; run on level load in between game modes
 ORG $0096D5
 		JSR level_load_hijack
+
+; run when setting layer 3 y position
+ORG $0082AA
+		NOP #2
+		JSL layer_3_y
+
+; run when setting layer 3 priority
+ORG $0081D5
+		NOP
+		JSL layer_3_priority
 		
 ; test if level completed this frame
 ; X = 0 for normal exit, 1 for secret exit
@@ -185,6 +195,8 @@ item_box:
 		JMP $C585
 		
 ; revamp how pausing works
+ORG $00A21B
+		JSL test_pause
 ORG $00A22C
 		JSL pause_timer
 		NOP
@@ -264,6 +276,10 @@ combine_controllers:
 		BPL .loop
 		RTS
 
+; run at the very start of the game, to make sure the option save data is not corrupt
+ORG $00940F
+		JSR check_option_bounds_hijack
+
 ; run at the very start of level load
 ORG $00968E
 		JSR begin_loading_level
@@ -307,3 +323,7 @@ tmp_fade_begin_hijack:
 overworld_late_load_hijack:
 		JSL late_overworld_load
 		JMP $93F4
+check_option_bounds_hijack:
+		JSL failsafe_check_option_bounds
+		DEC $1DF5
+		RTS
