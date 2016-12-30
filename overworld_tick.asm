@@ -13,6 +13,8 @@ overworld_tick:
 		JSR test_for_menu
 		JSR draw_times
 		JSR save_marios_position
+		JSR test_for_enter_level
+		
 		PLB
 		PLP
 		RTL
@@ -55,6 +57,117 @@ update_potential_translevel:
 		
 		PLP
 		RTS
+		
+; check if entering level, and do stuff
+test_for_enter_level:
+		LDA $0DA8
+		ORA $0DA6
+		AND #$C0
+		BNE .entering_level
+		JMP .done
+	.entering_level:
+		
+		STZ !in_record_mode
+		STZ !in_playback_mode
+		
+		LDA $0DA8
+		AND #$40
+		BNE .yes_record
+		JMP .no_record
+	.yes_record:
+		INC !in_record_mode
+		
+		LDA #$FF
+		STA !movie_location
+		STA !movie_location+1
+		LDA #!movie_version
+		STA !movie_location+$03
+		LDA !potential_translevel
+		STA !movie_location+$04
+		LDA.L !player_name
+		STA !movie_location+$07
+		LDA.L !player_name+1
+		STA !movie_location+$08
+		LDA.L !player_name+2
+		STA !movie_location+$09
+		LDA.L !status_yellow
+		STA !movie_location+$13
+		LDA.L !status_green
+		STA !movie_location+$14
+		LDA.L !status_red
+		STA !movie_location+$15
+		LDA.L !status_blue
+		STA !movie_location+$16
+		LDA.L !status_special
+		STA !movie_location+$17
+		LDA $0DB8
+		STA !movie_location+$18
+		LDA $0DBC
+		STA !movie_location+$19
+		LDA $0DBA
+		STA !movie_location+$1A
+		LDA $0FAE
+		STA !movie_location+$23
+		LDA $0FAF
+		STA !movie_location+$24
+		LDA $0FB0
+		STA !movie_location+$25
+		LDA $0FB1
+		STA !movie_location+$26
+		LDA $13
+		STA !movie_location+$27
+		LDA $14
+		STA !movie_location+$28
+		JMP .finish
+	.no_record:
+		LDA $0DA6
+		AND #$40
+		BNE .yes_playback
+		JMP .finish
+	.yes_playback:
+		INC !in_playback_mode	
+		
+		LDA #$00
+		STA !movie_location
+		STA !movie_location+1
+		STA !movie_location+2
+		
+		LDA !movie_location+$13
+		STA $1F28
+		LDA !movie_location+$14
+		STA $1F27
+		LDA !movie_location+$15
+		STA $1F2A
+		LDA !movie_location+$16
+		STA $1F29
+		LDA !movie_location+$17
+		STA.L !status_special
+		LDA !movie_location+$18
+		STA $0DB8
+		LDA !movie_location+$19
+		STA $0DBC
+		LDA !movie_location+$1A
+		STA $0DBA
+		STA $13C7
+		LDA #$01
+		STA $0DC1
+		LDA !movie_location+$23
+		STA $0FAE
+		LDA !movie_location+$24
+		STA $0FAF
+		LDA !movie_location+$25
+		STA $0FB0
+		LDA !movie_location+$26
+		STA $0FB1
+		LDA !movie_location+$27
+		STA $13
+		LDA !movie_location+$28
+		STA $14
+		
+	.finish:
+		
+	.done:
+		RTS
 
 ; if R is pressed, cycle through powerup
 test_for_powerup:
@@ -70,6 +183,7 @@ test_for_powerup:
 	.skip_0:
 		STA $19
 		STA $0DB8
+		STA.L !status_powerup
 		
 	.done:
 		RTS
@@ -92,6 +206,7 @@ test_for_yoshi:
 	.skip_0:
 		STA $13C7 ; yoshi color
 		STA $0DBA ; ow yoshi color
+		STA !status_yoshi
 		LDA #$01
 		STA $0DC1 ; persistent yoshi flag
 		
@@ -137,9 +252,11 @@ test_for_swap:
 	.not_feather:
 		STA $19 ; powerup
 		STA $0DB8 ; ow powerup
+		STA.L !status_powerup
 		LDA $00
 		STA $0DC2 ; itembox
 		STA $0DBC ; ow itembox
+		STA.L !status_itembox
 		
 	.done:
 		RTS

@@ -171,8 +171,18 @@ setup_room_advance:
 		LDA #$01
 		STA.L !spliced_run
 		
+		LDA !restore_room_xpos
+		PHA
+		LDA !restore_room_xpos+1
+		PHA
+		
 		JSR save_room_properties
 		JSR restore_common_aspects
+		
+		PLA
+		STA $D2
+		PLA
+		STA $D1
 				
 		RTS
 
@@ -188,6 +198,8 @@ restore_common_aspects:
 		STZ $14B5
 		STZ $14B6 ; bowser timers
 		LDA $0D9B ; boss flag
+		STZ $1434 ; keyhole timer
+		STZ $1493 ; end level timer
 		CMP #$C1
 		BNE .not_bowser
 		LDA #$02

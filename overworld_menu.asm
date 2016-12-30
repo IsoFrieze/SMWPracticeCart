@@ -552,21 +552,7 @@ option_selection_mode:
 		LDA #$0B
 		STA $0100 ; game mode
 		
-		LDA.L !status_yellow
-		STA $1F28 ; yellow switch
-		LDA.L !status_green
-		STA $1F27 ; green switch
-		LDA.L !status_red
-		STA $1F2A ; red switch
-		LDA.L !status_blue
-		STA $1F29 ; blue switch
-		JSL save_yoshi_color
-		LDA #$01
-		STA $0DC1 ; persistant yoshi
-		LDA.L !status_powerup
-		STA $19 ; powerup
-		LDA.L !status_itembox
-		STA $0DC2 ; itembox
+		JSL restore_basic_settings
 		
 		BRA .finish_no_sound
 	
@@ -592,6 +578,27 @@ option_selection_mode:
 		STZ !text_timer
 	.no_update_text:
 		RTS
+		
+; restore gameplay settings
+restore_basic_settings:
+		LDA.L !status_yellow
+		STA $1F28 ; yellow switch
+		LDA.L !status_green
+		STA $1F27 ; green switch
+		LDA.L !status_red
+		STA $1F2A ; red switch
+		LDA.L !status_blue
+		STA $1F29 ; blue switch
+		JSL save_yoshi_color
+		LDA #$01
+		STA $0DC1 ; persistant yoshi
+		LDA.L !status_powerup
+		STA $19 ; powerup
+		STA $0DB8 ; ow powerup
+		LDA.L !status_itembox
+		STA $0DC2 ; itembox
+		STA $0DBC ; ow itembox
+		RTL
 
 ; run the help menu section of the menu
 help_menu_mode:

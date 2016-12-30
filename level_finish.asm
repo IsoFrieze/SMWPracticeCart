@@ -102,6 +102,7 @@ add_additional_time:
 		BRA .done
 	.end_bowser:
 	.done:
+		JSL display_timer_wrapper
 		RTL
 		
 vertical_level_modes:

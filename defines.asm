@@ -1,6 +1,6 @@
 ; the version of this patch Va.b.c
 !version_a                   = $02
-!version_b                   = $04
+!version_b                   = $05
 !version_c                   = $00
 
 ; number of frames dropped this execution frame
@@ -117,6 +117,15 @@
 ; the translevel mario is hovering over on the overworld
 !potential_translevel        = $0F2A
 
+; if we are currently in movie playback mode
+!in_playback_mode            = $0F2B
+; if we are currently in movie record mode
+!in_record_mode              = $0F2C
+; movie version
+!movie_version               = $00
+; movie location
+!movie_location              = $7FA000
+
 ; level and room timers
 !level_timer_minutes         = $0F3A
 !level_timer_seconds         = $0F3B
@@ -148,6 +157,8 @@
 ; flag if a save state or room reset/advance or slowdown was used in this run
 ; used to detect when to not save the record (no cheating!)
 !spliced_run                 = $700007
+; player name
+!player_name                 = $70000D
 ; flag = #$BD if it is detected that this platform does not support the needed sram
 ; for complete save states; this will prevent save states from being saved across
 ; levels and power cycles

@@ -2,6 +2,8 @@ ORG $118000
 
 ; this code is run once on overworld load
 overworld_load:
+		LDA !spliced_run
+		BNE .done
 		LDA !save_timer_address+2
 		BMI .done ; bank >= 80 -> no record
 		LDA !record_used_orb
@@ -46,7 +48,7 @@ overworld_load:
 		BEQ .done
 		JSR attempt_timer_save
 		
-	.done:
+	.done:		
 		LDA.L !use_poverty_save_states
 		BEQ .keep_state
 		LDA #$00
@@ -58,6 +60,18 @@ overworld_load:
 		STZ !slowdown_speed
 		STZ !in_overworld_menu
 		JSL $04DAAD ; layer 2 tilemap upload routine
+		
+		LDA !in_record_mode
+		BEQ .no_movie
+		REP #$20
+		LDA !movie_location
+		CLC
+		ADC #$0003
+		STA !movie_location+$05
+		SEP #$20
+		STZ !in_record_mode
+	.no_movie:
+		STZ !in_playback_mode
 		
 		RTL
 
@@ -179,6 +193,7 @@ attempt_timer_save:
 ; this will run when exiting the title screen
 prepare_file:
 		JSR set_overworld_position
+		JSL restore_basic_settings
 		RTL
 
 ; initialize mario on the overworld

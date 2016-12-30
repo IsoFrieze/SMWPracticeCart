@@ -108,9 +108,17 @@ ORG $00B5EC
 ; remove intro sequence
 ORG $009CB1
 		db $00
+		
+; mario is not always small when you start the game
+ORG $009E2F
+		NOP #11
+ORG $009E3F
+		NOP #12
 
-; allow pausing during level end
+; allow pausing during level end & death
 ORG $00A224
+		NOP #2
+ORG $00A22A
 		NOP #2
 
 ; press x or y on yoshi's house to warp to special world

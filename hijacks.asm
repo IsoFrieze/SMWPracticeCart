@@ -255,25 +255,8 @@ ORG $00AB4A
 		NOP #2
 
 ; allow both controllers 1 and 2 to control mario at any time
-ORG $0086A0
-combine_controllers:
-		JSR empty_controller_regs
-		LDX #$01
-	.loop:
-		LDA $0DA4,X
-		AND #$C0
-		ORA $0DA2,X
-		TSB $15
-		LDA $0DA4,X
-		TSB $17
-		LDA $0DA8,X
-		AND #$40
-		ORA $0DA6,X
-		TSB $16
-		LDA $0DA8,X
-		TSB $18
-		DEX
-		BPL .loop
+ORG $008650
+		JSL controller_update
 		RTS
 
 ; run at the very start of the game, to make sure the option save data is not corrupt
@@ -291,11 +274,12 @@ ORG $0093F4
 ; clear the controller registers so we can tsb them
 ORG $00FC23
 empty_controller_regs:
+		JSL play_input
 		STZ $15
 		STZ $16
 		STZ $17
 		STZ $18
-		RTS
+		RTL
 begin_loading_level:
 		JSL latch_apu
 		JSR $85FA

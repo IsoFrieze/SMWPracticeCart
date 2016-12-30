@@ -36,6 +36,8 @@ level_tick:
 		JSR tick_timer
 		PEA !room_timer_minutes
 		JSR tick_timer
+		JSR prepare_input
+		JSR record_input
 		JSR test_ci2
 		JSR test_reset
 		JSR test_run_type
@@ -388,6 +390,15 @@ display_pmeter:
 		LSR A
 		STA $1F6C ; ones
 		RTS
+		
+; sad wrapper is sad
+display_timer_wrapper:
+		PHB
+		PHK
+		PLB
+		JSR display_timers
+		PLB
+		RTL
 		
 ; draw the level & room timers to the status bar
 display_timers:
@@ -1301,4 +1312,179 @@ layer_3_priority:
 	.merge:
 		STA $2105
 		RTL
+
+; record player input as a movie
+record_input:
+		PHP
+		LDA !in_record_mode
+		BNE .not_done
+		JMP .skip
+	.not_done:
 		
+		REP #$30
+		LDA.L !movie_location
+		CMP #$FFFF
+		BEQ .start
+		TAX
+		SEP #$20
+		LDA.L !movie_location+$43,X
+		CMP $0DA2
+		BNE .advance
+		LDA.L !movie_location+$44,X
+		AND #$F0
+		CMP $0DA4
+		BNE .advance
+		LDA.L !movie_location+$44,X
+		AND #$08
+		BEQ .increment_sub
+		BRA .increment_ext
+	.advance:
+		LDA.L !movie_location+$44,X
+		AND #$08
+		BEQ .only_2
+		INX
+	.only_2:
+		INX #2
+		BRA .record_new_byte
+		
+	.start:
+		LDX #$0000
+		SEP #$20
+	.record_new_byte:
+		LDA $0DA2
+		STA.L !movie_location+$43,X
+		LDA $0DA4
+		AND #$F0
+		STA.L !movie_location+$44,X
+		BRA .done
+	.increment_sub:
+		LDA.L !movie_location+$44,X
+		INC A
+		STA.L !movie_location+$44,X
+		AND #$08
+		BEQ .done
+	.create_ext:
+		LDA.L !movie_location+$44,X
+		AND #$0F
+		STA.L !movie_location+$45,X
+		BRA .done
+	.increment_ext:
+		LDA.L !movie_location+$45,X
+		CMP #$FF
+		BNE .easy
+		INX #3
+		BRA .record_new_byte
+	.easy:
+		INC A
+		STA.L !movie_location+$45,X
+		
+	.done:
+		REP #$30
+		TXA
+		STA.L !movie_location
+	.skip:
+		PLP
+		RTS
+
+; update the index into the movie
+prepare_input:
+		PHP
+		LDA !in_playback_mode
+		BNE .not_done
+		JMP .done
+	.not_done:
+		
+		REP #$30
+		LDA.L !movie_location
+		CMP #$FFFF
+		BEQ .start
+		TAX
+		BRA .go
+	
+	.start:
+		LDX #$0000
+		SEP #$20
+		LDA #$00
+		STA.L !movie_location+2
+	.go:
+		SEP #$20
+		LDA.L !movie_location+$44,X
+		AND #$08
+		BNE .check_ext
+		LDA.L !movie_location+$44,X
+		AND #$07
+		BRA .merge_count
+	.check_ext:
+		LDA.L !movie_location+$45,X
+	.merge_count:
+		CMP.L !movie_location+2
+		BEQ .advance_input
+		BCC .advance_input
+		BRA .use_this_input
+	.advance_input:
+		LDA.L !movie_location+$44,X
+		AND #$08
+		BEQ .only_2
+		INX
+	.only_2:
+		INX #2
+		LDA #$FF
+		STA.L !movie_location+2
+	.use_this_input:
+		LDA.L !movie_location+2
+		INC A
+		STA.L !movie_location+2
+		
+		REP #$30
+		TXA
+		STA.L !movie_location
+		
+	.done:
+		PLP
+		RTS
+		
+; actually feed the input into the controller registers
+play_input:
+		PHP
+		LDA !in_playback_mode
+		BNE .not_done
+		JMP .done
+	.not_done:
+		STZ $0DA3
+		STZ $0DA5
+		STZ $0DA7
+		STZ $0DA9
+		STZ $0DAB
+		STZ $0DAD
+		
+		REP #$30
+		LDA.L !movie_location
+		TAX
+		SEP #$20
+		
+		LDA.L !movie_location+$43,X
+		STA $00
+		LDA.L !movie_location+$44,X
+		AND #$F0
+		STA $01
+		
+		SEP #$30
+		
+		; this part copied from $008650
+		LDA $01
+		EOR $0DA4
+		AND $01
+		STA $0DA8
+		LDA $01
+		STA $0DA4
+		
+		LDA $00
+		EOR $0DA2
+		AND $00
+		STA $0DA6
+		LDA $00
+		STA $0DA2
+		
+	.done:
+		PLP
+		RTL

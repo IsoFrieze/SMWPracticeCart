@@ -196,6 +196,9 @@ activate_save_state:
 		LDA #$BD
 		STA.L !save_state_exists
 		
+		STZ !in_record_mode
+		STZ !in_playback_mode
+		
 		LDA #$81
 		STA $4200 ; nmi enable		
 		LDA #$0F
@@ -289,17 +292,17 @@ go_poverty_save_state:
 		BPL .loop_tilemap_high
 		
 		; do these separately because they actually use the upper 7 bits
-		LDX #$000F
+		LDX #$001F
 	.loop_mode7_bridge_a:
 		LDA $7FC8B0,X
 		STA $704AA0,X
 		DEX
 		BPL .loop_mode7_bridge_a
 		
-		LDX #$000F
+		LDX #$001F
 	.loop_mode7_bridge_b:
 		LDA $7FCA60,X
-		STA $704AB0,X
+		STA $704AC0,X
 		DEX
 		BPL .loop_mode7_bridge_b
 		
@@ -416,13 +419,13 @@ go_poverty_save_state:
 		LDA #$01 ; channel 0
 		STA $420B ; dma enable
 		
-		; save vram w$5000-w$5FFF to wram $704AC0-$706ABF
+		; save vram w$5000-w$5FFF to wram $704AE0-$706ADF
 		LDA #$80
 		STA $2115 ; vram increment
 		LDX #$5000
 		STX $2116 ; vram address
 		LDX $2139 ; vram data read (dummy read)
-		LDX #$4AC0
+		LDX #$4AE0
 		STX $4302 ; dma0 destination address
 		LDA #$70
 		STA $4304 ; dma0 destination bank
@@ -592,6 +595,15 @@ activate_load_state:
 		ORA !level_timer_frames
 		STA !spliced_run
 		
+		STZ !in_record_mode
+		STZ !in_playback_mode
+		
+		LDA !status_dynmeter
+		ORA !status_slots
+		BEQ .no_slot_graphics
+		JSL load_slots_graphics
+	.no_slot_graphics:
+		
 		LDA #$81
 		STA $4200 ; nmi enable
 
@@ -711,16 +723,16 @@ go_poverty_load_state:
 		BPL .loop_tilemap_high
 		
 		; do these separately because they actually use the upper 7 bits
-		LDX #$000F
+		LDX #$001F
 	.loop_mode7_bridge_a:
 		LDA $704AA0,X
 		STA $7FC8B0,X
 		DEX
 		BPL .loop_mode7_bridge_a
 		
-		LDX #$000F
+		LDX #$001F
 	.loop_mode7_bridge_b:
-		LDA $704AB0,X
+		LDA $704AC0,X
 		STA $7FCA60,X
 		DEX
 		BPL .loop_mode7_bridge_b
@@ -832,12 +844,12 @@ go_poverty_load_state:
 		LDA #$01 ; channel 0
 		STA $420B ; dma enable
 		
-		; load wram $704AC0-$706ABF to vram w$5000-w$5FFF
+		; load wram $704AE0-$706ADF to vram w$5000-w$5FFF
 		LDA #$80
 		STA $2115 ; vram increment
 		LDX #$5000
 		STX $2116 ; vram address
-		LDX #$4AC0
+		LDX #$4AE0
 		STX $4302 ; dma0 destination address
 		LDA #$70
 		STA $4304 ; dma0 destination bank
