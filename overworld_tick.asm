@@ -90,6 +90,10 @@ test_for_enter_level:
 		STA !movie_location+$08
 		LDA.L !player_name+2
 		STA !movie_location+$09
+		LDA.L !use_poverty_save_states
+		STA !movie_location+$0A
+		LDA #$00
+		STA !movie_location+$0D
 		LDA.L !status_yellow
 		STA !movie_location+$13
 		LDA.L !status_green
@@ -123,8 +127,32 @@ test_for_enter_level:
 		LDA $0DA6
 		AND #$40
 		BNE .yes_playback
+	.exit:
 		JMP .finish
 	.yes_playback:
+		LDA !movie_location+$04
+		CMP !potential_translevel
+		BNE .exit
+		
+		; integrity check
+		REP #$30
+		LDA !movie_location+$05
+		TAX
+		DEX
+		SEP #$20
+		LDA #$00
+	.loop_checksum:
+		CLC
+		ADC !movie_location+$43,X
+		DEX
+		BPL .loop_checksum
+		CMP !movie_location+$0B
+		BNE .exit
+		LDA !movie_location+$0C
+		CMP #$BD
+		BNE .exit
+		
+		SEP #$30
 		INC !in_playback_mode	
 		
 		LDA #$00

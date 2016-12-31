@@ -61,7 +61,7 @@ fade_and_in_level_common:
 		JSR display_input
 		JSR display_yoshi_subpixel
 		JSR display_held_subpixel
-		JSR display_rng
+		JSR display_memory
 		JSR display_slowdown
 		JSR test_savestate
 		JSR test_slowdown
@@ -322,19 +322,26 @@ tile_x_offsets:
 tile_y_offsets:
 		db $00,$00,$08,$08
 
-; draw the current rng output to the status bar
-display_rng:
-		LDA $148D ; rng output 1
+; draw the current memory viewer bytes to the status bar
+display_memory:
+		LDA.L !status_memorylo
+		STA $00
+		LDA.L !status_memoryhi
+		STA $01
+		
+		LDY #$01
+		LDA ($00),Y
 		LSR #4
 		STA $1F7C
-		LDA $148B
+		LDA ($00),Y
 		AND #$0F
 		STA $1F7D
 		
-		LDA $148E ; rng output 2
+		DEY
+		LDA ($00),Y
 		LSR #4
 		STA $1F7E
-		LDA $148C
+		LDA ($00),Y
 		AND #$0F
 		STA $1F7F
 		RTS
@@ -862,6 +869,8 @@ ci2_goal:
 
 ; test if a reset was activated, if so, call the appropriate routine
 test_reset:
+		LDA.L !status_lrreset
+		BNE .done
 		LDA $71 ; player animation
 		CMP #$09
 		BEQ .continue

@@ -182,6 +182,12 @@ activate_save_state:
 		STA $2100 ; force blank
 		STZ $4200 ; nmi disable
 		
+		LDA !in_record_mode
+		BEQ .no_tag
+		LDA #$01
+		STA !movie_location+$0D
+	.no_tag:
+		
 		LDA !use_poverty_save_states
 		BEQ .complete
 		JSR go_poverty_save_state
@@ -196,9 +202,6 @@ activate_save_state:
 		LDA #$BD
 		STA.L !save_state_exists
 		
-		STZ !in_record_mode
-		STZ !in_playback_mode
-		
 		LDA #$81
 		STA $4200 ; nmi enable		
 		LDA #$0F
@@ -207,6 +210,14 @@ activate_save_state:
 		
 go_poverty_save_state:
 		PHP
+		
+		LDA !in_record_mode
+		BNE .sorry
+		LDA !in_playback_mode
+		BEQ .letsgo
+	.sorry:
+		JMP .done
+	.letsgo:
 		
 		REP #$10
 		
@@ -242,7 +253,7 @@ go_poverty_save_state:
 		DEX
 		BPL .loop_tilemap_low
 		
-		; save wram $7FC800-$7FFFFF to $7043A0-$704ABF
+		; save wram $7FC800-$7FFFFF to $7043A0-$704ADF
 		; since only bit 0 is used for this data, crunch it into a 1:8 ratio
 		; unrolled inner loop is used for the speed increase
 		PHB
@@ -463,6 +474,7 @@ go_poverty_save_state:
 		TXA
 		STA $7FC7F7
 		
+	.done:
 		PLP
 		RTS
 		
@@ -595,9 +607,6 @@ activate_load_state:
 		ORA !level_timer_frames
 		STA !spliced_run
 		
-		STZ !in_record_mode
-		STZ !in_playback_mode
-		
 		LDA !status_dynmeter
 		ORA !status_slots
 		BEQ .no_slot_graphics
@@ -625,6 +634,14 @@ activate_load_state:
 		
 go_poverty_load_state:
 		PHP
+		
+		LDA !in_record_mode
+		BNE .sorry
+		LDA !in_playback_mode
+		BEQ .letsgo
+	.sorry:
+		JMP .done
+	.letsgo:
 		
 		REP #$10
 		
@@ -893,6 +910,7 @@ go_poverty_load_state:
 		TXA
 		STA $02,S
 		
+	.done:
 		PLP
 		RTS
 		

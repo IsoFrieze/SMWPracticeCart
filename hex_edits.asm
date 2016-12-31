@@ -121,9 +121,9 @@ ORG $00A224
 ORG $00A22A
 		NOP #2
 
-; press x or y on yoshi's house to warp to special world
+; press b on yoshi's house to warp to special world
 ORG $049134
-		AND #%01000000
+		AND #%10000000
 		db $F0
 ORG $0484D1
 		dw $0B18

@@ -63,12 +63,7 @@ overworld_load:
 		
 		LDA !in_record_mode
 		BEQ .no_movie
-		REP #$20
-		LDA !movie_location
-		CLC
-		ADC #$0003
-		STA !movie_location+$05
-		SEP #$20
+		JSR save_movie_details
 		STZ !in_record_mode
 	.no_movie:
 		STZ !in_playback_mode
@@ -192,8 +187,8 @@ attempt_timer_save:
 
 ; this will run when exiting the title screen
 prepare_file:
-		JSR set_overworld_position
 		JSL restore_basic_settings
+		JSR set_overworld_position
 		RTL
 
 ; initialize mario on the overworld
@@ -265,6 +260,19 @@ set_position_to_yoshis_house:
 		LDA #$02
 		STA.L !save_overworld_animation
 		STA $1F13
+		LDA #$00
+		STA.L !status_yellow
+		STA.L !status_green
+		STA.L !status_red
+		STA.L !status_blue
+		STA.L !status_powerup
+		STA.L !status_itembox
+		STA.L !status_yoshi
+		STA.L !status_lrreset
+		LDA #$14
+		STA.l !status_memoryhi
+		LDA #$8D
+		STA.l !status_memorylo
 		JSL update_ow_position_pointers
 		RTL
 
@@ -280,3 +288,33 @@ update_ow_position_pointers:
 		BPL .loop
 		SEP #$20
 		RTL
+
+; save movie length and checksum
+save_movie_details:
+		REP #$30
+		LDA !movie_location
+		TAX
+		LDA !movie_location+$44,X
+		AND #$0080
+		BEQ .only_2
+		INX
+	.only_2:
+		INX #2
+		TXA
+		STA !movie_location+$05
+		SEP #$20
+		
+		DEX
+		LDA #$00
+	.loop_checksum:
+		CLC
+		ADC !movie_location+$43,X
+		DEX
+		BPL .loop_checksum
+		STA !movie_location+$0B
+		
+		LDA #$BD
+		STA !movie_location+$0C
+		
+		SEP #$10
+		RTS

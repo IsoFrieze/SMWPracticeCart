@@ -40,8 +40,9 @@ overworld_menu_load:
 		LDA #$00
 		STA.L !status_erase
 		STA.L !status_enemy
-		STA.L !status_exit
 		STA.L !erase_records_flag
+		STA.L !status_moviesave
+		STA.L !status_movieload
 		
 		STZ !text_timer
 		
@@ -270,13 +271,14 @@ draw_menu_selection:
 		RTL
 
 option_x_position:
-		db $06,$06,$06,$06,$06,$09,$09,$09,$09,$18,$0C,$15,$12,$12,$15,$12,$0F,$0F,$0C,$0F,$18
+		db $06,$06,$06,$06,$06,$09,$09,$09,$09,$18,$0C,$15,$12,$12,$15,$12,$0F,$0F,$0C,$0F,$18,$0F,$12,$15,$12,$15
 option_y_position:
-		db $03,$06,$09,$0C,$0F,$06,$09,$0C,$03,$0F,$09,$06,$03,$06,$09,$09,$03,$06,$06,$09,$03
+		db $03,$06,$09,$0C,$0F,$06,$09,$0C,$03,$0F,$09,$06,$03,$06,$09,$09,$03,$06,$06,$09,$03,$0C,$0C,$0C,$0F,$0F
 option_index:
 		dw $0000,$0002,$0004,$0006,$0008,$000A,$010A,$020A
 		dw $030A,$030B,$0315,$0318,$031A,$031C,$031E,$0320
-		dw $0322,$0324,$032F,$0337,$0339
+		dw $0322,$0324,$032F,$0337,$0339,$033A,$033C,$033C
+		dw $043C,$043E
 menu_option_tiles:
 		incbin "bin/menu_option_tiles.bin"
 menu_object_tiles:
@@ -308,15 +310,15 @@ menu_palette:
 		incsrc "option_text.asm"
 
 ; which selection to go to when a direction is pressed
-;		db $00,$01,$02,$03,$04,$05,$06,$07,$08,$09,$0A,$0B,$0C,$0D,$0E,$0F,$10,$11,$12,$13,$14
+;		db $00,$01,$02,$03,$04,$05,$06,$07,$08,$09,$0A,$0B,$0C,$0D,$0E,$0F,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19
 selection_press_up:
-		db $04,$00,$01,$02,$03,$08,$05,$06,$07,$14,$12,$14,$0F,$0C,$0B,$0D,$13,$10,$0A,$11,$09
+		db $04,$00,$01,$02,$03,$08,$05,$06,$07,$14,$12,$19,$18,$0C,$0B,$0D,$15,$10,$0A,$11,$09,$13,$0F,$0E,$16,$17
 selection_press_down:
-		db $01,$02,$03,$04,$00,$06,$07,$08,$05,$14,$12,$0E,$0D,$0F,$09,$0C,$11,$13,$0A,$10,$09
+		db $01,$02,$03,$04,$00,$06,$07,$08,$05,$14,$12,$0E,$0D,$0F,$17,$16,$11,$13,$0A,$15,$09,$10,$18,$19,$0C,$0B
 selection_press_left:
-		db $14,$0B,$0E,$09,$09,$01,$02,$03,$00,$04,$06,$0D,$10,$11,$0F,$13,$08,$12,$05,$0A,$0C
+		db $14,$0B,$0E,$17,$09,$01,$02,$03,$00,$19,$06,$0D,$10,$11,$0F,$13,$08,$12,$05,$0A,$0C,$07,$15,$16,$04,$18
 selection_press_right:
-		db $08,$05,$06,$07,$09,$12,$0A,$09,$10,$04,$13,$14,$14,$0B,$02,$0E,$0C,$0D,$11,$0F,$00
+		db $08,$05,$06,$07,$18,$12,$0A,$15,$10,$04,$13,$14,$14,$0B,$02,$0E,$0C,$0D,$11,$0F,$00,$16,$17,$03,$19,$09
 
 ; this code is run on every frame during the overworld menu game mode (after fade in completes)
 ; GAME MODE #$1F
@@ -461,7 +463,9 @@ option_selection_mode:
 		LDA $0DA8 ; byetudlr
 		ORA $0DA6 ; axlr----
 		AND #%10000000
-		BEQ .test_start
+		BNE .make_selection
+		JMP .test_start
+	.make_selection:
 		LDA !current_selection
 		ASL A
 		TAX
@@ -489,6 +493,11 @@ option_selection_mode:
 		dw .select_dynmeter
 		dw .select_slowdown
 		dw .select_help
+		dw .select_lrreset
+		dw .select_memoryhi
+		dw .select_memorylow
+		dw .select_moviesave
+		dw .select_movieload
 		dw .select_exit
 		
 	.select_yellow:
@@ -508,6 +517,9 @@ option_selection_mode:
 	.select_states:
 	.select_statedelay:
 	.select_slowdown:
+	.select_lrreset:
+	.select_memoryhi:
+	.select_memorylow:
 		JMP .finish_no_sound
 	.select_help:
 		LDA #$0B ; on/off sound
@@ -536,6 +548,12 @@ option_selection_mode:
 		LDA #$01 ; coin sound
 		STA $1DFC ; apu i/o
 		JSR reset_enemy_states
+		JMP .finish_no_sound
+	.select_moviesave:
+		JSR export_movie_to_sram
+		JMP .finish_no_sound
+	.select_movieload:
+		JSR load_movie
 		JMP .finish_no_sound
 	.select_exit:
 		LDA #$29 ; ding sound
@@ -578,6 +596,82 @@ option_selection_mode:
 		STZ !text_timer
 	.no_update_text:
 		RTS
+		
+; copy currently loaded movie to sram
+export_movie_to_sram:
+		PHP
+		REP #$30
+		LDA #$7070
+		STA $02
+		LDA #$6AE0
+		STA $00
+		LDA.L !status_moviesave
+		XBA
+		ASL #3
+		TAY
+		LDX #$0000
+		
+	.loop:
+		LDA.L !movie_location+3,X
+		STA [$00],Y
+		INY #2
+		INX #2
+		CPX #$0800
+		BNE .loop
+		
+		SEP #$20
+		LDA #$01 ; coin sound
+		STA $1DFC ; apu i/o
+		
+		PLP
+		RTS
+		
+; copy a movie from sram or rom to ram
+load_movie:
+		PHP
+		PHB
+		PHK
+		PLB
+		LDA.L !status_movieload
+		CMP #$02
+		BCS .error
+		STA $00
+		ASL A
+		CLC
+		ADC $00
+		TAX
+		LDA movie_locations,X
+		STA $00
+		LDA movie_locations+1,X
+		STA $01
+		LDA movie_locations+2,X
+		STA $02
+		
+		REP #$30
+		LDY #$0000
+		LDX #$0000
+	.loop:
+		LDA [$00],Y
+		STA.L !movie_location+3,X
+		INY #2
+		INX #2
+		CPX #$0800
+		BNE .loop
+		
+		SEP #$20
+		LDA #$01 ; coin sound
+		STA $1DFC ; apu i/o	
+		BRA .exit
+	.error:
+		LDA #$2A ; wrong sound
+		STA $1DFC ; apu i/o	
+	.exit:
+		PLB
+		PLP
+		RTS
+		
+movie_locations:
+		dl $706AE0,$7072E0,$706AE0,$7072E0
 		
 ; restore gameplay settings
 restore_basic_settings:
@@ -909,11 +1003,11 @@ check_bounds:
 
 ; the number of options to allow when holding x or y
 minimum_selection_extended:
-		db $01,$01,$01,$01,$01,$FF,$FF,$FF,$00,$09,$02,$01,$01,$01,$01,$01,$01,$0A,$07,$01,$00
+		db $01,$01,$01,$01,$01,$FF,$FF,$FF,$00,$09,$02,$01,$01,$01,$01,$01,$01,$0A,$07,$01,$00,$01,$FF,$FF,$01,$03
 
 ; the number of options to allow when not holding x or y
 minimum_selection_normal:
-		db $01,$01,$01,$01,$01,$03,$04,$04,$00,$09,$02,$01,$01,$01,$01,$01,$01,$0A,$07,$01,$00
+		db $01,$01,$01,$01,$01,$03,$04,$04,$00,$09,$02,$01,$01,$01,$01,$01,$01,$0A,$07,$01,$00,$01,$FF,$FF,$01,$03
 		
 ; reset persistant enemy states
 ; right now this only includes boo cloud and boo ring angles
@@ -1106,44 +1200,32 @@ load_cgram:
 
 ; stripe images for text when deleting data
 stripe_confirm:
-		db $51,$CC,$00,$13
-		db $FC,$38,$FC,$38
-		db $FC,$38,$FC,$38
-		db $FC,$38,$19,$38
+		db $52,$42,$00,$31
+		db $19,$38
 		db $1B,$38,$0E,$38
 		db $1C,$38,$1C,$38
-		
-		db $51,$EC,$00,$13
 		db $FC,$38,$1C,$38
 		db $0E,$38,$15,$38
 		db $0E,$38,$0C,$38
 		db $1D,$38,$FC,$38
 		db $1D,$38,$18,$38
-		
-		db $52,$0C,$00,$13
-		db $FC,$38,$FC,$38
 		db $FC,$38,$0C,$38
 		db $18,$38,$17,$38
 		db $0F,$38,$12,$38
 		db $1B,$38,$16,$38
+		db $FC,$38,$FC,$38
 		db $FF
 stripe_deleted:
-		db $51,$CC,$00,$13
-		db $FC,$38,$FC,$38
+		db $52,$42,$00,$31
 		db $1D,$38,$11,$38
 		db $0E,$38,$FC,$38
 		db $0D,$38,$0A,$38
 		db $1D,$38,$0A,$38
-		
-		db $51,$EC,$00,$13
-		db $FC,$38,$FC,$38
+		db $FC,$38
 		db $11,$38,$0A,$38
 		db $1C,$38,$FC,$38
 		db $0B,$38,$0E,$38
 		db $0E,$38,$17,$38
-		
-		db $52,$0C,$00,$13
-		db $FC,$38,$FC,$38
 		db $FC,$38,$0D,$38
 		db $0E,$38,$15,$38
 		db $0E,$38,$1D,$38

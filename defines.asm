@@ -76,8 +76,13 @@
 !status_statedelay           = $700331
 !status_dynmeter             = $700332
 !status_slowdown             = $700333
-!status_exit                 = $700334
-; $700335 - $70033F reserved for future expansion
+!status_help                 = $700334
+!status_lrreset              = $700335
+!status_memoryhi             = $700336
+!status_memorylo             = $700337
+!status_moviesave            = $700338
+!status_movieload            = $700339
+; $70033A - $70033F reserved for future expansion
 
 ; location of cape interaction table at $1FE2
 !new_cape_interaction        = $0F5E
@@ -109,7 +114,7 @@
 !record_lunar_dragon         = $0F27
 
 ; the number of options in the overworld menu
-!number_of_options           = 21
+!number_of_options           = 26
 ; the currently highlighted selection on the overworld menu
 !current_selection           = $0F28
 ; flag to show "delete mode", that is, if the player presses select to delete data

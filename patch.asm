@@ -1,5 +1,6 @@
 ;========================
 ; SMW Practice Cart
+; Version 2.5.0
 ; Created by Dotsarecool
 ;========================
 
