@@ -43,14 +43,10 @@ overworld_load_hijack:
 		JSR $937D
 		JSL overworld_load
 		RTS
-overworld_hijack:
-		JSL overworld_tick
-		JSR $9A74
-		RTS
 		
 ; run every frame on overworld
-ORG $00A1BE
-		JSR overworld_hijack
+ORG $00A1C3
+		JSL overworld_tick
 		
 ; run every frame in level
 ORG $00A1DA
@@ -271,6 +267,10 @@ ORG $00968E
 ORG $0093F4
 		JSR conclude_loading_level
 
+; COP & BRK vectors
+ORG $00FFE6
+		dw #break_wrapper,#break_wrapper
+
 ; clear the controller registers so we can tsb them
 ORG $00FC23
 empty_controller_regs:
@@ -295,6 +295,9 @@ conclude_loading_level:
 	.exit:
 		INC $0100
 		RTS
+break_wrapper:
+		JSL break
+		RTI
 ; tick the timer and co. for one frame after exiting the level with wings
 ; this is because the game exits out of this state abruptly
 tmp_fade_begin_hijack:

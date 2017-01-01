@@ -4,6 +4,7 @@ ORG $178000
 every_frame:
 		PHP
 		SEP #$20
+		JSR stack_overflow
 		JSR update_dropped_frames
 		
 		LDA !in_overworld_menu
@@ -29,4 +30,16 @@ update_dropped_frames:
 		SEP #$20
 		LDA !counter_sixty_hz
 		STA !previous_sixty_hz
+		RTS
+
+; check if stack overflowed as a failsafe
+stack_overflow:
+		PHP
+		REP #$10
+		TSX
+		CPX #$0110
+		BCS .done
+		BRK #$BD
+	.done:
+		PLP
 		RTS

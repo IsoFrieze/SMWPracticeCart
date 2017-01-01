@@ -6,6 +6,8 @@ overworld_tick:
 		PHB
 		PHK
 		PLB
+		
+		JSL $7F8000
 		JSR update_potential_translevel
 		JSR test_for_powerup
 		JSR test_for_yoshi
@@ -14,6 +16,7 @@ overworld_tick:
 		JSR draw_times
 		JSR save_marios_position
 		JSR test_for_enter_level
+		JSR draw_movie_slots
 		
 		PLB
 		PLP
@@ -741,3 +744,78 @@ save_marios_position:
 		STA.L !save_overworld_animation
 	.done:
 		RTS
+
+; draw the icons that represent a saved movie
+draw_movie_slots:
+		PHP
+		PHB
+		PHK
+		PLB
+		
+		LDX #$02
+	.loop_tile:
+		LDA !level_movie_slots,X
+		BEQ .continue
+		
+		TXA
+		ASL #2
+		TAY
+		LDA slot_tiles,X
+		STA $03C2,Y ; tile
+		REP #$20
+		LDA !level_movie_x_pos,X
+		AND #$001F
+		ASL #4
+		CLC
+		ADC slot_offsets,Y
+		SEC
+		SBC $1E
+		BMI .continue
+		CMP #$0100
+		BCS .continue
+		SEP #$20
+		STA $03C0,Y ; x
+		LDA !level_movie_y_pos,X
+		AND #$20
+		BEQ .main_map
+		LDA $13C3 ; submap
+		BEQ .continue
+		BRA .same_map
+	.main_map:
+		LDA $13C3 ; submap
+		BNE .continue
+	.same_map:
+		REP #$20
+		LDA !level_movie_y_pos,X
+		AND #$001F
+		ASL #4
+		CLC
+		ADC slot_offsets+2,Y
+		SEC
+		SBC $20
+		BMI .continue
+		CMP #$00E0
+		BCS .continue
+		SEP #$20
+		STA $03C1,Y ; y
+		TXA
+		INC A
+		ASL A
+		ORA #$30
+		STA $03C3,Y ; properties
+		LDA #$00
+		STA $0490,X ; size
+		
+	.continue:
+		SEP #$20
+		DEX
+		BPL .loop_tile
+		
+		PLB
+		PLP
+		RTS
+
+slot_tiles:
+		db $BD,$BE,$BF
+slot_offsets:
+		dw $000C,$FFF0,$0014,$FFF8,$FFF8,$FFF4

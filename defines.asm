@@ -150,6 +150,12 @@
 !oam_slot_bowser_level_timer = $30
 !oam_slot_bowser_room_timer  = $68
 
+; the translevels of the current movies, 00 = no movie
+!level_movie_slots           = $0695 ; 3 bytes
+; x and y positions of the levels in above table
+!level_movie_x_pos           = $0698 ; 3 bytes
+!level_movie_y_pos           = $069B ; 3 bytes
+
 ; flag = #$BD if save data exists
 !save_data_exists            = $700000
 ; mario's overworld position

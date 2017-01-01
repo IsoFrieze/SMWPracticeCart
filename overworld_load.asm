@@ -67,6 +67,8 @@ overworld_load:
 		STZ !in_record_mode
 	.no_movie:
 		STZ !in_playback_mode
+		JSR identify_movies
+		JSR locate_levels
 		
 		RTL
 
@@ -110,11 +112,21 @@ late_overworld_load:
 		LDY #$0040
 		JSL load_vram
 		
+		LDX #$6BD0
+		STX $2116 ; vram address
+		PHK
+		PLA ; #bank of overworld_object_tiles
+		LDX #overworld_object_tiles
+		LDY #$0060
+		JSL load_vram
+		
 		PLP
 		RTL
 
 overworld_layer_3_tiles:
 		incbin "bin/overworld_layer3_tiles.bin"
+overworld_object_tiles:
+		incbin "bin/overworld_object_tiles.bin"
 		
 ; compare the timer stored at !save_timer_address against the current time, and save it if it is faster
 attempt_timer_save:
@@ -318,3 +330,102 @@ save_movie_details:
 		
 		SEP #$10
 		RTS
+
+; check for saved movies, if so get their translevels
+identify_movies:
+		PHP
+		PHB
+		PHK
+		PLB
+		
+		LDX #$02
+	.loop_check:
+		TXA
+		STA $00
+		ASL A
+		CLC
+		ADC $00
+		TAY
+		LDA movie_pointers,Y
+		STA $00
+		LDA movie_pointers+1,Y
+		STA $01
+		LDA movie_pointers+2,Y
+		STA $02
+		
+		LDY #$09
+		LDA [$00],Y
+		CMP #$BD
+		BNE .no_movie_here
+		
+		REP #$30
+		LDY #$0002
+		LDA [$00],Y
+		CLC
+		ADC #$003F
+		TAY
+		SEP #$20
+		LDA #$00
+	.loop_checksum:
+		CLC
+		ADC [$00],Y
+		DEY
+		CPY #$0040
+		BCS .loop_checksum
+		SEP #$10	
+		LDY #$08
+		CMP [$00],Y
+		BEQ .save_level
+	
+	.no_movie_here:
+		STZ !level_movie_slots,X
+		BRA .continue
+	.save_level:
+		LDY #$01
+		LDA [$00],Y
+		STA !level_movie_slots,X
+	.continue:
+		DEX
+		BPL .loop_check
+		
+		PLB
+		PLP
+		RTS
+
+movie_pointers:
+		dl $706AE0,$7072E0,#!movie_location+3
+
+; find the x and y locations of each level that has a movie
+locate_levels:
+		PHB
+		PHK
+		PLB
+		LDY #$02
+	.loop_level:
+		LDA !level_movie_slots,Y
+		BEQ .continue_level
+		ASL A
+		TAX
+		LDA translevel_locations,X
+		STA !level_movie_y_pos,Y
+		LDA translevel_locations+1,X
+		STA !level_movie_x_pos,Y
+	.continue_level:
+		DEY
+		BPL .loop_level
+		PLB
+		RTS
+
+translevel_locations:
+		dw $0000,$0C03,$0E03,$0508,$050A,$090A,$0B0C,$0D0C
+		dw $010D,$030D,$050E,$1003,$1403,$1603,$1A03,$1405
+		dw $1705,$1408,$100F,$0710,$0211,$0511,$0712,$0517
+		dw $0E17,$0319,$0C1B,$0B58,$0C1D,$0F1D,$1410,$1610
+		dw $1812,$1516,$1816,$131B,$151B,$0922,$0B24,$0926
+		dw $0627,$0328,$0928,$082C,$002E,$032E,$0C2E,$1021
+		dw $1423,$1723,$1923,$1425,$1725,$1925,$1227,$1427
+		dw $1727,$1927,$1B27,$1729,$0830,$0C30,$0532,$0A32
+		dw $0C32,$0637,$0837,$043A,$0A3A,$0C3A,$043C,$083C
+		dw $1131,$1331,$1631,$1931,$1C31,$1133,$1333,$1633
+		dw $1933,$1C33,$1736,$1238,$1538,$1738,$1938,$1C38
+		dw $143A,$1A3A,$173B,$123D,$1C3D

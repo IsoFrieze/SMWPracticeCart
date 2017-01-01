@@ -66,3 +66,143 @@ controller_update:
 		DEX
 		BPL .loop
 		RTL
+
+; runs on BRK
+break:
+		SEI
+		LDA #$80
+		STA $2100 ; force blank
+		
+		LDA #$00
+		STA $4200 ; disable nmi, controller
+		LDA #$FF
+		STA $2141 ; kill music
+		LDA #$00
+		STA $2105 ; bgmode
+		LDA #$20
+		STA $2107 ; bg1sc
+		LDA #$00
+		STA $210B ; bg12nba
+		LDA #$00
+		STA $210D
+		STA $210D ; bg1hofs
+		STA $210E
+		STA $210E ; bg1vofs
+		LDA #$00
+		STA $212C ; tm
+		LDA #$00
+		STA $212D ; ts
+		LDA #$32
+		STA $2130 ; cgswsel
+		LDA #$60
+		STA $2132
+		LDA #$9F
+		STA $2132 ; coldata
+		LDA #$21
+		STA $2131 ; cgadsub
+		
+		LDA #$00
+		STA $2121 ; cgadd
+		STA $2122
+		LDA #$7C
+		STA $2122
+		LDA #$7F
+		LDX #$FF
+		STX $2122
+		STA $2122
+		STX $2122
+		STA $2122
+		STX $2122
+		STA $2122 ; cgdata
+		
+		REP #$10
+		LDX #$0000
+		STX $2116
+		PHK
+		PLA
+		LDX #break_tiles
+		LDY #$2000
+		JSL load_vram
+		
+		LDX #$2000
+		STX $2116
+		PHK
+		PLA
+		LDX #break_tilemap
+		LDY #$0800
+		JSL load_vram
+		
+		LDX #$20B1
+		STX $2116 ; vram address
+		LDA #$00
+		XBA
+		LDA $07,S
+		TAX
+		STX $2118 ; vram data
+		LDA $06,S
+		TAX
+		STX $2118 ; vram data
+		LDA $05,S
+		DEC #2
+		TAX
+		STX $2118 ; vram data
+		
+		REP #$20
+		LDA #$0100
+		STA $00
+		LDX #$2122
+	.loop_row:
+		STX $2116 ; vram address
+		LDY #$0000
+	.loop_byte:
+		LDA ($00)
+		AND #$00FF
+		STA $2118 ; vram data
+		INC $00
+		INY
+		CPY #$0010
+		BNE .loop_byte
+		TXA
+		CLC
+		ADC #$0020
+		TAX		
+		CPX #$2322
+		BNE .loop_row
+		
+		LDX #$2350
+		STX $2116 ; vram address
+		TSX
+		TXA
+		XBA
+		AND #$00FF
+		STA $2118 ; vram data
+		TXA
+		AND #$00FF
+		STA $2118 ; vram data
+		
+		SEP #$20
+		LDA #$0F
+		STA $2100 ; exit force blank
+		
+		LDY #$0006
+		LDX #$0000
+	.loop:
+		DEX
+		BNE .loop
+		DEY
+		BNE .loop
+		
+		LDA #$80
+		STA $2100 ; force blank
+		LDA #$01
+		STA $212C ; tm
+		LDA #$0F
+		STA $2100 ; exit force blank
+	.forever:
+		BRA .forever
+
+break_tiles:
+		incbin "bin/break_bg_tiles.bin"
+break_tilemap:
+		incbin "bin/break_bg_tilemap.bin"
+		
