@@ -157,6 +157,8 @@ test_for_enter_level:
 		
 		SEP #$30
 		INC !in_playback_mode	
+		LDA #$01
+		STA.L !spliced_run
 		
 		LDA #$00
 		STA !movie_location

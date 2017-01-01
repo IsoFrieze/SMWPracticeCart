@@ -176,6 +176,12 @@ room_advance_table:
 		
 ; this code is run when the player presses R + select to make a save state
 activate_save_state:
+		LDA.L !use_poverty_save_states
+		BEQ .start
+		LDA !in_record_mode
+		ORA !in_playback_mode
+		BNE .cancel		
+	.start:
 		LDA #$0E ; swim sound
 		STA $1DF9 ; apu i/o
 		LDA #$80
@@ -206,19 +212,11 @@ activate_save_state:
 		STA $4200 ; nmi enable		
 		LDA #$0F
 		STA $2100 ; exit force blank
+	.cancel:
 		RTL
 		
 go_poverty_save_state:
 		PHP
-		
-		LDA !in_record_mode
-		BNE .sorry
-		LDA !in_playback_mode
-		BEQ .letsgo
-	.sorry:
-		JMP .done
-	.letsgo:
-		
 		REP #$10
 		
 		; save wram $0000-$1FFF to wram $7F9C7B-$7FBC7A
@@ -588,6 +586,12 @@ go_complete_save_state:
 
 ; this code is run when the player presses L + select to load a save state
 activate_load_state:
+		LDA.L !use_poverty_save_states
+		BEQ .start
+		LDA !in_record_mode
+		ORA !in_playback_mode
+		BNE cancel		
+	.start:
 		LDA #$80
 		STA $2100 ; force blank
 		STZ $4200 ; nmi disable
@@ -629,7 +633,8 @@ activate_load_state:
 		STZ $2100
 		BRA .loop
 	
-	.done_waiting:	
+	.done_waiting:
+	cancel:
 		RTL
 		
 go_poverty_load_state:

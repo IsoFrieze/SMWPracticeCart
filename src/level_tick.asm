@@ -30,14 +30,15 @@ level_tick:
 		CMP #$14
 		BNE .done
 		
+		JSR prepare_input
+		JSR record_input
+		
 		JSR fade_and_in_level_common
 		
 		PEA !level_timer_minutes
 		JSR tick_timer
 		PEA !room_timer_minutes
 		JSR tick_timer
-		JSR prepare_input
-		JSR record_input
 		JSR test_ci2
 		JSR test_reset
 		JSR test_run_type
@@ -63,6 +64,7 @@ fade_and_in_level_common:
 		JSR display_held_subpixel
 		JSR display_memory
 		JSR display_slowdown
+		JSR display_movie_capacity
 		JSR test_savestate
 		JSR test_slowdown
 		RTS
@@ -728,6 +730,90 @@ get_screen_y:
 		SBC $1C ; layer 1 y position
 		SEP #$20
 		RTS
+
+; if recording, display red dot and capacity meter
+display_movie_capacity:
+		LDA #$FC
+		STA $1F9F
+		LDA !in_record_mode
+		ORA !in_playback_mode
+		BNE .draw
+		JMP .erase
+	.draw:
+		LDA $13
+		ASL #3
+		BCC .no_dot
+		LDA !in_record_mode
+		BEQ .triangle
+		LDA #$CD
+		BRA .icon
+	.triangle:
+		LDA #$D2
+	.icon:
+		STA $1F9F
+	.no_dot:
+		LDA #$CE
+		STA $1FA0
+		STA $1FA6
+		LDA #$CF
+		STA $1FA1
+		STA $1FA2
+		STA $1FA3
+		STA $1FA4
+		STA $1FA5
+		REP #$30
+		LDA.L !movie_location
+		TAX
+		SEP #$20
+		CPX #$0100
+		BCC .finish
+		LDA #$D0
+		STA $1FA0
+		CPX #$0200
+		BCC .finish
+		LDA #$D1
+		STA $1FA1
+		CPX #$0300
+		BCC .finish
+		LDA #$D1
+		STA $1FA2
+		CPX #$0400
+		BCC .finish
+		LDA #$D1
+		STA $1FA3
+		CPX #$0500
+		BCC .finish
+		LDA #$D1
+		STA $1FA4
+		CPX #$0600
+		BCC .finish
+		LDA #$D1
+		STA $1FA5
+		CPX #$0700
+		BCC .finish
+		LDA #$D0
+		STA $1FA6
+		LDA $13
+		ASL #4
+		BCC .finish
+		LDA #$FC
+		LDX #$0006
+	.loop_flash:
+		STA $1FA0,X
+		DEX
+		BPL .loop_flash
+	.finish:
+		SEP #$10
+		BRA .done
+	.erase:
+		LDA #$FC
+		LDX #$06
+	.loop_erase:
+		STA $1FA0,X
+		DEX
+		BPL .loop_erase
+	.done:
+		RTS
 		
 ; increment the timer located at address at top of stack by the number of frames elapsed this execution frame
 tick_timer:
@@ -1391,6 +1477,10 @@ record_input:
 		REP #$30
 		TXA
 		STA.L !movie_location
+		CPX #$07C0
+		BCC .skip
+		SEP #$20
+		STZ !in_record_mode
 	.skip:
 		PLP
 		RTS
