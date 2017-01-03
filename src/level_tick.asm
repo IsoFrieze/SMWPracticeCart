@@ -65,6 +65,7 @@ fade_and_in_level_common:
 		JSR display_memory
 		JSR display_slowdown
 		JSR display_movie_capacity
+		JSR display_names
 		JSR test_savestate
 		JSR test_slowdown
 		RTS
@@ -735,10 +736,17 @@ get_screen_y:
 display_movie_capacity:
 		LDA #$FC
 		STA $1F9F
+		STA $1FA0
+		STA $1FA1
+		STA $1FA2
+		STA $1FA3
+		STA $1FA4
+		STA $1FA5
+		STA $1FA6
 		LDA !in_record_mode
 		ORA !in_playback_mode
 		BNE .draw
-		JMP .erase
+		JMP .finish
 	.draw:
 		LDA $13
 		ASL #3
@@ -748,10 +756,33 @@ display_movie_capacity:
 		LDA #$CD
 		BRA .icon
 	.triangle:
+		LDA #$1B
+		STA $1FA0
+		LDA #$0E
+		STA $1FA1
+		LDA #$19
+		STA $1FA2
+		LDA #$15
+		STA $1FA3
+		LDA #$0A
+		STA $1FA4
+		LDA #$22
+		STA $1FA5
+		LDA #$FC
+		STA $1FA6
 		LDA #$D2
 	.icon:
 		STA $1F9F
 	.no_dot:
+		LDA $0100 ; game mode
+		CMP #$14
+		BEQ .k
+		JMP .finish
+	.k:
+		LDA !in_record_mode
+		BNE .go
+		JMP .finish
+	.go:
 		LDA #$CE
 		STA $1FA0
 		STA $1FA6
@@ -804,14 +835,28 @@ display_movie_capacity:
 		BPL .loop_flash
 	.finish:
 		SEP #$10
-		BRA .done
-	.erase:
-		LDA #$FC
-		LDX #$06
-	.loop_erase:
-		STA $1FA0,X
-		DEX
-		BPL .loop_erase
+		RTS
+
+; display name under item box
+display_names:
+		LDA.L !player_name
+		STA $1F89
+		LDA.L !player_name+1
+		STA $1F8A
+		LDA.L !player_name+2
+		STA $1F8B
+		LDA.L !player_name+3
+		STA $1F8C
+		LDA !in_playback_mode
+		BEQ .done
+		LDA !movie_location+7
+		STA $1F9A
+		LDA !movie_location+8
+		STA $1F9B
+		LDA !movie_location+9
+		STA $1F9C
+		LDA !movie_location+10
+		STA $1F9D
 	.done:
 		RTS
 		
@@ -1549,6 +1594,14 @@ play_input:
 		BNE .not_done
 		JMP .done
 	.not_done:
+		LDA $4219
+		AND #$30
+		CMP #$30
+		BNE .no_cancel
+		STZ !in_playback_mode
+		BRA .done
+	
+	.no_cancel:	
 		STZ $0DA3
 		STZ $0DA5
 		STZ $0DA7

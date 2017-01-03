@@ -67,8 +67,8 @@ overworld_load:
 		STZ !in_record_mode
 	.no_movie:
 		STZ !in_playback_mode
+		STZ !ow_display_times
 		JSR identify_movies
-		JSR locate_levels
 		
 		RTL
 
@@ -118,6 +118,22 @@ late_overworld_load:
 		PLA ; #bank of overworld_layer_3_tiles
 		LDX #overworld_layer_3_tiles+$F0
 		LDY #$0060
+		JSL load_vram
+		
+		LDX #$46B8
+		STX $2116 ; vram address
+		PHK
+		PLA ; #bank of overworld_layer_3_tiles
+		LDX #overworld_layer_3_tiles+$150
+		LDY #$0020
+		JSL load_vram
+		
+		LDX #$4130
+		STX $2116 ; vram address
+		PHK
+		PLA ; #bank of overworld_layer_3_tiles
+		LDX #overworld_layer_3_tiles+$170
+		LDY #$0010
 		JSL load_vram
 		
 		LDX #$6BD0
@@ -207,8 +223,8 @@ attempt_timer_save:
 
 ; this will run when exiting the title screen
 prepare_file:
-		JSL restore_basic_settings
 		JSR set_overworld_position
+		JSL restore_basic_settings
 		RTL
 
 ; initialize mario on the overworld
@@ -289,6 +305,14 @@ set_position_to_yoshis_house:
 		STA.L !status_itembox
 		STA.L !status_yoshi
 		STA.L !status_lrreset
+		LDA.L #$17
+		STA.L !player_name
+		LDA.L #$0A
+		STA.L !player_name+1
+		LDA.L #$16
+		STA.L !player_name+2
+		LDA.L #$1E
+		STA.L !player_name+3
 		LDA #$14
 		STA.l !status_memoryhi
 		LDA #$8D
@@ -331,10 +355,10 @@ save_movie_details:
 		ADC !movie_location+$43,X
 		DEX
 		BPL .loop_checksum
-		STA !movie_location+$0B
+		STA !movie_location+$0C
 		
 		LDA #$BD
-		STA !movie_location+$0C
+		STA !movie_location+$0D
 		
 		SEP #$10
 		RTS
@@ -361,7 +385,7 @@ identify_movies:
 		LDA movie_pointers+2,Y
 		STA $02
 		
-		LDY #$09
+		LDY #$0A
 		LDA [$00],Y
 		CMP #$BD
 		BNE .no_movie_here
@@ -381,7 +405,7 @@ identify_movies:
 		CPY #$0040
 		BCS .loop_checksum
 		SEP #$10	
-		LDY #$08
+		LDY #$09
 		CMP [$00],Y
 		BEQ .save_level
 	
@@ -402,38 +426,3 @@ identify_movies:
 
 movie_pointers:
 		dl $706AE0,$7072E0,#!movie_location+3
-
-; find the x and y locations of each level that has a movie
-locate_levels:
-		PHB
-		PHK
-		PLB
-		LDY #$02
-	.loop_level:
-		LDA !level_movie_slots,Y
-		BEQ .continue_level
-		ASL A
-		TAX
-		LDA translevel_locations,X
-		STA !level_movie_y_pos,Y
-		LDA translevel_locations+1,X
-		STA !level_movie_x_pos,Y
-	.continue_level:
-		DEY
-		BPL .loop_level
-		PLB
-		RTS
-
-translevel_locations:
-		dw $0000,$0C03,$0E03,$0508,$050A,$090A,$0B0C,$0D0C
-		dw $010D,$030D,$050E,$1003,$1403,$1603,$1A03,$1405
-		dw $1705,$1408,$100F,$0710,$0211,$0511,$0712,$0517
-		dw $0E17,$0319,$0C1B,$0B58,$0C1D,$0F1D,$1410,$1610
-		dw $1812,$1516,$1816,$131B,$151B,$0922,$0B24,$0926
-		dw $0627,$0328,$0928,$082C,$002E,$032E,$0C2E,$1021
-		dw $1423,$1723,$1923,$1425,$1725,$1925,$1227,$1427
-		dw $1727,$1927,$1B27,$1729,$0830,$0C30,$0532,$0A32
-		dw $0C32,$0637,$0837,$043A,$0A3A,$0C3A,$043C,$083C
-		dw $1131,$1331,$1631,$1931,$1C31,$1133,$1333,$1633
-		dw $1933,$1C33,$1736,$1238,$1538,$1738,$1938,$1C38
-		dw $143A,$1A3A,$173B,$123D,$1C3D

@@ -44,6 +44,15 @@ overworld_menu_load:
 		STA.L !status_moviesave
 		STA.L !status_movieload
 		
+		LDA.L !player_name
+		STA.L !status_playername
+		LDA.L !player_name+1
+		STA.L !status_playername+1
+		LDA.L !player_name+2
+		STA.L !status_playername+2
+		LDA.L !player_name+3
+		STA.L !status_playername+3
+		
 		STZ !text_timer
 		
 		LDA #$80
@@ -136,7 +145,7 @@ upload_overworld_menu_graphics:
 		STX $2116 ; vram address
 		LDA #$19 ; #bank of menu_layer2_tiles
 		LDX #menu_layer2_tiles
-		LDY #$2000
+		LDY #$4000
 		JSL load_vram
 		
 		LDX #$3000
@@ -271,18 +280,21 @@ draw_menu_selection:
 		RTL
 
 option_x_position:
-		db $06,$06,$06,$06,$06,$09,$09,$09,$09,$18,$0C,$15,$12,$12,$15,$12,$0F,$0F,$0C,$0F,$18,$0F,$12,$15,$12,$15
+		db $06,$06,$06,$06,$06,$09,$09,$09,$09,$18,$0C,$15,$12,$12,$15,$0C,$0F,$0F,$0C,$0F,$18,$0F,$12,$15,$12,$15,$0E,$10,$12,$14
 option_y_position:
-		db $03,$06,$09,$0C,$0F,$06,$09,$0C,$03,$0F,$09,$06,$03,$06,$09,$09,$03,$06,$06,$09,$03,$0C,$0C,$0C,$0F,$0F
+		db $03,$06,$09,$0C,$0F,$06,$09,$0C,$03,$0F,$09,$06,$06,$09,$09,$0F,$06,$09,$06,$0C,$03,$0F,$0C,$0C,$0F,$0F,$02,$02,$02,$02
 option_index:
 		dw $0000,$0002,$0004,$0006,$0008,$000A,$010A,$020A
 		dw $030A,$030B,$0315,$0318,$031A,$031C,$031E,$0320
 		dw $0322,$0324,$032F,$0337,$0339,$033A,$033C,$033C
-		dw $043C,$043E
+		dw $043C,$043E,$0442,$0442,$0442,$0442
 menu_option_tiles:
 		incbin "bin/menu_option_tiles.bin"
 menu_object_tiles:
 		incbin "bin/menu_object_tiles.bin"
+		
+; the text for option titles and descriptions
+		incsrc "option_text.asm"
 
 ORG $198000
 
@@ -305,20 +317,17 @@ menu_layer3_tilemap:
 ; the palette for the overworld menu
 menu_palette:
 		incbin "bin/menu_palette.bin"
-		
-; the text for option titles and descriptions
-		incsrc "option_text.asm"
 
 ; which selection to go to when a direction is pressed
-;		db $00,$01,$02,$03,$04,$05,$06,$07,$08,$09,$0A,$0B,$0C,$0D,$0E,$0F,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19
+;		db $00,$01,$02,$03,$04,$05,$06,$07,$08,$09,$0A,$0B,$0C,$0D,$0E,$0F,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$1A,$1B,$1C,$1D
 selection_press_up:
-		db $04,$00,$01,$02,$03,$08,$05,$06,$07,$14,$12,$19,$18,$0C,$0B,$0D,$15,$10,$0A,$11,$09,$13,$0F,$0E,$16,$17
+		db $04,$00,$01,$02,$03,$08,$05,$06,$07,$14,$12,$1D,$1C,$0C,$0B,$0A,$1B,$10,$1A,$11,$09,$13,$0D,$0E,$16,$17,$0F,$15,$18,$19
 selection_press_down:
-		db $01,$02,$03,$04,$00,$06,$07,$08,$05,$14,$12,$0E,$0D,$0F,$17,$16,$11,$13,$0A,$15,$09,$10,$18,$19,$0C,$0B
+		db $01,$02,$03,$04,$00,$06,$07,$08,$05,$14,$0F,$0E,$0D,$16,$17,$1A,$11,$13,$0A,$15,$09,$1B,$18,$19,$1C,$1D,$12,$10,$0C,$0B
 selection_press_left:
-		db $14,$0B,$0E,$17,$09,$01,$02,$03,$00,$19,$06,$0D,$10,$11,$0F,$13,$08,$12,$05,$0A,$0C,$07,$15,$16,$04,$18
+		db $14,$0B,$0E,$17,$09,$01,$02,$03,$00,$19,$06,$0C,$10,$11,$0D,$04,$12,$0A,$05,$07,$1D,$0F,$13,$16,$15,$18,$08,$1A,$1B,$1C
 selection_press_right:
-		db $08,$05,$06,$07,$18,$12,$0A,$15,$10,$04,$13,$14,$14,$0B,$02,$0E,$0C,$0D,$11,$0F,$00,$16,$17,$03,$19,$09
+		db $08,$05,$06,$07,$0F,$12,$0A,$13,$1A,$04,$11,$01,$0B,$0E,$02,$15,$0C,$0D,$10,$16,$00,$18,$17,$23,$19,$09,$1B,$1C,$1D,$14
 
 ; this code is run on every frame during the overworld menu game mode (after fade in completes)
 ; GAME MODE #$1F
@@ -498,6 +507,10 @@ option_selection_mode:
 		dw .select_memorylow
 		dw .select_moviesave
 		dw .select_movieload
+		dw .select_name
+		dw .select_name
+		dw .select_name
+		dw .select_name
 		dw .select_exit
 		
 	.select_yellow:
@@ -520,6 +533,7 @@ option_selection_mode:
 	.select_lrreset:
 	.select_memoryhi:
 	.select_memorylow:
+	.select_name:
 		JMP .finish_no_sound
 	.select_help:
 		LDA #$0B ; on/off sound
@@ -692,6 +706,14 @@ restore_basic_settings:
 		LDA.L !status_itembox
 		STA $0DC2 ; itembox
 		STA $0DBC ; ow itembox
+		LDA.L !status_playername
+		STA.L !player_name
+		LDA.L !status_playername+1
+		STA.L !player_name+1
+		LDA.L !status_playername+2
+		STA.L !player_name+2
+		LDA.L !status_playername+3
+		STA.L !player_name+3
 		RTL
 
 ; run the help menu section of the menu
@@ -782,15 +804,15 @@ help_menu_mode:
 		RTS
 
 ; which help item to go to when a direction is pressed
-;		db $00,$01,$02,$03,$04,$05,$06,$07,$08,$09,$0A,$0B,$0C,$0D,$0E,$0F,$10,$11,$12,$13,$14
+;		db $00,$01,$02,$03,$04,$05,$06,$07,$08,$09,$0A,$0B,$0C,$0D,$0E,$0F,$10,$11,$12,$13,$14,$15,$16,$17
 help_press_up:
-		db $10,$00,$01,$14,$03,$04,$14,$14,$0A,$08,$09,$0C,$0B,$02,$0D,$0E,$0F,$05,$11,$12,$13
+		db $10,$00,$01,$14,$03,$04,$14,$14,$16,$08,$09,$0C,$0B,$02,$0D,$0E,$0F,$15,$11,$12,$13,$07,$0A,$05
 help_press_down:
-		db $01,$02,$0D,$04,$05,$11,$05,$11,$09,$0A,$08,$0C,$0B,$0E,$0F,$10,$00,$12,$13,$14,$03
+		db $01,$02,$0D,$04,$05,$17,$05,$15,$09,$0A,$16,$0C,$0B,$0E,$0F,$10,$00,$12,$13,$14,$03,$11,$08,$11
 help_press_left:
-		db $0B,$0C,$0A,$00,$01,$02,$03,$06,$07,$07,$07,$08,$09,$11,$12,$13,$14,$0D,$0E,$0F,$10
+		db $0B,$0C,$0A,$00,$01,$02,$03,$06,$07,$07,$07,$08,$09,$11,$12,$13,$14,$0D,$0E,$0F,$10,$17,$15,$16
 help_press_right:
-		db $03,$04,$05,$06,$06,$07,$07,$09,$0B,$0C,$02,$00,$01,$11,$12,$13,$14,$0D,$0E,$0F,$10
+		db $03,$04,$05,$06,$06,$07,$07,$09,$0B,$0C,$02,$00,$01,$11,$12,$13,$14,$0D,$0E,$0F,$10,$16,$17,$15
 		
 ; draw the flashing cursor to the screen:
 draw_help_cursor:
@@ -838,13 +860,13 @@ draw_help_cursor:
 		RTL
 		
 help_x_position:
-		db $38,$38,$58,$90,$90,$90,$B0,$B8,$08,$08,$08,$20,$20,$50,$50,$50,$50,$90,$90,$90,$90
+		db $38,$38,$58,$90,$90,$90,$B0,$B8,$08,$08,$08,$20,$20,$50,$50,$50,$50,$90,$90,$90,$90,$B8,$08,$90
 help_y_position:
-		db $5C,$64,$6C,$5C,$64,$6C,$5C,$5C,$5C,$64,$6C,$5C,$64,$9C,$A4,$AC,$B4,$9C,$A4,$AC,$B4
+		db $5C,$64,$6C,$5C,$64,$6C,$5C,$5C,$5C,$64,$6C,$5C,$64,$9C,$A4,$AC,$B4,$9C,$A4,$AC,$B4,$74,$74,$74
 help_width:
-		db $38,$38,$18,$18,$18,$20,$08,$40,$10,$10,$10,$10,$10,$38,$38,$38,$38,$38,$38,$38,$38
+		db $38,$38,$18,$18,$18,$20,$08,$40,$10,$10,$10,$10,$10,$38,$38,$38,$38,$38,$38,$38,$38,$40,$20,$20
 help_height:
-		db $08,$08,$08,$08,$08,$08,$08,$18,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08
+		db $08,$08,$08,$08,$08,$08,$08,$18,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08
 		
 ; draw the flashing cursor to the screen:
 draw_option_cursor:
@@ -874,8 +896,16 @@ draw_option_cursor:
 		SEC
 		SBC #$08
 		TAX
+		LDA !current_selection
+		CMP #$1A
+		BCC .big
+		LDA #$08
+		BRA .merge_size
+	.big:
 		LDA #$10
+	.merge_size:
 		STA $00
+		LDA #$10
 		STA $01
 		LDA #$01
 		STA $03
@@ -1003,11 +1033,11 @@ check_bounds:
 
 ; the number of options to allow when holding x or y
 minimum_selection_extended:
-		db $01,$01,$01,$01,$01,$FF,$FF,$FF,$00,$09,$02,$01,$01,$01,$01,$01,$01,$0A,$07,$01,$00,$01,$FF,$FF,$01,$03
+		db $01,$01,$01,$01,$01,$FF,$FF,$FF,$00,$09,$02,$01,$01,$01,$01,$01,$01,$0A,$07,$01,$00,$01,$FF,$FF,$01,$03,$28,$28,$28,$28
 
 ; the number of options to allow when not holding x or y
 minimum_selection_normal:
-		db $01,$01,$01,$01,$01,$03,$04,$04,$00,$09,$02,$01,$01,$01,$01,$01,$01,$0A,$07,$01,$00,$01,$FF,$FF,$01,$03
+		db $01,$01,$01,$01,$01,$03,$04,$04,$00,$09,$02,$01,$01,$01,$01,$01,$01,$0A,$07,$01,$00,$01,$FF,$FF,$01,$03,$28,$28,$28,$28
 		
 ; reset persistant enemy states
 ; right now this only includes boo cloud and boo ring angles
@@ -1391,6 +1421,10 @@ draw_help_text:
 ; and $02 holds the property byte for the text
 ; and Y (16-bit) holds the 16-bit header for the stripe image
 draw_text_string:
+		PHB
+		PEA $1818
+		PLB
+		PLB
 		LDA.L $7F837B
 		TAX
 		TYA
@@ -1422,6 +1456,7 @@ draw_text_string:
 		CLC
 		ADC #$0044
 		STA.L $7F837B
+		PLB
 		RTS
 
 ; draw a cursor

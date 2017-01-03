@@ -13,7 +13,8 @@ overworld_tick:
 		JSR test_for_yoshi
 		JSR test_for_swap
 		JSR test_for_menu
-		JSR draw_times
+		JSR test_for_time_toggle
+		JSR try_draw_times
 		JSR save_marios_position
 		JSR test_for_enter_level
 		JSR draw_movie_slots
@@ -93,10 +94,12 @@ test_for_enter_level:
 		STA !movie_location+$08
 		LDA.L !player_name+2
 		STA !movie_location+$09
-		LDA.L !use_poverty_save_states
+		LDA.L !player_name+3
 		STA !movie_location+$0A
+		LDA.L !use_poverty_save_states
+		STA !movie_location+$0B
 		LDA #$00
-		STA !movie_location+$0D
+		STA !movie_location+$0E
 		LDA.L !status_yellow
 		STA !movie_location+$13
 		LDA.L !status_green
@@ -149,9 +152,9 @@ test_for_enter_level:
 		ADC !movie_location+$43,X
 		DEX
 		BPL .loop_checksum
-		CMP !movie_location+$0B
+		CMP !movie_location+$0C
 		BNE .exit
-		LDA !movie_location+$0C
+		LDA !movie_location+$0D
 		CMP #$BD
 		BNE .exit
 		
@@ -207,6 +210,9 @@ test_for_powerup:
 		LDA $0DA8 ; frame axlr----
 		AND #%00010000
 		BEQ .done
+		LDA $0DA4 ; axlr----
+		AND #%00100000
+		BNE .done
 		
 		LDA $19
 		INC A
@@ -226,6 +232,9 @@ test_for_yoshi:
 		LDA $0DA8 ; frame axlr----
 		AND #%00100000
 		BEQ .done
+		LDA $0DA4 ; axlr----
+		AND #%00010000
+		BNE .done
 		
 		LDA $0DBA ; ow yoshi color
 	.loop:
@@ -239,7 +248,7 @@ test_for_yoshi:
 	.skip_0:
 		STA $13C7 ; yoshi color
 		STA $0DBA ; ow yoshi color
-		STA !status_yoshi
+		JSL load_yoshi_color
 		LDA #$01
 		STA $0DC1 ; persistent yoshi flag
 		
@@ -311,6 +320,26 @@ test_for_menu:
 	.done:
 		RTS
 
+; if x, toggle the times
+test_for_time_toggle:
+		LDA $0DA4 ; axlr----
+		AND #%00110000
+		CMP #%00110000
+		BNE .done
+		LDA $0DA8 ; axlr---- frame
+		AND #%00110000
+		BEQ .done
+		LDA !ow_display_times
+		INC A
+		CMP #$03
+		BNE .store
+		LDA #$00
+	.store:
+		STA !ow_display_times
+		JSR draw_times
+	.done:
+		RTS
+
 ; call the movement function a lot
 iterate_overworld_movement:
 		LDX #$07
@@ -335,22 +364,38 @@ test_movement:
 		JML $04945D ; movement routine
 	.done:
 		RTS
+		
+; try to draw the times onto the overworld border
+try_draw_times:
+		LDA $144E ; overworld forward timer
+		CMP #$0E
+		BNE .done
+		JSR draw_times
+	.done:
+		RTS
 
 ; draw record times onto the overworld border
 draw_times:
-		LDA $144E ; overworld forward timer
-		CMP #$0E
-		BEQ .start
-		JMP .done
+		PHB
+		PHK
+		PLB
 		
-	.start:
+		LDA !ow_display_times
+		STA $00
+		ASL A
+		CLC
+		ADC $00
+		TAX
+		
 		REP #$20
 		LDA !potential_translevel
 		AND #$007F
 		ASL #5
+		CLC
+		ADC times_ptrs,X
 		STA $00
 		SEP #$20
-		LDA #$70
+		LDA times_ptrs+2,X
 		STA $02
 		
 		LDY #$07
@@ -408,6 +453,8 @@ draw_times:
 		BPL .loop
 		
 	.done:
+		PLB
+		JSR draw_icons
 		RTS
 	
 	.draw_unran:
@@ -432,6 +479,9 @@ draw_times:
 		JSR load_blank_time
 		JSR load_stripe_from_buffer
 		JMP .continue
+
+times_ptrs:
+		dl $700000,gold_times,platinum_times
 		
 get_fractions_of_time:
 		PHA
@@ -515,8 +565,9 @@ compare_to_gold:
 		
 		REP #$30
 		STY $03
-		LDA $00
-		AND #$0FFF
+		LDA !potential_translevel
+		AND #$007F
+		ASL #5
 		CLC
 		ADC $03
 		TAX
@@ -545,6 +596,7 @@ compare_to_gold:
 		
 		LDA [$00],Y
 		CMP gold_times,X
+		BEQ .yes_gold
 		BCC .yes_gold
 		BRA .no_gold
 		
@@ -575,8 +627,9 @@ compare_to_platinum:
 		
 		REP #$30
 		STY $03
-		LDA $00
-		AND #$0FFF
+		LDA !potential_translevel
+		AND #$007F
+		ASL #5
 		CLC
 		ADC $03
 		TAX
@@ -605,6 +658,7 @@ compare_to_platinum:
 		
 		LDA [$00],Y
 		CMP platinum_times,X
+		BEQ .yes_platinum
 		BCC .yes_platinum
 		BRA .no_platinum
 		
@@ -636,7 +690,6 @@ check_if_used_orb:
 		REP #$30
 		STY $03
 		LDA $00
-		AND #$0FFF
 		CLC
 		ADC $03
 		TAX
@@ -664,6 +717,39 @@ check_if_used_orb:
 		PLX
 		PLB
 		RTS
+
+; draw the little icons for each time type
+draw_icons:
+		LDA #$50
+		STA !dynamic_stripe_image
+		LDA #$2D
+		STA !dynamic_stripe_image+1
+		LDA #$80
+		STA !dynamic_stripe_image+2
+		LDA #$07
+		STA !dynamic_stripe_image+3
+		LDA #$A6
+		STA !dynamic_stripe_image+4
+		LDA #$A7
+		STA !dynamic_stripe_image+6
+		LDA #$A8
+		STA !dynamic_stripe_image+8
+		LDA #$A9
+		STA !dynamic_stripe_image+10
+		LDA !ow_display_times
+		TAX
+		LDA icon_properties,X
+		STA !dynamic_stripe_image+5
+		STA !dynamic_stripe_image+7
+		STA !dynamic_stripe_image+9
+		STA !dynamic_stripe_image+11
+		LDA #$FF
+		STA !dynamic_stripe_image+12
+		JSR load_stripe_from_buffer
+		RTS
+
+icon_properties:
+		db $39,$29,$2D
 
 ; tiles for numbers 0-9
 tile_numbers:
@@ -754,6 +840,8 @@ draw_movie_slots:
 		PHK
 		PLB
 		
+		JSR locate_levels
+		
 		LDX #$02
 	.loop_tile:
 		LDA !level_movie_slots,X
@@ -780,11 +868,11 @@ draw_movie_slots:
 		LDA !level_movie_y_pos,X
 		AND #$20
 		BEQ .main_map
-		LDA $13C3 ; submap
+		LDA $1F11 ; submap
 		BEQ .continue
 		BRA .same_map
 	.main_map:
-		LDA $13C3 ; submap
+		LDA $1F11 ; submap
 		BNE .continue
 	.same_map:
 		REP #$20
@@ -820,4 +908,39 @@ draw_movie_slots:
 slot_tiles:
 		db $BD,$BE,$BF
 slot_offsets:
-		dw $000C,$FFF0,$0014,$FFF8,$FFF8,$FFF4
+		dw $0008,$000C,$000F,$0005,$FFFF,$0009
+
+; find the x and y locations of each level that has a movie
+locate_levels:
+		PHB
+		PHK
+		PLB
+		LDY #$02
+	.loop_level:
+		LDA !level_movie_slots,Y
+		BEQ .continue_level
+		ASL A
+		TAX
+		LDA translevel_locations,X
+		STA !level_movie_y_pos,Y
+		LDA translevel_locations+1,X
+		STA !level_movie_x_pos,Y
+	.continue_level:
+		DEY
+		BPL .loop_level
+		PLB
+		RTS
+
+translevel_locations:
+		dw $0000,$0C03,$0E03,$0508,$050A,$090A,$0B0C,$0D0C
+		dw $010D,$030D,$050E,$1003,$1403,$1603,$1A03,$1405
+		dw $1705,$1408,$100F,$0710,$0211,$0511,$0712,$0517
+		dw $0E17,$0319,$0C1B,$0B58,$0C1D,$0F1D,$1410,$1610
+		dw $1812,$1516,$1816,$131B,$151B,$0922,$0B24,$0926
+		dw $0627,$0328,$0928,$082C,$002E,$032E,$0C2E,$1021
+		dw $1423,$1723,$1923,$1425,$1725,$1925,$1227,$1427
+		dw $1727,$1927,$1B27,$1729,$0830,$0C30,$0532,$0A32
+		dw $0C32,$0637,$0837,$043A,$0A3A,$0C3A,$043C,$083C
+		dw $1131,$1331,$1631,$1931,$1C31,$1133,$1333,$1633
+		dw $1933,$1C33,$1736,$1238,$1538,$1738,$1938,$1C38
+		dw $143A,$1A3A,$173B,$123D,$1C3D

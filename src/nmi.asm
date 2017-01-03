@@ -75,8 +75,9 @@ break:
 		
 		LDA #$00
 		STA $4200 ; disable nmi, controller
-		LDA #$FF
-		STA $2141 ; kill music
+		
+		LDA #$1A
+		STA $2142 ; spooky music
 		LDA #$00
 		STA $2105 ; bgmode
 		LDA #$20
@@ -132,7 +133,7 @@ break:
 		LDY #$0800
 		JSL load_vram
 		
-		LDX #$20B1
+		LDX #$2085
 		STX $2116 ; vram address
 		LDA #$00
 		XBA
@@ -198,8 +199,44 @@ break:
 		STA $212C ; tm
 		LDA #$0F
 		STA $2100 ; exit force blank
-	.forever:
-		BRA .forever
+		
+		LDY #$0030
+		LDX #$0000
+	.loop_2:
+		DEX
+		BNE .loop_2
+	.wait_for_vblank:
+		LDA $4212
+		BPL .wait_for_vblank
+		LDA #$80
+		STA $2100 ; force blank
+		
+		CPY #$001C
+		BCS .no_number
+		REP #$20
+		TYA
+		LSR #2
+		CLC
+		ADC #$0130
+		PHX
+		LDX #$2056
+		STX $2116 ; vram address
+		STA $2118 ; vram data
+		PLX
+		SEP #$20
+		
+	.no_number:
+		LDA #$0F
+		STA $2100 ; exit force blank
+				
+		DEY
+		BNE .loop_2
+		
+	.escape:
+		LDA #$81
+		STA $4200 ; enable nmi, controller
+		CLI
+		RTL
 
 break_tiles:
 		incbin "bin/break_bg_tiles.bin"

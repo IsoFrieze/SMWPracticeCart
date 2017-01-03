@@ -82,6 +82,7 @@
 !status_memorylo             = $700337
 !status_moviesave            = $700338
 !status_movieload            = $700339
+!status_playername           = $70033A ; 4 bytes
 ; $70033A - $70033F reserved for future expansion
 
 ; location of cape interaction table at $1FE2
@@ -114,7 +115,7 @@
 !record_lunar_dragon         = $0F27
 
 ; the number of options in the overworld menu
-!number_of_options           = 26
+!number_of_options           = 30
 ; the currently highlighted selection on the overworld menu
 !current_selection           = $0F28
 ; flag to show "delete mode", that is, if the player presses select to delete data
@@ -155,6 +156,8 @@
 ; x and y positions of the levels in above table
 !level_movie_x_pos           = $0698 ; 3 bytes
 !level_movie_y_pos           = $069B ; 3 bytes
+; which times to display on the overworld
+!ow_display_times            = $069E
 
 ; flag = #$BD if save data exists
 !save_data_exists            = $700000
@@ -169,7 +172,7 @@
 ; used to detect when to not save the record (no cheating!)
 !spliced_run                 = $700007
 ; player name
-!player_name                 = $70000D
+!player_name                 = $70000C ; 4 bytes
 ; flag = #$BD if it is detected that this platform does not support the needed sram
 ; for complete save states; this will prevent save states from being saved across
 ; levels and power cycles

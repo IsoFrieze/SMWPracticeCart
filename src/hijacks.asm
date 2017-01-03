@@ -297,7 +297,12 @@ conclude_loading_level:
 		RTS
 break_wrapper:
 		JSL break
+		LDA.L !save_state_exists
+		BEQ .forever
+		JSL activate_load_state
 		RTI
+	.forever:
+		BRA .forever
 ; tick the timer and co. for one frame after exiting the level with wings
 ; this is because the game exits out of this state abruptly
 tmp_fade_begin_hijack:

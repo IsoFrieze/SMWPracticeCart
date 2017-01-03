@@ -191,7 +191,7 @@ activate_save_state:
 		LDA !in_record_mode
 		BEQ .no_tag
 		LDA #$01
-		STA !movie_location+$0D
+		STA !movie_location+$0E
 	.no_tag:
 		
 		LDA !use_poverty_save_states
@@ -318,8 +318,8 @@ go_poverty_save_state:
 		PLB
 		
 		; save cgram w$00-w$FF to $707E00-$707FFF
-		LDX #$0000
-		STX $2121 ; cgram address
+		LDA #$00
+		STA $2121 ; cgram address
 		LDX #$7E00
 		STX $4302 ; dma0 destination address
 		LDA #$70
@@ -472,6 +472,11 @@ go_poverty_save_state:
 		TXA
 		STA $7FC7F7
 		
+		; save the currently used music to $7FC7F9
+		SEP #$20
+		LDA $2142
+		STA $7FC7F9
+		
 	.done:
 		PLP
 		RTS
@@ -522,8 +527,8 @@ go_complete_save_state:
 		BPL .loop_tilemap_high
 		
 		; save cgram w$00-w$FF to $713800-$713AFF
-		LDX #$0000
-		STX $2121 ; cgram address
+		LDA #$00
+		STA $2121 ; cgram address
 		LDX #$3800
 		STX $4302 ; dma0 destination address
 		LDA #$71
@@ -580,6 +585,11 @@ go_complete_save_state:
 		TSX
 		TXA
 		STA $717FF7
+		
+		; save the currently used music to $717FF9
+		SEP #$20
+		LDA $2142
+		STA $717FF9
 		
 		PLP
 		RTS
@@ -762,8 +772,8 @@ go_poverty_load_state:
 		PLB
 		
 		; load $707E00-$707FFF to cgram w$00-w$FF
-		LDX #$0000
-		STX $2121 ; cgram address
+		LDA #$00
+		STA $2121 ; cgram address
 		LDX #$7E00
 		STX $4302 ; dma0 destination address
 		LDA #$70
@@ -908,6 +918,15 @@ go_poverty_load_state:
 		TAX
 		TXS
 		
+		; load the currently used music from $7FC7F9
+		SEP #$20
+		LDA $7FC7F9
+		CMP $2142
+		BEQ .same_music
+		STA $2142
+	.same_music:
+		REP #$20
+		
 		; since we restored the stack, we need to update the return
 		; address of this routine to what we want it to be. otherwise,
 		; it would return to the save state routine.
@@ -965,15 +984,16 @@ go_complete_load_state:
 		BPL .loop_tilemap_high
 		
 		; load $713800-$713AFF to cgram w$00-w$FF
-		LDX #$0000
-		STX $2121 ; cgram address
+		LDA #$00
+		STA $2121 ; cgram address
 		LDX #$3800
 		STX $4302 ; dma0 destination address
 		LDA #$71
 		STA $4304 ; dma0 destination bank
 		LDX #$0200
 		STX $4305 ; dma0 length
-		STZ $4300 ; dma0 parameters
+		LDA #$02
+		STA $4300 ; dma0 parameters
 		LDA #$22 ; $2122 cgram data write
 		STA $4301 ; dma0 source
 		LDA #$01 ; channel 0
@@ -1020,6 +1040,15 @@ go_complete_load_state:
 		LDA $717FF7
 		TAX
 		TXS
+		
+		; load the currently used music from $717FF9
+		SEP #$20
+		LDA $717FF9
+		CMP $2142
+		BEQ .same_music
+		STA $2142
+	.same_music:
+		REP #$20
 		
 		; since we restored the stack, we need to update the return
 		; address of this routine to what we want it to be. otherwise,

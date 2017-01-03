@@ -31,6 +31,10 @@ ORG $00D0D8
 ORG $00CA2C
 		db $00
 
+; disable yoshi message
+ORG $01EC36
+		db $80
+
 ; don't remember 1ups, moons, or dragon coins
 ORG $00F2BB
 		NOP #3
