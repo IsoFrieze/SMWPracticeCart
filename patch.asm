@@ -29,3 +29,6 @@ incsrc "src/nmi.asm"                ; $168000
 incsrc "src/every_frame.asm"        ; $178000
 incsrc "src/overworld_menu.asm"     ; $180000 - $198000
 incsrc "src/l_r_reset.asm"          ; $1A8000
+; make sure the ROM is expanded to the full 1MBit
+ORG $1FFFFF
+		db $EA
