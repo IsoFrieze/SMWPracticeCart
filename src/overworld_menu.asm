@@ -327,7 +327,7 @@ selection_press_down:
 selection_press_left:
 		db $14,$0B,$0E,$17,$09,$01,$02,$03,$00,$19,$06,$0C,$10,$11,$0D,$04,$12,$0A,$05,$07,$1D,$0F,$13,$16,$15,$18,$08,$1A,$1B,$1C
 selection_press_right:
-		db $08,$05,$06,$07,$0F,$12,$0A,$13,$1A,$04,$11,$01,$0B,$0E,$02,$15,$0C,$0D,$10,$16,$00,$18,$17,$23,$19,$09,$1B,$1C,$1D,$14
+		db $08,$05,$06,$07,$0F,$12,$0A,$13,$1A,$04,$11,$01,$0B,$0E,$02,$15,$0C,$0D,$10,$16,$00,$18,$17,$03,$19,$09,$1B,$1C,$1D,$14
 
 ; this code is run on every frame during the overworld menu game mode (after fade in completes)
 ; GAME MODE #$1F
