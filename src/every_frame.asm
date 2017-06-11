@@ -45,6 +45,7 @@ stack_overflow:
 		PLP
 		RTS
 
+; press ABXYLR + up to force a bsod
 check_kill:
 		LDA $0DA2 ; byetudlr
 		CMP #%11001000
