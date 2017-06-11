@@ -1,21 +1,14 @@
 <NotepadPlus>
-    <Session activeView="1">
-        <mainView activeIndex="1">
-            <File firstVisibleLine="57022" xOffset="0" scrollWidth="2481" startPos="3510862" endPos="3510873" selMode="0" lang="65816" encoding="-1" filename="C:\Users\Alex\Downloads\LunarMagic\all.log\all.log" backupFilePath="" originalFileLastModifTimestamp="1465928355" />
-            <File firstVisibleLine="0" xOffset="0" scrollWidth="1617" startPos="713" endPos="713" selMode="0" lang="65816" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\patch.asm" backupFilePath="" originalFileLastModifTimestamp="1483256668" />
-            <File firstVisibleLine="6" xOffset="0" scrollWidth="15498" startPos="3513" endPos="3513" selMode="0" lang="HTML" encoding="-1" filename="C:\Users\Alex\Documents\web\twitch\practice.html" backupFilePath="" originalFileLastModifTimestamp="1476037434" />
-            <File firstVisibleLine="0" xOffset="0" scrollWidth="486" startPos="691" endPos="672" selMode="0" lang="Normal Text" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\fixes.txt" backupFilePath="" originalFileLastModifTimestamp="1483256542" />
-            <File firstVisibleLine="0" xOffset="0" scrollWidth="642" startPos="0" endPos="0" selMode="0" lang="65816" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\src\defines.asm" backupFilePath="" originalFileLastModifTimestamp="1483243888" />
+    <Session activeView="0">
+        <mainView activeIndex="0">
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="18081" startPos="961" endPos="961" selMode="0" lang="65816" encoding="-1" filename="C:\Users\Alex\Documents\ROM Hacks\SMWPracticeCart\patch.asm" backupFilePath="" originalFileLastModifTimestamp="1486525980" />
+            <File firstVisibleLine="92" xOffset="0" scrollWidth="18081" startPos="5205" endPos="5225" selMode="0" lang="65816" encoding="-1" filename="C:\Users\Alex\Documents\ROM Hacks\SMWPracticeCart\src\defines.asm" backupFilePath="" originalFileLastModifTimestamp="1486345503" />
+            <File firstVisibleLine="93" xOffset="0" scrollWidth="774" startPos="4646" endPos="4646" selMode="0" lang="65816" encoding="-1" filename="C:\Users\Alex\Documents\ROM Hacks\SMWPracticeCart\src\movies.asm" backupFilePath="" originalFileLastModifTimestamp="1486349709" />
         </mainView>
-        <subView activeIndex="7">
-            <File firstVisibleLine="0" xOffset="0" scrollWidth="462" startPos="0" endPos="0" selMode="0" lang="65816" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\src\every_frame.asm" backupFilePath="" originalFileLastModifTimestamp="1483254057" />
-            <File firstVisibleLine="0" xOffset="0" scrollWidth="570" startPos="0" endPos="0" selMode="0" lang="65816" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\src\l_r_reset.asm" backupFilePath="" originalFileLastModifTimestamp="1483166239" />
-            <File firstVisibleLine="0" xOffset="0" scrollWidth="228" startPos="0" endPos="0" selMode="0" lang="65816" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\src\hijacks.asm" backupFilePath="" originalFileLastModifTimestamp="1483244552" />
-            <File firstVisibleLine="0" xOffset="0" scrollWidth="618" startPos="0" endPos="0" selMode="0" lang="65816" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\src\level_tick.asm" backupFilePath="" originalFileLastModifTimestamp="1483147519" />
-            <File firstVisibleLine="0" xOffset="0" scrollWidth="696" startPos="0" endPos="0" selMode="0" lang="65816" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\src\nmi.asm" backupFilePath="" originalFileLastModifTimestamp="1483253762" />
-            <File firstVisibleLine="0" xOffset="0" scrollWidth="636" startPos="0" endPos="0" selMode="0" lang="65816" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\src\overworld_load.asm" backupFilePath="" originalFileLastModifTimestamp="1483251026" />
-            <File firstVisibleLine="0" xOffset="0" scrollWidth="276" startPos="0" endPos="0" selMode="0" lang="65816" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\src\overworld_menu.asm" backupFilePath="" originalFileLastModifTimestamp="1483153751" />
-            <File firstVisibleLine="0" xOffset="0" scrollWidth="540" startPos="204" endPos="204" selMode="0" lang="65816" encoding="-1" filename="C:\Users\Alex\Documents\SMWHacks\SMWPracticeCart\src\overworld_tick.asm" backupFilePath="" originalFileLastModifTimestamp="1483250913" />
+        <subView activeIndex="2">
+            <File firstVisibleLine="540" xOffset="0" scrollWidth="3000" startPos="11247" endPos="11247" selMode="0" lang="65816" encoding="-1" filename="C:\Users\Alex\Documents\ROM Hacks\SMWPracticeCart\src\overworld_menu.asm" backupFilePath="" originalFileLastModifTimestamp="1486349640" />
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="3000" startPos="226" endPos="226" selMode="0" lang="65816" encoding="-1" filename="C:\Users\Alex\Documents\ROM Hacks\SMWPracticeCart\src\nmi.asm" backupFilePath="" originalFileLastModifTimestamp="1483812255" />
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="444" startPos="288" endPos="288" selMode="0" lang="65816" encoding="-1" filename="C:\Users\Alex\Documents\ROM Hacks\SMWPracticeCart\src\hex_edits.asm" backupFilePath="" originalFileLastModifTimestamp="1483419633" />
         </subView>
     </Session>
 </NotepadPlus>

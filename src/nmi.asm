@@ -10,6 +10,7 @@ nmi_expand:
 		JSL load_slots_graphics
 		
 	.done:
+		
 		RTL
 		
 controller_update:
@@ -69,7 +70,10 @@ controller_update:
 
 ; runs on BRK
 break:
+		PHP
 		SEI
+		SEP #$30
+		
 		LDA #$80
 		STA $2100 ; force blank
 		
@@ -236,6 +240,7 @@ break:
 		LDA #$81
 		STA $4200 ; enable nmi, controller
 		CLI
+		PLP
 		RTL
 
 break_tiles:

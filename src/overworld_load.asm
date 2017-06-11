@@ -305,18 +305,18 @@ set_position_to_yoshis_house:
 		STA.L !status_itembox
 		STA.L !status_yoshi
 		STA.L !status_lrreset
-		LDA.L #$17
+		LDA #$17
 		STA.L !player_name
-		LDA.L #$0A
+		LDA #$0A
 		STA.L !player_name+1
-		LDA.L #$16
+		LDA #$16
 		STA.L !player_name+2
-		LDA.L #$1E
+		LDA #$1E
 		STA.L !player_name+3
 		LDA #$14
-		STA.l !status_memoryhi
+		STA.L !status_memoryhi
 		LDA #$8D
-		STA.l !status_memorylo
+		STA.L !status_memorylo
 		JSL update_ow_position_pointers
 		RTL
 

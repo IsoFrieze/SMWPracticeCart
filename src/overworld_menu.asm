@@ -648,19 +648,42 @@ load_movie:
 		PLB
 		LDA.L !status_movieload
 		CMP #$02
-		BCS .error
+		BCS .getptr
 		STA $00
 		ASL A
 		CLC
 		ADC $00
 		TAX
-		LDA movie_locations,X
+		LDA sram_movie_locations,X
 		STA $00
-		LDA movie_locations+1,X
+		LDA sram_movie_locations+1,X
 		STA $01
-		LDA movie_locations+2,X
+		LDA sram_movie_locations+2,X
 		STA $02
+		BRA .copy
+	.getptr:
+		DEC #2
+		STA $00
+		ASL A
+		CLC
+		ADC $00
+		TAX
+		LDA rom_movie_locations,X
+		STA $00
+		LDA rom_movie_locations+1,X
+		STA $01
+		LDA rom_movie_locations+2,X
+		STA $02
+		LDA !potential_translevel
+		ASL A
+		TAY
+		REP #$20
+		LDA [$00],Y
+		STA $00
+		SEP #$20
+		BEQ .error
 		
+	.copy:
 		REP #$30
 		LDY #$0000
 		LDX #$0000
@@ -684,8 +707,11 @@ load_movie:
 		PLP
 		RTS
 		
-movie_locations:
-		dl $706AE0,$7072E0,$706AE0,$7072E0
+sram_movie_locations:
+		dl $706AE0, $7072E0
+rom_movie_locations:
+		dl translevel_movie_ptr_A, translevel_movie_ptr_B
+
 		
 ; restore gameplay settings
 restore_basic_settings:

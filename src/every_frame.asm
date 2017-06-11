@@ -6,6 +6,7 @@ every_frame:
 		SEP #$20
 		JSR stack_overflow
 		JSR update_dropped_frames
+		JSR check_kill
 		
 		LDA !in_overworld_menu
 		BEQ .done
@@ -42,4 +43,15 @@ stack_overflow:
 		BRK #$BD
 	.done:
 		PLP
+		RTS
+
+check_kill:
+		LDA $0DA2 ; byetudlr
+		CMP #%11001000
+		BNE .done
+		LDA $0DA4 ; axlr----
+		CMP #%11110000
+		BNE .done
+		BRK #$C8
+	.done:
 		RTS

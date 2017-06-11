@@ -1,6 +1,6 @@
 ;========================
 ; SMW Practice Cart
-; Version 2.5.0
+; Version 2.5.1
 ; Created by Dotsarecool
 ;========================
 
@@ -27,8 +27,12 @@ incsrc "src/overworld_tick.asm"     ; $148000
 incsrc "src/level_tick.asm"         ; $158000
 incsrc "src/nmi.asm"                ; $168000
 incsrc "src/every_frame.asm"        ; $178000
-incsrc "src/overworld_menu.asm"     ; $180000 - $198000
+incsrc "src/overworld_menu.asm"     ; $188000 - $198000
 incsrc "src/l_r_reset.asm"          ; $1A8000
+incsrc "src/movies.asm"             ; $1B8000
+
+; incbin "bin/spc_engine.bin"       ; $1F8000 (see relocations.asm)
+
 ; make sure the ROM is expanded to the full 1MBit
 ORG $1FFFFF
 		db $EA

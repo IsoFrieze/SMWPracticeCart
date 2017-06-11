@@ -18,7 +18,11 @@ if P set:
 			+03    = movie version
 			+04    = translevel
 			+05-06 = length of movie minus header in bytes
-			+07-09 = author name
+			+07-0A = author name
+			+0B    = poverty version
+			+0C    = checksum of movie minus header
+			+0D    = $BD
+			+0E    = movie uses save states
 			+13-16 = switches
 			+17    = special effects
 			+18    = mario's powerup
@@ -27,6 +31,8 @@ if P set:
 			+23-26 = boo ring angles
 			+27-28 = global frames
 +43+   = movie
+
+file max of $800 bytes ($7C0 for movie, $40 for header)
 
 YI3	
 B800010008FF00034000410852C10641080FC10825410808C1081C41081CC1881B410810C18808410813C18441081EC185410830C18341083CC10819410815C108154107C1080F41081CC108114102C10441080AC1080F410811C185410812C18541081FC1886141081AC10822410820C1081D4104C10813410815C10641081CC10822410824C183410824C105410828C1083041081FC18341083FC18823410830C18641081DC185410830C18241082DC10842410834C102C00851000891
