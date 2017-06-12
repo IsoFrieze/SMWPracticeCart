@@ -824,7 +824,6 @@ go_poverty_load_state:
 		
 		; load wram $7FC47B-$7EC6FA to vram w$06C0-w$07FF
 		LDA #$80
-print pc
 		STA $2115 ; vram increment
 		LDX #$06C0
 		STX $2116 ; vram address

@@ -925,7 +925,10 @@ test_ci2:
 		BNE .done
 		
 		LDA $141A
-		AND #$7F
+		CMP #$03
+		BCC .no_max
+		LDA #$03
+	.no_max:
 		ASL A
 		TAX
 		LDY #$00
@@ -1414,6 +1417,29 @@ hex_to_bowser:
 bowser_numbers:
 		db $A8,$A9,$AA,$AB,$AC
 		db $AD,$AE,$AF,$B0,$B1
+		
+; if sprite slots are enabled, don't draw background in morton, roy, ludwig
+boss_sprite_background:
+		LDA.L !status_slots
+		BEQ .draw
+		LDA $13FC
+		CMP #$02
+		BEQ .ludwig
+	.morton_roy:
+		CPY #$0026*4
+		BCC .draw
+		CPY #$0036*4
+		BCS .draw
+		BRA .dont_draw
+	.ludwig:
+		CPX #$0021
+		BCC .draw
+	.dont_draw:
+		LDA #$F0
+		RTL
+	.draw:
+		LDA.L $0281CF,X
+		RTL
 
 ; if mario finds himself in translevel 0, reset his overworld position as a fail safe
 test_translevel_0_failsafe:

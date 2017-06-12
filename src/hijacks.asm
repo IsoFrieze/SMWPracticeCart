@@ -86,6 +86,10 @@ ORG $0082AA
 ORG $0081D5
 		NOP
 		JSL layer_3_priority
+
+; don't draw sprite BG when sprite slots enabled
+ORG $0282FA
+		JSL boss_sprite_background
 		
 ; test if level completed this frame
 ; X = 0 for normal exit, 1 for secret exit

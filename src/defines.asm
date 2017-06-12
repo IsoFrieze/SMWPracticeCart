@@ -1,7 +1,7 @@
 ; the version of this patch Va.b.c
-!version_a                   = $02
-!version_b                   = $05
-!version_c                   = $01
+!version_a                   = $03
+!version_b                   = $00
+!version_c                   = $00
 
 ; number of frames dropped this execution frame
 !dropped_frames              = $FB ; 2 bytes, 16-bit value
@@ -82,7 +82,8 @@
 !status_memorylo             = $700337
 !status_moviesave            = $700338
 !status_movieload            = $700339
-!status_playername           = $70033A ; 4 bytes
+!status_region               = $70033A
+!status_playername           = $70033B ; 4 bytes
 ; $70033A - $70033F reserved for future expansion
 
 ; location of cape interaction table at $1FE2
@@ -115,7 +116,7 @@
 !record_lunar_dragon         = $0F27
 
 ; the number of options in the overworld menu
-!number_of_options           = 30
+!number_of_options           = 31
 ; the currently highlighted selection on the overworld menu
 !current_selection           = $0F28
 ; flag to show "delete mode", that is, if the player presses select to delete data
@@ -150,6 +151,10 @@
 !oam_slot_sprite_slots       = $2C
 !oam_slot_bowser_level_timer = $30
 !oam_slot_bowser_room_timer  = $68
+
+; translevels that have swapped exits
+!translevel_swap_exit_A      = $04 ; dgh
+!translevel_swap_exit_B      = $41 ; fgh
 
 ; the translevels of the current movies, 00 = no movie
 !level_movie_slots           = $0695 ; 3 bytes

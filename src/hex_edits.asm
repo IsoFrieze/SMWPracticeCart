@@ -34,6 +34,28 @@ ORG $00CA2C
 ; disable yoshi message
 ORG $01EC36
 		db $80
+		
+; increase size of status bar
+ORG $008293
+		db #$26
+ORG $00835D
+		db #$26
+		
+; enable hdma6 on overworld
+ORG $0092A1
+		db $C0
+ORG $04DB98
+		db $C0
+
+; disable score and bonus star counters at the level end
+ORG $05CC10
+		dw $CFE9
+ORG $05CC42
+		db $FF
+ORG $05CC94
+		dw $002C
+ORG $05CCC8
+		JMP $CD26
 
 ; don't remember 1ups, moons, or dragon coins
 ORG $00F2BB
@@ -158,7 +180,9 @@ ORG $028D42
 
 ; prevent credits
 ORG $03AC12
-		db $93,$14
+		dw $1493
+ORG $00CA24
+		db $0B
 
 ; disable chocolate island 2 weirdness
 ORG $05DAE5

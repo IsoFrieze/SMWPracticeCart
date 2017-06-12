@@ -64,6 +64,10 @@ update_potential_translevel:
 		
 ; check if entering level, and do stuff
 test_for_enter_level:
+		LDA !potential_translevel
+		BNE .on_a_tile
+		JMP .done
+	.on_a_tile:
 		LDA $0DA8
 		ORA $0DA6
 		AND #$C0
@@ -506,7 +510,18 @@ load_unran_time:
 		DEY
 		BPL .loop
 		PLY
+		LDA !potential_translevel
+		CMP #!translevel_swap_exit_A
+		BEQ .shift
+		CMP #!translevel_swap_exit_B
+		BEQ .shift
+		BRA .noshift
+	.shift:
+		LDA times_position+4,Y
+		BRA .merge
+	.noshift:
 		LDA times_position,Y
+	.merge:
 		STA !dynamic_stripe_image+1
 		LDA.L !status_fractions
 		BEQ .done
@@ -524,7 +539,18 @@ load_blank_time:
 		DEY
 		BPL .loop
 		PLY
+		LDA !potential_translevel
+		CMP #!translevel_swap_exit_A
+		BEQ .shift
+		CMP #!translevel_swap_exit_B
+		BEQ .shift
+		BRA .noshift
+	.shift:
+		LDA times_position+4,Y
+		BRA .merge
+	.noshift:
 		LDA times_position,Y
+	.merge:
 		STA !dynamic_stripe_image+1
 		RTS
 
@@ -787,6 +813,7 @@ translevel_types:
 times_position:                                
         db $2F,$4F,$6F,$8F
         db $37,$57,$77,$97
+        db $2F,$4F,$6F,$8F
 
 ; a stripe image that shows -'--.--
 default_time_stripe:

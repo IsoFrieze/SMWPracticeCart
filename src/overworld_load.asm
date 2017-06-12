@@ -48,7 +48,7 @@ overworld_load:
 		BEQ .done
 		JSR attempt_timer_save
 		
-	.done:		
+	.done:
 		LDA.L !use_poverty_save_states
 		BEQ .keep_state
 		LDA #$00
@@ -60,7 +60,15 @@ overworld_load:
 		STZ !slowdown_speed
 		STZ !in_overworld_menu
 		JSL $04DAAD ; layer 2 tilemap upload routine
+		JSR setup_shadow
 		
+		LDA !in_record_mode
+		ORA !in_playback_mode
+		BEQ .keep_savestate
+		LDA #$00
+		STA.L !save_state_exists
+		
+	.keep_savestate:
 		LDA !in_record_mode
 		BEQ .no_movie
 		JSR save_movie_details
@@ -426,3 +434,40 @@ identify_movies:
 
 movie_pointers:
 		dl $706AE0,$7072E0,#!movie_location+3
+
+; this sets up some hdma so we can correct the shadow palette
+setup_shadow:
+		PHP
+		SEP #$20
+		REP #$10
+		
+		LDA #$03
+		STA $4360
+		LDA #$21
+		STA $4361
+		LDX #shadow_palette_hdma
+		STX $4362
+		PHK
+		PLA
+		STA $4364
+		
+	;	LDA #$40 ; taken care of at $00CB0C
+	;	TSB $0D9F ; hdmaen mirror
+		
+		PLP
+		RTS
+
+shadow_palette_hdma:
+		db $01
+		dw $0D0D,$573B
+		db $01
+		dw $0E0E,$551E
+		db $30
+		dw $0F0F,$0000
+		db $01
+		dw $0D0D,$3E75
+		db $01
+		dw $0E0E,$3212
+		db $01
+		dw $0F0F,$25AF
+		db $00

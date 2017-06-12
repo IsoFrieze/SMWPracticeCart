@@ -189,7 +189,7 @@ break:
 		LDA #$0F
 		STA $2100 ; exit force blank
 		
-		LDY #$0006
+		LDY #$0006 ; delay before showing text
 		LDX #$0000
 	.loop:
 		DEX
@@ -204,7 +204,12 @@ break:
 		LDA #$0F
 		STA $2100 ; exit force blank
 		
-		LDY #$0030
+		LDA.L !save_state_exists
+		CMP #$BD
+	.forever:
+		BNE .forever
+		
+		LDY #$0030 ; delay before attempting countdown
 		LDX #$0000
 	.loop_2:
 		DEX

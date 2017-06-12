@@ -176,7 +176,9 @@ setup_room_advance:
 		LDA !restore_room_xpos+1
 		PHA
 		
-		JSR save_room_properties
+		; bad form but this bug sucks and I'm done dealing with it
+		; hey, this is assembly. if it works, it's good Kappa b
+		JSR save_room_properties_but_not_xpos
 		JSR restore_common_aspects
 		
 		PLA
@@ -233,6 +235,11 @@ restore_common_aspects:
 		
 ; save everything after entering a new room
 save_room_properties:
+		LDA $D1 ; mario x position low byte
+		STA !restore_room_xpos
+		LDA $D2 ; mario x position high byte
+		STA !restore_room_xpos+1
+	.but_not_xpos:
 		LDA $19 ; powerup
 		STA !restore_room_powerup
 		LDA $0DC2 ; item box
@@ -249,10 +256,6 @@ save_room_properties:
 		STA !restore_room_takeoff
 		LDA $0DBF ; coins
 		STA !restore_room_coins
-		LDA $D1 ; mario x position low byte
-		STA !restore_room_xpos
-		LDA $D2 ; mario x position high byte
-		STA !restore_room_xpos+1
 		
 		LDX #$0B
 	.loop_item:
