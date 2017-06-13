@@ -6,6 +6,14 @@ activate_room_reset:
 		LDA $141A ; sublevel count
 		AND #$7F
 		BNE .room_reset
+		
+		; but if we entered midway, take care of that
+		LDA !start_midway
+		BEQ .level_reset
+		JSL activate_midway_reset
+		RTL
+		
+	.level_reset:
 		JSL activate_level_reset
 		RTL
 		
@@ -15,6 +23,18 @@ activate_room_reset:
 		
 		LDA !recent_screen_exit
 		LDY !recent_secondary_flag
+		JSL set_global_exit
+		JSR trigger_screen_exit
+		
+		RTL
+
+; this code is run when the player presses L + R in the first room after entering midway - reset to midway
+activate_midway_reset:
+		LDA #$04
+		STA !l_r_function
+		
+		JSR get_level_low_byte
+		LDY #$00
 		JSL set_global_exit
 		JSR trigger_screen_exit
 		

@@ -44,6 +44,7 @@ l_r_functions:
 		dw setup_room_reset
 		dw setup_level_reset
 		dw setup_room_advance
+		dw setup_midway_reset
 
 ; prepare the level load if we just did a room reset
 setup_room_reset:
@@ -99,11 +100,22 @@ setup_room_reset:
 		JSR restore_common_aspects
 		RTS
 
+; prepare the level load if we are reseting to the midway point
+setup_midway_reset:
+		LDA #$01
+		STA.L !spliced_run
+		STA !start_midway
+		
+		JSR setup_level_reset_begin
+		RTS
+
 ; prepare the level load if we just did a level reset
 setup_level_reset:
 		LDA #$00
 		STA.L !spliced_run
+		STA !start_midway
 		
+	.begin:
 		LDA !restore_level_powerup
 		STA $19 ; powerup
 		LDA !restore_level_itembox
@@ -215,6 +227,9 @@ restore_common_aspects:
 		STZ !room_timer_minutes
 		STZ !room_timer_seconds
 		STZ !room_timer_frames
+		STZ !pause_timer_minutes
+		STZ !pause_timer_seconds
+		STZ !pause_timer_frames
 		
 		LDX #$03
 	.loop_camera:
@@ -296,6 +311,9 @@ save_room_properties:
 		STZ !room_timer_minutes
 		STZ !room_timer_seconds
 		STZ !room_timer_frames
+		STZ !pause_timer_minutes
+		STZ !pause_timer_seconds
+		STZ !pause_timer_frames
 		
 		RTS
 		
@@ -368,6 +386,9 @@ save_level_properties:
 		STZ !level_timer_minutes
 		STZ !level_timer_seconds
 		STZ !level_timer_frames
+		STZ !pause_timer_minutes
+		STZ !pause_timer_seconds
+		STZ !pause_timer_frames
 		STZ !record_used_powerup
 		STZ !record_used_cape
 		STZ !record_used_yoshi
@@ -395,8 +416,18 @@ level_load_exit_table:
 
 ; save starting time to backup register
 ; this isn't done in the above code because X is only the level index during the load routine
+; also check for lemmy's castle region difference
 level_load_timer:
+		LDA.L !status_region
+		BEQ .continue
+		LDA $13BF ; translevel
+		CMP #$40 ; lemmy's castle
+		BNE .continue
+		LDA #$03
+		BRA .merge
+	.continue:
 		LDA $0584D7,X ; timer table
+	.merge:
 		STA !restore_level_igt
 		RTL
 
@@ -555,6 +586,7 @@ do_final_loading:
 		dw .final_room_reset
 		dw .final_level_reset
 		dw .final_room_advance
+		dw .final_level_reset
 		
 	.final_normal_advance:
 	.final_room_advance:
@@ -589,3 +621,101 @@ calculate_load_time:
 		SEP #$20
 		STA !apu_timer_difference
 		RTL
+
+; if entering level midway, change level loaded for certain levels
+check_enter_level_midway:
+		PHA
+		LDA !start_midway
+		BEQ .no_midway
+		LDA !potential_translevel
+		; eventually i'll find a way to get some of these working, but for now just give up
+		CMP #$03 ; tsa (doesn't make sense)
+		BEQ .no_midway
+		CMP #$2D ; vs1 (vertical level)
+		BEQ .no_midway
+		CMP #$0C ; bb1 (weird autoscroll)
+		BEQ .no_midway
+		CMP #$46 ; fsa (doesn't make sense)
+		BEQ .no_midway
+		CMP #$24 ; ci2 (fucky sublevels)
+		BEQ .no_midway
+		CMP #$58 ; sw1 (vertical level)
+		BEQ .no_midway
+		LDA #$01
+		STA.L !spliced_run
+		PLA
+		LDA !potential_translevel
+		PHX
+		SEP #$10
+		TAX
+		LDA.L level_midways,X
+		REP #$10
+		PLX
+		BRA .merge
+	.no_midway:
+		STZ !start_midway
+		PLA
+	.merge:
+		STA $17BB
+		STA $0E
+		RTL
+
+level_midways:
+		db $00,$01,$02,$03,$F9,$05,$06,$E8,$C9,$E9,$0A,$E0,$F3,$0D,$DC,$0F
+		db $10,$11,$12,$ED,$CA,$15,$16,$17,$F8,$19,$D4,$EF,$1C,$1D,$1E,$D6
+		db $20,$FC,$22,$23,$24,$FC,$02,$03,$04,$05,$06,$EA,$08,$09,$0A,$0B
+		db $0C,$D0,$0E,$0F,$FE,$11,$12,$13,$DD,$E3,$16,$17,$18,$19,$1A,$D8
+		db $F3,$FA,$1E,$1F,$20,$D7,$22,$23,$24,$25,$26,$27,$28,$29,$C5,$2B
+		db $2C,$2D,$2E,$2F,$30,$31,$32,$33,$34,$35,$36,$37,$38
+
+; load a different sprite pointer depending on region
+load_level_sprite_ptr:
+		LDA $EC00,Y
+		STA $CE
+		LDA $EC01,Y
+		STA $CF
+		LDA #$07
+		STA $D0
+		LDA.L !status_region
+		BEQ .done
+		CPY #$01EE ; ghost ship
+		BNE .done
+		LDA #$3F
+		STA $CE
+		LDA #$F9
+		STA $CF
+		LDA #$12
+		STA $D0
+	.done:
+		RTL
+		
+; load a different layer 1 pointer depending on region
+load_level_layer1_ptr:
+		LDA.L !status_region
+		BNE .j
+		LDA $E000,Y
+		STA $65
+		LDA $E001,Y
+		STA $66
+		LDA $E002,Y
+		STA $67
+		BRA .done
+	.j:
+		PHX
+		TYX
+		LDA.L j_level_layer1_ptrs,X
+		STA $65
+		LDA.L j_level_layer1_ptrs+1,X
+		STA $66
+		LDA.L j_level_layer1_ptrs+2,X
+		STA $67
+		PLX
+	.done:
+		RTL
+
+ORG $12F000
+
+j_levels:
+		incbin "bin/j_levels.bin"
+j_level_layer1_ptrs:
+		incbin "bin/j_level_layer1_ptrs.bin"

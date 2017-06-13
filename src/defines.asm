@@ -19,6 +19,9 @@
 ; actually overwrites some sprite table, but that doesn't matter because this is only used on the overworld
 !dynamic_stripe_image        = $1938 ; 19 bytes
 
+; flag to tell whether to start level midway or not
+!start_midway                = $13C8
+
 ; variables that are restored upon a level reset
 !restore_level_powerup       = $19D8
 !restore_level_itembox       = $19D9
@@ -143,6 +146,9 @@
 !room_timer_minutes          = $0F42
 !room_timer_seconds          = $0F43
 !room_timer_frames           = $0F44
+!pause_timer_minutes         = $0F45
+!pause_timer_seconds         = $0F46
+!pause_timer_frames          = $0F47
 
 ; the entire revamped status bar
 !status_bar                  = $1F2F ; 120 bytes

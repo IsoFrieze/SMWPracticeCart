@@ -14,6 +14,8 @@ ORG $009CA5
 ; disable no-yoshi intros
 ORG $05DA19
 		JMP $DAD7
+ORG $05D9DE
+		NOP #3
 
 ; don't go to bonus game
 ORG $008F67
@@ -30,6 +32,14 @@ ORG $00D0D8
 ; disable midway points
 ORG $00CA2C
 		db $00
+
+; check a different midway flag
+ORG $05D9D7
+		LDA !start_midway
+		NOP #2
+ORG $0DA691
+		LDA !start_midway
+		NOP #3
 
 ; disable yoshi message
 ORG $01EC36
@@ -173,6 +183,40 @@ ORG $05B6D3
 		db $53,$38,$00,$0B,$1F,$3C,!version_a,$3C
 		db $24,$3C,!version_b,$3C,$24,$3C,!version_c,$3C
 		db $FF
+
+; add midways to levels
+ORG $05F40A
+		db $6A ; ds1
+ORG $05F411
+		db $6A ; sl
+ORG $05F41D
+		db $70 ; ci4
+ORG $05F420
+		db $6A ; #5c
+ORG $05F4DC
+		db $9A ; #4c
+ORG $05F4E0
+		db $4A ; vf
+ORG $05F4E8
+		db $2A ; #2c
+ORG $05F4ED
+		db $4A ; dsh
+ORG $05F502
+		db $5A ; yi4
+ORG $05F50B
+		db $9A ; vs1,x,ds2
+ORG $05F511
+		db $7A ; vobf
+ORG $05F520
+		db $5A ; foi2
+ORG $05F525
+		db $DA,$9A,$6A,$AA ; sp8,sp7,sp6,sp5
+ORG $05F52C
+		db $9A,$BA ; sp3,sp4
+ORG $05F530
+		db $4A,$0A,$1A,$0A,$03,$AA,$9A ; sw2,x,sw3,x,x,sw4,sw5
+ORG $05F5DD
+		db $3A ; vobgh
 
 ; modify water splash to not conflict with slot numbers
 ORG $028D42

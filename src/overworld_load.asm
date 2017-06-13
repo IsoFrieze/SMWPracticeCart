@@ -59,6 +59,7 @@ overworld_load:
 		STZ !l_r_function
 		STZ !slowdown_speed
 		STZ !in_overworld_menu
+		STZ !start_midway
 		JSL $04DAAD ; layer 2 tilemap upload routine
 		JSR setup_shadow
 		

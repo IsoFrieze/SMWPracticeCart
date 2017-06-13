@@ -71,6 +71,10 @@ controller_update:
 ; runs on BRK
 break:
 		PHP
+		REP #$30
+		PHA
+		PHX
+		PHY
 		SEI
 		SEP #$30
 		
@@ -82,28 +86,37 @@ break:
 		
 		LDA #$1A
 		STA $2142 ; spooky music
-		LDA #$00
+		LDA #$05
 		STA $2105 ; bgmode
+		STZ $2106 ; mosaic
 		LDA #$20
 		STA $2107 ; bg1sc
+		LDA #$24
+		STA $2108 ; bg2sc
 		LDA #$00
 		STA $210B ; bg12nba
-		LDA #$00
+		LDA #$04
 		STA $210D
 		STA $210D ; bg1hofs
+		LDA #$00
 		STA $210E
 		STA $210E ; bg1vofs
+		STA $210F
+		STA $210F ; bg2hofs
+		STA $2110
+		STA $2110 ; bg2vofs
 		LDA #$00
 		STA $212C ; tm
-		LDA #$00
 		STA $212D ; ts
+		STA $212E ; tmw
+		STA $212F ; tsw
 		LDA #$32
 		STA $2130 ; cgswsel
 		LDA #$60
 		STA $2132
 		LDA #$9F
 		STA $2132 ; coldata
-		LDA #$21
+		LDA #$22
 		STA $2131 ; cgadsub
 		
 		LDA #$00
@@ -133,56 +146,134 @@ break:
 		STX $2116
 		PHK
 		PLA
-		LDX #break_tilemap
+		LDX #break_bg1_tilemap
 		LDY #$0800
 		JSL load_vram
 		
-		LDX #$2085
+		LDX #$2400
+		STX $2116
+		LDX #break_bg2_tilemap
+		LDY #$0800
+		JSL load_vram
+		
+		; layer 1 4bpp lower nybble
+		LDX #$2098
 		STX $2116 ; vram address
 		LDA #$00
 		XBA
 		LDA $07,S
+		AND #$0F
+		ASL A
 		TAX
 		STX $2118 ; vram data
 		LDA $06,S
+		AND #$0F
+		ASL A
 		TAX
 		STX $2118 ; vram data
 		LDA $05,S
 		DEC #2
+		AND #$0F
+		ASL A
 		TAX
 		STX $2118 ; vram data
 		
+		; layer 2 2bpp upper nybble
+		LDX #$2497
+		STX $2116 ; vram address
+		LDA #$00
+		XBA
+		LDA $07,S
+		AND #$F0
+		LSR #2
+		TAX
+		STX $2118 ; vram data
+		LDA $06,S
+		AND #$F0
+		LSR #2
+		TAX
+		STX $2118 ; vram data
+		LDA $05,S
+		DEC #2
+		AND #$F0
+		LSR #2
+		TAX
+		STX $2118 ; vram data
+		
+		; layer 1 4bpp upper nybble
 		REP #$20
 		LDA #$0100
 		STA $00
 		LDX #$2122
-	.loop_row:
+	.loop_row_h:
 		STX $2116 ; vram address
 		LDY #$0000
-	.loop_byte:
+	.loop_byte_h:
 		LDA ($00)
-		AND #$00FF
+		AND #$00F0
+		LSR #3
 		STA $2118 ; vram data
 		INC $00
 		INY
 		CPY #$0010
-		BNE .loop_byte
+		BNE .loop_byte_h
 		TXA
 		CLC
 		ADC #$0020
 		TAX		
 		CPX #$2322
-		BNE .loop_row
+		BNE .loop_row_h
 		
-		LDX #$2350
+		; layer 2 2bpp lower nybble
+		REP #$20
+		LDA #$0100
+		STA $00
+		LDX #$2522
+	.loop_row_l:
+		STX $2116 ; vram address
+		LDY #$0000
+	.loop_byte_l:
+		LDA ($00)
+		AND #$000F
+		ASL #2
+		STA $2118 ; vram data
+		INC $00
+		INY
+		CPY #$0010
+		BNE .loop_byte_l
+		TXA
+		CLC
+		ADC #$0020
+		TAX		
+		CPX #$2722
+		BNE .loop_row_l
+		
+		; layer 1 4bpp lower nybble
+		LDX #$234E
 		STX $2116 ; vram address
 		TSX
 		TXA
 		XBA
-		AND #$00FF
+		AND #$000F
+		ASL A
 		STA $2118 ; vram data
 		TXA
-		AND #$00FF
+		AND #$000F
+		ASL A
+		STA $2118 ; vram data
+		
+		; layer 2 2bpp upper nybble
+		LDX #$274D
+		STX $2116 ; vram address
+		TSX
+		TXA
+		XBA
+		AND #$00F0
+		LSR #2
+		STA $2118 ; vram data
+		TXA
+		AND #$00F0
+		LSR #2
 		STA $2118 ; vram data
 		
 		SEP #$20
@@ -199,8 +290,9 @@ break:
 		
 		LDA #$80
 		STA $2100 ; force blank
-		LDA #$01
+		LDA #$03
 		STA $212C ; tm
+		STA $212D ; ts
 		LDA #$0F
 		STA $2100 ; exit force blank
 		
@@ -245,11 +337,18 @@ break:
 		LDA #$81
 		STA $4200 ; enable nmi, controller
 		CLI
+		
+		REP #$30
+		PLY
+		PLX
+		PLA
 		PLP
 		RTL
 
 break_tiles:
 		incbin "bin/break_bg_tiles.bin"
-break_tilemap:
-		incbin "bin/break_bg_tilemap.bin"
+break_bg1_tilemap:
+		incbin "bin/break_bg1_tilemap.bin"
+break_bg2_tilemap:
+		incbin "bin/break_bg2_tilemap.bin"
 		

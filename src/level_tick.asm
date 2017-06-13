@@ -35,6 +35,11 @@ level_tick:
 		
 		JSR fade_and_in_level_common
 		
+		LDA $13D4 ; pause flag
+		BNE .paused
+		PEA !pause_timer_minutes
+		JSR tick_timer
+	.paused:
 		PEA !level_timer_minutes
 		JSR tick_timer
 		PEA !room_timer_minutes
@@ -410,8 +415,32 @@ display_timer_wrapper:
 		PLB
 		RTL
 		
-; draw the level & room timers to the status bar
+; draw the level, room, and pause timers to the status bar
 display_timers:
+		LDA !pause_timer_minutes
+		JSL $00974C ; hex2dec
+		STA $1F71 ; ones
+		LDA !pause_timer_seconds
+		JSL $00974C ; hex2dec
+		STX $1F73 ; tens
+		STA $1F74 ; ones
+		LDA.L !status_fractions
+		BEQ .draw_pause_fractions
+		LDA !pause_timer_frames
+		JSL $00974C ; hex2dec
+		STX $1F76 ; tens
+		STA $1F77 ; ones
+		LDA #$85
+		STA $1F75
+		JMP .display_level_timer
+	.draw_pause_fractions:
+		LDX !pause_timer_frames
+		LDA fractional_seconds,X
+		JSL $00974C ; hex2dec
+		STX $1F76 ; tens
+		STA $1F77 ; ones
+		
+	.display_level_timer:
 		LDA !level_timer_minutes
 		JSL $00974C ; hex2dec
 		STA $1F35 ; ones
@@ -489,30 +518,30 @@ display_dropped_frames:
 		LDA !dropped_frames+1
 		PHA
 		LSR #4
-		STA $1F73 ; 0x1000's
+		STA $1F91 ; 0x1000's
 		PLA
 		AND #$0F
-		STA $1F74 ; 0x100's
+		STA $1F92 ; 0x100's
 		LDA !dropped_frames
 		PHA
 		LSR #4
-		STA $1F75 ; 0x10's
+		STA $1F93 ; 0x10's
 		PLA
 		AND #$0F
-		STA $1F76 ; 0x01's
+		STA $1F94 ; 0x01's
 
 		LDX #$00 ; replace 0's with spaces cause it looks better for a 4 digit number
 	.loop:
-		LDA $1F73,X
+		LDA $1F91,X
 		BNE .done
 		LDA #$FC
-		STA $1F73,X
+		STA $1F91,X
 		INX
 		CPX #$03
 		BNE .loop
 	.done:
 		LDA #$11
-		STA $1F77
+		STA $1F95
 		RTS
 		
 ; draw the current controller input to the status bar
@@ -1209,6 +1238,12 @@ test_pause:
 		LDA #$00
 		BRA .done
 	.do_pause:
+		LDA $13D4 ; pause flag
+		BEQ .dont_clear
+		STZ !pause_timer_minutes
+		STZ !pause_timer_seconds
+		STZ !pause_timer_frames
+	.dont_clear:
 		LDA #$01		
 	.done:
 		RTL
@@ -1440,6 +1475,40 @@ boss_sprite_background:
 	.draw:
 		LDA.L $0281CF,X
 		RTL
+
+; only disable generators on U version
+goal_tape_trigger:
+		STZ $18DD
+		LDA.L !status_region
+		BNE .done
+		STZ $18B9
+	.done:
+		RTL
+		
+; load from a different table for edible dolphins on J
+load_tweaker_1686:
+		LDA.L !status_region
+		BNE .j
+		LDA.L $07F590,X
+		RTL
+	.j:
+		LDA.L sprite_1686_J,X
+		RTL
+
+sprite_1686_J:
+		db $00,$00,$00,$00,$02,$02,$02,$02,$42,$52,$52,$52,$52,$00,$09,$00
+		db $40,$00,$01,$00,$00,$10,$10,$90,$90,$01,$10,$10,$90,$00,$11,$01
+		db $01,$08,$00,$00,$00,$00,$01,$01,$19,$80,$00,$39,$09,$09,$10,$0A
+		db $09,$09,$09,$99,$18,$29,$08,$19,$19,$19,$11,$11,$15,$10,$0A,$40
+		db $40,$8C,$8C,$8C,$11,$18,$11,$80,$00,$29,$29,$10,$10,$10,$10,$00
+		db $00,$10,$29,$20,$29,$A9,$A9,$A9,$A9,$A9,$A9,$A9,$A9,$A9,$A9,$A9
+		db $29,$29,$3D,$3D,$3D,$3D,$3D,$3D,$3D,$29,$19,$29,$29,$59,$59,$18
+		db $18,$10,$10,$50,$28,$28,$28,$28,$08,$29,$29,$39,$39,$29,$28,$28
+		db $3A,$28,$29,$31,$31,$29,$00,$29,$29,$29,$29,$29,$29,$29,$29,$29
+		db $11,$11,$11,$11,$11,$11,$11,$11,$11,$10,$11,$01,$39,$10,$19,$19
+		db $19,$19,$01,$29,$98,$14,$14,$10,$18,$18,$18,$00,$19,$19,$19,$19
+		db $19,$1D,$1D,$19,$19,$18,$18,$19,$19,$19,$1D,$19,$18,$00,$10,$00
+		db $99,$99,$10,$90,$A9,$B9,$FF,$39,$19
 
 ; if mario finds himself in translevel 0, reset his overworld position as a fail safe
 test_translevel_0_failsafe:

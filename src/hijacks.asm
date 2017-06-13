@@ -10,6 +10,7 @@
 ; $01C062 - 17 / 19 bytes
 ; $01CD1E - 11 / 12 bytes
 ; $04FFB1 -  4 / 79 bytes
+; $05DC46 - 
 
 ; run on nmi
 ORG $0081AA
@@ -323,3 +324,27 @@ check_option_bounds_hijack:
 		JSL failsafe_check_option_bounds
 		DEC $1DF5
 		RTS
+
+; on goal tape trigger
+ORG $00FA89
+		JSL goal_tape_trigger
+		NOP #2
+
+; ldadDolphin
+ORG $07F7C1
+		JSL load_tweaker_1686
+
+; level layer 1 load
+ORG $05D8C2
+		JSL load_level_layer1_ptr
+		JMP $D8D1
+
+; level sprite load
+ORG $05D8EB
+		JSL load_level_sprite_ptr
+		JMP $D8F9
+
+; change level loaded if starting from midway
+ORG $05D8A9
+		JSL check_enter_level_midway
+		NOP
