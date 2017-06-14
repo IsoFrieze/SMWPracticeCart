@@ -58,7 +58,7 @@ level_tick:
 ; these routines are called on both level tick and level fade tick
 fade_and_in_level_common:
 		JSR display_coins
-;		JSR display_time ; already done in original status bar routine
+		JSR display_time ; already done in original status bar routine, this adds the fractional bit
 		JSR display_speed
 		JSR display_takeoff
 		JSR display_pmeter
@@ -380,19 +380,11 @@ display_speed:
 		
 ; draw the player's takeoff meter to the status bar
 display_takeoff:
-		LDA $19 ; powerup
-		CMP #$02 ; cape
-		BNE .clear_takeoff
 		LDA $149F ; takeoff meter
 		JSL $00974C ; hex2dec
 		STX $1F4D ; tens
-	.merge:
 		STA $1F4E ; ones
 		RTS
-	.clear_takeoff:
-		LDA #$FC ; empty tile
-		STA $1F4D ; tens
-		JMP .merge
 
 ; draw the player's p meter to the status bar
 ; p meter goes from #$00 to #$70, but we only show tens place because ones place changes too much to be useful
@@ -404,6 +396,21 @@ display_pmeter:
 		LSR A
 		LSR A
 		STA $1F6C ; ones
+		RTS
+
+; draw the fractional igt bit
+display_time:
+		LDA $0F30 ; igt fraction
+		DEC A
+		BPL .nowrap
+		LDA #$28
+	.nowrap:
+		CMP #$26
+		BCC .draw
+		CLC
+		ADC #$50
+	.draw:
+		STA $1F61 ; fraction
 		RTS
 		
 ; sad wrapper is sad
@@ -824,7 +831,21 @@ display_movie_capacity:
 		REP #$30
 		LDA.L !movie_location
 		TAX
+		LDA #$07C0
+		SEC
+		SBC.L !movie_location
+		TAY
+		XBA
 		SEP #$20
+		AND #$0F
+		STA $1F9B
+		TYA
+		AND #$F0
+		LSR #4
+		STA $1F9C
+		TYA
+		AND #$0F
+		STA $1F9D
 		CPX #$0100
 		BCC .finish
 		LDA #$D0
@@ -954,6 +975,7 @@ test_ci2:
 		BNE .done
 		
 		LDA $141A
+		AND #$7F
 		CMP #$03
 		BCC .no_max
 		LDA #$03

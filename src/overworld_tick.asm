@@ -77,6 +77,7 @@ test_for_enter_level:
 		
 		STZ !in_record_mode
 		STZ !in_playback_mode
+		STZ $1496 ; player animation timer
 		
 		LDA $0DA8
 		AND #$40
@@ -132,6 +133,18 @@ test_for_enter_level:
 		STA !movie_location+$27
 		LDA $14
 		STA !movie_location+$28
+		LDA.L !status_drop
+		STA !movie_location+$33
+		LDA.L !status_lrreset
+		STA !movie_location+$34
+		LDA.L !status_slowdown
+		STA !movie_location+$35
+		LDA.L !status_timedeath
+		STA !movie_location+$36
+		LDA.L !status_pause
+		STA !movie_location+$37
+		LDA.L !status_region
+		STA !movie_location+$38
 		JMP .finish
 	.no_record:
 		LDA $0DA6
@@ -209,6 +222,18 @@ test_for_enter_level:
 		STA $13
 		LDA !movie_location+$28
 		STA $14
+		LDA !movie_location+$33
+		STA.L !status_drop
+		LDA !movie_location+$34
+		STA.L !status_lrreset
+		LDA !movie_location+$35
+		STA.L !status_slowdown
+		LDA !movie_location+$36
+		STA.L !status_timedeath
+		LDA !movie_location+$37
+		STA.L !status_pause
+		LDA !movie_location+$38
+		STA.L !status_region
 		
 	.finish:
 		
@@ -968,7 +993,7 @@ translevel_locations:
 		dw $0000,$0C03,$0E03,$0508,$050A,$090A,$0B0C,$0D0C
 		dw $010D,$030D,$050E,$1003,$1403,$1603,$1A03,$1405
 		dw $1705,$1408,$100F,$0710,$0211,$0511,$0712,$0517
-		dw $0E17,$0319,$0C1B,$0B58,$0C1D,$0F1D,$1410,$1610
+		dw $0E17,$0319,$0C1B,$0F1B,$0C1D,$0F1D,$1410,$1610
 		dw $1812,$1516,$1816,$131B,$151B,$0922,$0B24,$0926
 		dw $0627,$0328,$0928,$082C,$002E,$032E,$0C2E,$1021
 		dw $1423,$1723,$1923,$1425,$1725,$1925,$1227,$1427

@@ -30,6 +30,12 @@ if P set:
 			+1A    = yoshi's color
 			+23-26 = boo ring angles
 			+27-28 = global frames
+			+33    = hotkey interference
+			+34    = L+R reset enable
+			+35    = slow motion enable
+			+36    = timeup enable
+			+37    = pause buffer
+			+38    = j/u setting
 +43+   = movie
 
 file max of $800 bytes ($7C0 for movie, $40 for header)

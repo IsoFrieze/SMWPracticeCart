@@ -202,6 +202,7 @@ setup_room_advance:
 
 ; restore things that are common to both room and level resets
 restore_common_aspects:
+		STZ $14A3 ; punch yoshi timer
 		STZ $1420 ; dragon coins
 		STZ $36
 		STZ $37 ; mode 7 angle
