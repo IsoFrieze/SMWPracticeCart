@@ -350,7 +350,7 @@ save_movie_details:
 		LDA !movie_location
 		TAX
 		LDA !movie_location+$44,X
-		AND #$0080
+		AND #$0008
 		BEQ .only_2
 		INX
 	.only_2:
