@@ -98,7 +98,7 @@ movie_BB2_A:
 movie_CBA_A:
 		incbin "bin/movies/cba_cape.smwmovie"
 movie_CM_A:
-		incbin "bin/movies/cm_cmbk.smwmovie"
+		incbin "bin/movies/cm_cape.smwmovie"
 movie_SL_A:
 		incbin "bin/movies/sl_cape.smwmovie"
 movie_C4_A:
@@ -183,7 +183,7 @@ movie_SP3_A:
 movie_SP4_A:
 		incbin "bin/movies/sp4_flower.smwmovie"
 movie_SP5_A:
-		incbin "bin/movies/sp5_gbk.smwmovie"
+		incbin "bin/movies/sp5_cape.smwmovie"
 movie_SP6_A:
 		incbin "bin/movies/sp6_cape.smwmovie"
 movie_SP7_A:
@@ -292,7 +292,7 @@ movie_BB2_B:
 movie_CBA_B:
 		incbin "bin/movies/cba_nocape.smwmovie"
 movie_CM_B:
-		incbin "bin/movies/cm_cape.smwmovie"
+		incbin "bin/movies/cm_cmbk.smwmovie"
 movie_SL_B:
 		incbin "bin/movies/sl_ld.smwmovie"
 movie_C4_B:
@@ -377,7 +377,7 @@ movie_SP3_B:
 movie_SP4_B:
 		incbin "bin/movies/_______.smwmovie"
 movie_SP5_B:
-		incbin "bin/movies/sp5_cape.smwmovie"
+		incbin "bin/movies/sp5_gbk.smwmovie"
 movie_SP6_B:
 		incbin "bin/movies/sp6_nocape.smwmovie"
 movie_SP7_B:
