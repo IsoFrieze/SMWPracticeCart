@@ -620,7 +620,7 @@ activate_load_state:
 		BEQ .start
 		LDA !in_record_mode
 		ORA !in_playback_mode
-		BNE cancel		
+		BNE .done_waiting		
 	.start:
 		LDA #$80
 		STA $2100 ; force blank
@@ -633,7 +633,6 @@ activate_load_state:
 	.complete:
 		JSR go_complete_load_state
 	.done:
-	redirect_load_state:
 		JSR restore_hardware_regs
 		
 		LDA !level_timer_minutes
@@ -664,7 +663,6 @@ activate_load_state:
 		BRA .loop
 	
 	.done_waiting:
-	cancel:
 		RTL
 		
 go_poverty_load_state:
@@ -950,7 +948,7 @@ go_poverty_load_state:
 		; since we restored the stack, we need to update the return
 		; address of this routine to what we want it to be. otherwise,
 		; it would return to the save state routine.
-		LDX #redirect_load_state-1
+		LDX #activate_load_state_done-1
 		TXA
 		STA $02,S
 		
@@ -1073,7 +1071,7 @@ go_complete_load_state:
 		; since we restored the stack, we need to update the return
 		; address of this routine to what we want it to be. otherwise,
 		; it would return to the save state routine.
-		LDX #redirect_load_state-1
+		LDX #activate_load_state_done-1
 		TXA
 		STA $02,S
 

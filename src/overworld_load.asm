@@ -3,22 +3,22 @@ ORG $118000
 ; this code is run once on overworld load
 overworld_load:
 		LDA !spliced_run
-		BNE .done
+		BNE .done_saving
 		LDA !save_timer_address+2
-		BMI .done ; bank >= 80 -> no record
+		BMI .done_saving ; bank >= 80 -> no record
 		LDA !record_used_orb
 		BEQ .continue
 		
 		; if you used an orb to complete the level, you must let the parade play out for it to count
 		LDA $0DD5 ; level exit type
 		CMP #$80 ; type = death or start/select
-		BEQ .done
+		BEQ .done_saving
 		
 	.continue:
 		; failsafe: if level was beaten in under 1 second, just discard the time, it was probably a glitch
 		LDA !level_timer_minutes
 		ORA !level_timer_seconds
-		BEQ .done
+		BEQ .done_saving
 	
 		LDA !record_used_powerup
 		BNE .deny_low
@@ -45,10 +45,10 @@ overworld_load:
 		STA !save_timer_address
 		
 		LDA !record_lunar_dragon
-		BEQ .done
+		BEQ .done_saving
 		JSR attempt_timer_save
 		
-	.done:
+	.done_saving:
 		LDA.L !use_poverty_save_states
 		BEQ .keep_state
 		LDA #$00
@@ -77,6 +77,8 @@ overworld_load:
 	.no_movie:
 		STZ !in_playback_mode
 		STZ !ow_display_times
+		LDA #$00
+		STA.L !spliced_run
 		JSR identify_movies
 		
 		RTL

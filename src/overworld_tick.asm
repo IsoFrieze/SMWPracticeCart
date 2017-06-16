@@ -191,6 +191,9 @@ test_for_enter_level:
 		STA !movie_location+1
 		STA !movie_location+2
 		
+		LDA !movie_location+$0E
+		EOR #$01
+		STA.L !status_states
 		LDA !movie_location+$13
 		STA $1F28
 		LDA !movie_location+$14

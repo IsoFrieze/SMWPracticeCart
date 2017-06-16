@@ -118,13 +118,10 @@ ORG $008F3B
 		JSR $9079 ; draw item in itembox
 		RTS
 
-; relocate the time counter
+; draw the time to the status bar
+; in a hijack to preserve the one-frame latency
 ORG $008E6F
-		LDA $0F31
-		STA $1F5E
-		LDA $0F32
-		STA $1F5F
-		LDA $0F33
-		STA $1F60
+		JSL display_time
+		JMP $8E81
 ORG $008E8C
 		STA $1F4E,X

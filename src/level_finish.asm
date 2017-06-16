@@ -9,6 +9,7 @@ level_finish:
 		STA !level_finished
 		JSL set_time_save_address
 		JSL add_additional_time
+		
 		PLP
 		RTL
 

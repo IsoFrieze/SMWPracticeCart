@@ -316,9 +316,8 @@ break:
 		BCS .no_number
 		REP #$20
 		TYA
-		LSR #2
-		CLC
-		ADC #$0130
+		LSR A
+		AND #$00FE
 		PHX
 		LDX #$2056
 		STX $2116 ; vram address

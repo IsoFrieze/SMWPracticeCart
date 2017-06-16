@@ -31,11 +31,11 @@ translevel_movie_ptr_A:
 		dw !movie_none
 
 movie_YH_A:
-		incbin "bin/movies/_______.smwmovie"
+		incbin "bin/movies/yh_messagebox.smwmovie"
 movie_YI1_A:
 		incbin "bin/movies/yi1_orb.smwmovie"
 movie_YI2_A:
-		incbin "bin/movies/_______.smwmovie"
+		incbin "bin/movies/yi2_small.smwmovie"
 movie_YI3_A:
 		incbin "bin/movies/yi3_small.smwmovie"
 movie_YI4_A:
@@ -64,7 +64,7 @@ movie_DSH_A:
 movie_GSP_A:
 		incbin "bin/movies/gsp_pipefly.smwmovie"
 movie_TSA_A:
-		incbin "bin/movies/tsa_death.smwmovie"
+		incbin "bin/movies/tsa_orb.smwmovie"
 movie_C2_A:
 		incbin "bin/movies/c2_cape.smwmovie"
 
@@ -92,9 +92,9 @@ movie_C3_A:
 		incbin "bin/movies/c3_cape.smwmovie"
 
 movie_BB1_A:
-		incbin "bin/movies/_______.smwmovie"
+		incbin "bin/movies/bb1_cape.smwmovie"
 movie_BB2_A:
-		incbin "bin/movies/_______.smwmovie"
+		incbin "bin/movies/bb2_nocape.smwmovie"
 movie_CBA_A:
 		incbin "bin/movies/cba_cape.smwmovie"
 movie_CM_A:
@@ -179,9 +179,9 @@ movie_SP1_A:
 movie_SP2_A:
 		incbin "bin/movies/sp2_wings.smwmovie"
 movie_SP3_A:
-		incbin "bin/movies/_______.smwmovie"
+		incbin "bin/movies/sp3_cape.smwmovie"
 movie_SP4_A:
-		incbin "bin/movies/_______.smwmovie"
+		incbin "bin/movies/sp4_flower.smwmovie"
 movie_SP5_A:
 		incbin "bin/movies/sp5_gbk.smwmovie"
 movie_SP6_A:
@@ -189,7 +189,7 @@ movie_SP6_A:
 movie_SP7_A:
 		incbin "bin/movies/sp7_nocape.smwmovie"
 movie_SP8_A:
-		incbin "bin/movies/_______.smwmovie"
+		incbin "bin/movies/sp8_small.smwmovie"
 
 print "inserted ", bytes, "/32768 bytes into bank $1B"
 
@@ -225,7 +225,7 @@ translevel_movie_ptr_B:
 
 
 movie_YH_B:
-		incbin "bin/movies/_______.smwmovie"
+		incbin "bin/movies/yh_orb.smwmovie"
 movie_YI1_B:
 		incbin "bin/movies/yi1_cape.smwmovie"
 movie_YI2_B:
@@ -233,9 +233,9 @@ movie_YI2_B:
 movie_YI3_B:
 		incbin "bin/movies/yi3_pi.smwmovie"
 movie_YI4_B:
-		incbin "bin/movies/_______.smwmovie"
+		incbin "bin/movies/yi4_yoshi.smwmovie"
 movie_YSP_B:
-		incbin "bin/movies/_______.smwmovie"
+		incbin "bin/movies/ysp_small.smwmovie"
 movie_C1_B:
 		incbin "bin/movies/c1_small.smwmovie"
 
@@ -248,7 +248,7 @@ movie_DP3_B:
 movie_DP4_B:
 		incbin "bin/movies/dp4_small.smwmovie"
 movie_DS1_B:
-		incbin "bin/movies/_______.smwmovie"
+		incbin "bin/movies/ds1_small.smwmovie"
 movie_DS2_B:
 		incbin "bin/movies/ds2_small.smwmovie"
 movie_DGH_B:
@@ -256,11 +256,11 @@ movie_DGH_B:
 movie_DSH_B:
 		incbin "bin/movies/dsh_small.smwmovie"
 movie_GSP_B:
-		incbin "bin/movies/_______.smwmovie"
+		incbin "bin/movies/gsp_small.smwmovie"
 movie_TSA_B:
-		incbin "bin/movies/_______.smwmovie"
+		incbin "bin/movies/tsa_death.smwmovie"
 movie_C2_B:
-		incbin "bin/movies/_______.smwmovie"
+		incbin "bin/movies/c2_nocape.smwmovie"
 
 movie_VD1_B:
 		incbin "bin/movies/vd1_nocape.smwmovie"
@@ -273,15 +273,15 @@ movie_VD4_B:
 movie_VS1_B:
 		incbin "bin/movies/_______.smwmovie"
 movie_VS2_B:
-		incbin "bin/movies/_______.smwmovie"
+		incbin "bin/movies/vs2_fire.smwmovie"
 movie_VS3_B:
-		incbin "bin/movies/_______.smwmovie"
+		incbin "bin/movies/vs3_ld.smwmovie"
 movie_VGH_B:
 		incbin "bin/movies/vgh_small.smwmovie"
 movie_RSP_B:
 		incbin "bin/movies/_______.smwmovie"
 movie_VF_B:
-		incbin "bin/movies/_______.smwmovie"
+		incbin "bin/movies/vf_small.smwmovie"
 movie_C3_B:
 		incbin "bin/movies/c3_nocape.smwmovie"
 
@@ -294,16 +294,16 @@ movie_CBA_B:
 movie_CM_B:
 		incbin "bin/movies/cm_cape.smwmovie"
 movie_SL_B:
-		incbin "bin/movies/_______.smwmovie"
+		incbin "bin/movies/sl_ld.smwmovie"
 movie_C4_B:
 		incbin "bin/movies/c4_nocape.smwmovie"
 
 movie_FoI1_B:
 		incbin "bin/movies/foi1_nocape.smwmovie"
 movie_FoI2_B:
-		incbin "bin/movies/_______.smwmovie"
+		incbin "bin/movies/foi2_small.smwmovie"
 movie_FoI3_B:
-		incbin "bin/movies/_______.smwmovie"
+		incbin "bin/movies/foi3_ld.smwmovie"
 movie_FoI4_B:
 		incbin "bin/movies/foi4_firegrab.smwmovie"
 movie_FSA_B:
@@ -313,7 +313,7 @@ movie_FGH_B:
 movie_BSP_B:
 		incbin "bin/movies/_______.smwmovie"
 movie_FF_B:
-		incbin "bin/movies/_______.smwmovie"
+		incbin "bin/movies/ff_nocape.smwmovie"
 movie_C5_B:
 		incbin "bin/movies/c5_nocape.smwmovie"
 
@@ -322,7 +322,7 @@ movie_CI1_B:
 movie_CI2_B:
 		incbin "bin/movies/ci2_secret.smwmovie"
 movie_CI3_B:
-		incbin "bin/movies/_______.smwmovie"
+		incbin "bin/movies/ci3_small.smwmovie"
 movie_CI4_B:
 		incbin "bin/movies/ci4_nocape.smwmovie"
 movie_CI5_B:
@@ -334,7 +334,7 @@ movie_CGH_B:
 movie_CF_B:
 		incbin "bin/movies/cf_nocape.smwmovie"
 movie_C6_B:
-		incbin "bin/movies/_______.smwmovie"
+		incbin "bin/movies/c6_nocape.smwmovie"
 
 movie_SGS_B:
 		incbin "bin/movies/sgs_nocape.smwmovie"
@@ -360,11 +360,11 @@ movie_BD_B:
 movie_SW1_B:
 		incbin "bin/movies/sw1_secret.smwmovie"
 movie_SW2_B:
-		incbin "bin/movies/_______.smwmovie"
+		incbin "bin/movies/sw2_secret.smwmovie"
 movie_SW3_B:
 		incbin "bin/movies/_______.smwmovie"
 movie_SW4_B:
-		incbin "bin/movies/_______.smwmovie"
+		incbin "bin/movies/sw4_small.smwmovie"
 movie_SW5_B:
 		incbin "bin/movies/_______.smwmovie"
 
@@ -383,6 +383,6 @@ movie_SP6_B:
 movie_SP7_B:
 		incbin "bin/movies/sp7_keepyoshi.smwmovie"
 movie_SP8_B:
-		incbin "bin/movies/sp8_small.smwmovie"
+		incbin "bin/movies/sp8_secret.smwmovie"
 		
 print "inserted ", bytes, "/32768 bytes into bank $1C"

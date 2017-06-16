@@ -282,14 +282,18 @@ draw_menu_selection:
 		RTL
 
 option_x_position:
-		db $06,$06,$06,$06,$06,$09,$09,$09,$09,$18,$0C,$15,$12,$12,$15,$0C,$0F,$0F,$0C,$0F,$18,$0F,$12,$15,$12,$15,$0C,$0E,$10,$12,$14
+		db $06,$06,$06,$06,$06,$09,$09,$09,$09,$18,$0C,$15,$12,$12,$15,$0C,$0F,$0F,$0C,$0F,$18,$0F,$12,$15,$12,$15,$0E,$10,$12,$14,$0C
 option_y_position:
-		db $03,$06,$09,$0C,$0F,$06,$09,$0C,$03,$0F,$09,$06,$06,$09,$09,$0F,$06,$09,$06,$0C,$03,$0F,$0C,$0C,$0F,$0F,$0C,$02,$02,$02,$02
+		db $03,$06,$09,$0C,$0F,$06,$09,$0C,$03,$0F,$09,$06,$06,$09,$09,$0F,$06,$09,$06,$0C,$03,$0F,$0C,$0C,$0F,$0F,$02,$02,$02,$02,$0C
+option_width:
+		db $10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$08,$08,$08,$08,$10
+option_height:
+		db $10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10
 option_index:
 		dw $0000,$0002,$0004,$0006,$0008,$000A,$010A,$020A
 		dw $030A,$030B,$0315,$0318,$031A,$031C,$031E,$0320
 		dw $0322,$0324,$032F,$0337,$0339,$033A,$033C,$033C
-		dw $043C,$043E,$0442,$0444,$0444,$0444,$0444
+		dw $043C,$043E,$0444,$0444,$0444,$0444,$0442
 menu_option_tiles:
 		incbin "bin/menu_option_tiles.bin"
 menu_object_tiles:
@@ -323,13 +327,21 @@ menu_palette:
 ; which selection to go to when a direction is pressed
 ;		db $00,$01,$02,$03,$04,$05,$06,$07,$08,$09,$0A,$0B,$0C,$0D,$0E,$0F,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$1A,$1B,$1C,$1D,$1E
 selection_press_up:
-		db $04,$00,$01,$02,$03,$08,$05,$06,$07,$14,$12,$1E,$1D,$0C,$0B,$1A,$1C,$10,$1B,$11,$09,$13,$0D,$0E,$16,$17,$0A,$0F,$15,$18,$19
+		db $04,$00,$01,$02,$03,$08,$05,$06,$07,$14,$12,$1D,$1C,$0C,$0B,$1E,$1B,$10,$1A,$11,$09,$13,$0D,$0E,$16,$17,$0F,$15,$18,$19,$0A
 selection_press_down:
-		db $01,$02,$03,$04,$00,$06,$07,$08,$05,$14,$1A,$0E,$0D,$16,$17,$1B,$11,$13,$0A,$15,$09,$1C,$18,$19,$1D,$1E,$0F,$12,$10,$0C,$0B
+		db $01,$02,$03,$04,$00,$06,$07,$08,$05,$14,$1E,$0E,$0D,$16,$17,$1A,$11,$13,$0A,$15,$09,$1B,$18,$19,$1C,$1D,$12,$10,$0C,$0B,$0F
 selection_press_left:
-		db $14,$0B,$0E,$17,$09,$01,$02,$03,$00,$19,$06,$0C,$10,$11,$0D,$04,$12,$0A,$05,$1A,$1E,$0F,$13,$16,$15,$18,$07,$08,$1B,$1C,$1D
+		db $14,$0B,$0E,$17,$09,$01,$02,$03,$00,$19,$06,$0C,$10,$11,$0D,$04,$12,$0A,$05,$1E,$1D,$0F,$13,$16,$15,$18,$08,$1A,$1B,$1C,$07
 selection_press_right:
-		db $08,$05,$06,$07,$0F,$12,$0A,$1A,$1B,$04,$11,$01,$0B,$0E,$02,$15,$0C,$0D,$10,$16,$00,$18,$17,$03,$19,$09,$13,$1C,$1D,$1E,$14
+		db $08,$05,$06,$07,$0F,$12,$0A,$1E,$1A,$04,$11,$01,$0B,$0E,$02,$15,$0C,$0D,$10,$16,$00,$18,$17,$03,$19,$09,$1B,$1C,$1D,$14,$13
+
+; the number of options to allow when holding x or y
+minimum_selection_extended:
+		db $01,$01,$01,$01,$01,$FF,$FF,$FF,$00,$09,$02,$01,$01,$01,$01,$01,$01,$0A,$07,$01,$00,$01,$FF,$FF,$01,$03,$28,$28,$28,$28,$01
+
+; the number of options to allow when not holding x or y
+minimum_selection_normal:
+		db $01,$01,$01,$01,$01,$03,$04,$04,$00,$09,$02,$01,$01,$01,$01,$01,$01,$0A,$07,$01,$00,$01,$FF,$FF,$01,$03,$28,$28,$28,$28,$01
 
 ; this code is run on every frame during the overworld menu game mode (after fade in completes)
 ; GAME MODE #$1F
@@ -509,11 +521,11 @@ option_selection_mode:
 		dw .select_memorylow
 		dw .select_moviesave
 		dw .select_movieload
+		dw .select_name
+		dw .select_name
+		dw .select_name
+		dw .select_name
 		dw .select_region
-		dw .select_name
-		dw .select_name
-		dw .select_name
-		dw .select_name
 		dw .select_exit
 		
 	.select_yellow:
@@ -845,6 +857,15 @@ help_press_left:
 help_press_right:
 		db $03,$04,$17,$06,$06,$07,$07,$09,$0B,$0C,$18,$00,$01,$11,$12,$13,$14,$0D,$0E,$0F,$10,$16,$02,$15,$05
 		
+help_x_position:
+		db $38,$38,$58,$90,$90,$90,$B0,$B8,$08,$08,$08,$20,$20,$50,$50,$50,$50,$90,$90,$90,$90,$B8,$08,$90,$38
+help_y_position:
+		db $5C,$64,$74,$5C,$64,$6C,$5C,$5C,$5C,$64,$6C,$5C,$64,$9C,$A4,$AC,$B4,$9C,$A4,$AC,$B4,$74,$74,$74,$6C
+help_width:
+		db $38,$38,$18,$18,$20,$20,$08,$40,$10,$10,$10,$10,$10,$38,$38,$38,$38,$38,$38,$38,$38,$40,$20,$20,$38
+help_height:
+		db $08,$08,$08,$08,$08,$08,$08,$18,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08
+		
 ; draw the flashing cursor to the screen:
 draw_help_cursor:
 		PHP
@@ -890,15 +911,6 @@ draw_help_cursor:
 		PLP
 		RTL
 		
-help_x_position:
-		db $38,$38,$58,$90,$90,$90,$B0,$B8,$08,$08,$08,$20,$20,$50,$50,$50,$50,$90,$90,$90,$90,$B8,$08,$90,$38
-help_y_position:
-		db $5C,$64,$74,$5C,$64,$6C,$5C,$5C,$5C,$64,$6C,$5C,$64,$9C,$A4,$AC,$B4,$9C,$A4,$AC,$B4,$74,$74,$74,$6C
-help_width:
-		db $38,$38,$18,$18,$20,$20,$08,$40,$10,$10,$10,$10,$10,$38,$38,$38,$38,$38,$38,$38,$38,$40,$20,$20,$38
-help_height:
-		db $08,$08,$08,$08,$08,$08,$08,$18,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08
-		
 ; draw the flashing cursor to the screen:
 draw_option_cursor:
 		PHP
@@ -908,6 +920,10 @@ draw_option_cursor:
 		
 		LDA !current_selection
 		TAX
+		LDA option_width,X
+		STA $00
+		LDA option_height,X
+		STA $01
 		LDA option_y_position,X
 		ASL #3
 		SEC
@@ -927,17 +943,6 @@ draw_option_cursor:
 		SEC
 		SBC #$08
 		TAX
-		LDA !current_selection
-		CMP #$1B ; index of first name option
-		BCC .big
-		LDA #$08
-		BRA .merge_size
-	.big:
-		LDA #$10
-	.merge_size:
-		STA $00
-		LDA #$10
-		STA $01
 		LDA #$01
 		STA $03
 		
@@ -1061,14 +1066,6 @@ check_bounds:
 		PLY
 		PLP
 		RTS
-
-; the number of options to allow when holding x or y
-minimum_selection_extended:
-		db $01,$01,$01,$01,$01,$FF,$FF,$FF,$00,$09,$02,$01,$01,$01,$01,$01,$01,$0A,$07,$01,$00,$01,$FF,$FF,$01,$03,$01,$28,$28,$28,$28
-
-; the number of options to allow when not holding x or y
-minimum_selection_normal:
-		db $01,$01,$01,$01,$01,$03,$04,$04,$00,$09,$02,$01,$01,$01,$01,$01,$01,$0A,$07,$01,$00,$01,$FF,$FF,$01,$03,$01,$28,$28,$28,$28
 		
 ; reset persistant enemy states
 ; right now this only includes boo cloud and boo ring angles

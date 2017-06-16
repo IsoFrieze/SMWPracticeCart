@@ -63,6 +63,8 @@ setup_room_reset:
 		STA $0DBF ; coins
 		LDA !restore_room_takeoff
 		STA $149F ; takeoff
+		LDA !restore_room_dragoncoins
+		STA $1420 ; dragon coins
 		LDA !restore_room_igt
 		STA $0F31
 		LDA !restore_room_igt+1
@@ -131,6 +133,7 @@ setup_level_reset:
 		STZ $0F32
 		STZ $0F33 ; in game timer
 		STZ $1B95 ; yoshi heaven flag
+		STZ $1420 ; dragon coins
 		STZ !level_timer_minutes
 		STZ !level_timer_seconds
 		STZ !level_timer_frames
@@ -203,7 +206,6 @@ setup_room_advance:
 ; restore things that are common to both room and level resets
 restore_common_aspects:
 		STZ $14A3 ; punch yoshi timer
-		STZ $1420 ; dragon coins
 		STZ $36
 		STZ $37 ; mode 7 angle
 		STZ $14AF ; on/off switch
@@ -272,6 +274,8 @@ save_room_properties:
 		STA !restore_room_takeoff
 		LDA $0DBF ; coins
 		STA !restore_room_coins
+		LDA $1420 ; dragon coins
+		STA !restore_room_dragoncoins
 		
 		LDX #$0B
 	.loop_item:
@@ -396,8 +400,6 @@ save_level_properties:
 		STZ !record_used_orb
 		STZ !record_lunar_dragon
 		STZ !level_finished
-		LDA #$00
-		STA.L !spliced_run
 		
 		RTS
 
@@ -567,10 +569,13 @@ fix_iggy_larry_graphics:
 
 ; at the very start of level loading, latch the apu timer so we can figure out the load time
 latch_apu:
+		PHP
+		REP #$20
+	.bounce:
 		LDA $2140
+		BEQ .bounce
 		STA !apu_timer_latch
-		LDA $2141
-		STA !apu_timer_latch+1
+		PLP
 		RTL
 
 ; complete the level load by updating the timer with the calculated load time
@@ -603,7 +608,9 @@ do_final_loading:
 ; at the very end of level loading, latch the apu timer and calculate the load time
 calculate_load_time:
 		REP #$20
+	.bounce:
 		LDA $2140
+		BEQ .bounce
 		SEC
 		SBC !apu_timer_latch ; divide difference by 0x1C0
 		STA $4204 ; dividend

@@ -40,6 +40,7 @@
 !restore_room_coins          = $19EF
 !restore_room_igt            = $19F0 ; 3 bytes
 !restore_room_xpos           = $19F3 ; 2 bytes, 16-bit value
+!restore_room_dragoncoins    = $19F5
 
 ; determines when to start scrolling fast through options
 !fast_scroll_timer           = $0EF9
@@ -85,8 +86,8 @@
 !status_memorylo             = $700337
 !status_moviesave            = $700338
 !status_movieload            = $700339
-!status_region               = $70033A
-!status_playername           = $70033B ; 4 bytes
+!status_playername           = $70033A ; 4 bytes
+!status_region               = $70033E
 ; $70033A - $70033F reserved for future expansion
 
 ; location of cape interaction table at $1FE2

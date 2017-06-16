@@ -58,7 +58,7 @@ level_tick:
 ; these routines are called on both level tick and level fade tick
 fade_and_in_level_common:
 		JSR display_coins
-		JSR display_time ; already done in original status bar routine, this adds the fractional bit
+	;	JSR display_time ; already done in a hijack
 		JSR display_speed
 		JSR display_takeoff
 		JSR display_pmeter
@@ -398,20 +398,22 @@ display_pmeter:
 		STA $1F6C ; ones
 		RTS
 
-; draw the fractional igt bit
+; draw the fractional igt bit (in a hijack instead because latency)
 display_time:
+		LDA $0F31 ; hundreds
+		STA $1F5E
+		LDA $0F32 ; tens
+		STA $1F5F
+		LDA $0F33 ; ones
+		STA $1F60
 		LDA $0F30 ; igt fraction
-		DEC A
-		BPL .nowrap
-		LDA #$28
-	.nowrap:
 		CMP #$26
 		BCC .draw
 		CLC
 		ADC #$50
 	.draw:
-		STA $1F61 ; fraction
-		RTS
+		STA $1F61
+		RTL
 		
 ; sad wrapper is sad
 display_timer_wrapper:
