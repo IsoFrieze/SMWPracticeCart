@@ -343,8 +343,3 @@ ORG $05D8C2
 ORG $05D8EB
 		JSL load_level_sprite_ptr
 		JMP $D8F9
-
-; change level loaded if starting from midway
-ORG $05D8A9
-		JSL check_enter_level_midway
-		NOP

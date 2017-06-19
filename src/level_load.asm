@@ -44,7 +44,6 @@ l_r_functions:
 		dw setup_room_reset
 		dw setup_level_reset
 		dw setup_room_advance
-		dw setup_midway_reset
 
 ; prepare the level load if we just did a room reset
 setup_room_reset:
@@ -102,20 +101,10 @@ setup_room_reset:
 		JSR restore_common_aspects
 		RTS
 
-; prepare the level load if we are reseting to the midway point
-setup_midway_reset:
-		LDA #$01
-		STA.L !spliced_run
-		STA !start_midway
-		
-		JSR setup_level_reset_begin
-		RTS
-
 ; prepare the level load if we just did a level reset
 setup_level_reset:
 		LDA #$00
 		STA.L !spliced_run
-		STA !start_midway
 		
 	.begin:
 		LDA !restore_level_powerup
@@ -630,52 +619,6 @@ calculate_load_time:
 		SEP #$20
 		STA !apu_timer_difference
 		RTL
-
-; if entering level midway, change level loaded for certain levels
-check_enter_level_midway:
-		PHA
-		LDA !start_midway
-		BEQ .no_midway
-		LDA !potential_translevel
-		; eventually i'll find a way to get some of these working, but for now just give up
-		CMP #$03 ; tsa (doesn't make sense)
-		BEQ .no_midway
-		CMP #$2D ; vs1 (vertical level)
-		BEQ .no_midway
-		CMP #$0C ; bb1 (weird autoscroll)
-		BEQ .no_midway
-		CMP #$46 ; fsa (doesn't make sense)
-		BEQ .no_midway
-		CMP #$24 ; ci2 (fucky sublevels)
-		BEQ .no_midway
-		CMP #$58 ; sw1 (vertical level)
-		BEQ .no_midway
-		LDA #$01
-		STA.L !spliced_run
-		PLA
-		LDA !potential_translevel
-		PHX
-		SEP #$10
-		TAX
-		LDA.L level_midways,X
-		REP #$10
-		PLX
-		BRA .merge
-	.no_midway:
-		STZ !start_midway
-		PLA
-	.merge:
-		STA $17BB
-		STA $0E
-		RTL
-
-level_midways:
-		db $00,$01,$02,$03,$F9,$05,$06,$E8,$C9,$E9,$0A,$E0,$F3,$0D,$DC,$0F
-		db $10,$11,$12,$ED,$CA,$15,$16,$17,$F8,$19,$D4,$EF,$1C,$1D,$1E,$D6
-		db $20,$FC,$22,$23,$24,$FC,$02,$03,$04,$05,$06,$EA,$08,$09,$0A,$0B
-		db $0C,$D0,$0E,$0F,$FE,$11,$12,$13,$DD,$E3,$16,$17,$18,$19,$1A,$D8
-		db $F3,$FA,$1E,$1F,$20,$D7,$22,$23,$24,$25,$26,$27,$28,$29,$C5,$2B
-		db $2C,$2D,$2E,$2F,$30,$31,$32,$33,$34,$35,$36,$37,$38
 
 ; load a different sprite pointer depending on region
 load_level_sprite_ptr:

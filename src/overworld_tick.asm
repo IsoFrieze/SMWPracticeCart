@@ -19,6 +19,9 @@ overworld_tick:
 		JSR test_for_enter_level
 		JSR draw_movie_slots
 		
+		LDA #$40
+		TSB $0D9F ; hdmaen mirror
+		
 		PLB
 		PLP
 		RTL
@@ -151,12 +154,6 @@ test_for_enter_level:
 		AND #$40
 		BNE .yes_playback
 	.exit:
-		LDA $0DA6
-		AND #$80
-		BEQ .no_midway
-		LDA #$01
-		STA !start_midway
-	.no_midway:
 		JMP .finish
 	.yes_playback:
 		LDA !movie_location+$04

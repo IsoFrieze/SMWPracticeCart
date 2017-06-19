@@ -59,7 +59,6 @@ overworld_load:
 		STZ !l_r_function
 		STZ !slowdown_speed
 		STZ !in_overworld_menu
-		STZ !start_midway
 		JSL $04DAAD ; layer 2 tilemap upload routine
 		JSR setup_shadow
 		
@@ -453,9 +452,6 @@ setup_shadow:
 		PHK
 		PLA
 		STA $4364
-		
-	;	LDA #$40 ; taken care of at $00CB0C
-	;	TSB $0D9F ; hdmaen mirror
 		
 		PLP
 		RTS

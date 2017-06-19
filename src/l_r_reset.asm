@@ -7,12 +7,6 @@ activate_room_reset:
 		AND #$7F
 		BNE .room_reset
 		
-		; but if we entered midway, take care of that
-		LDA !start_midway
-		BEQ .level_reset
-		JSL activate_midway_reset
-		RTL
-		
 	.level_reset:
 		JSL activate_level_reset
 		RTL

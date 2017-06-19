@@ -159,7 +159,7 @@ movie_VoBF_A:
 movie_C7_A:
 		incbin "bin/movies/c7_cape.smwmovie"
 movie_FD_A:
-		incbin "bin/movies/_______.smwmovie"
+		incbin "bin/movies/fd_cloud.smwmovie"
 movie_BD_A:
 		incbin "bin/movies/bd_cape.smwmovie"
 
@@ -242,7 +242,7 @@ movie_C1_B:
 movie_DP1_B:
 		incbin "bin/movies/dp1_small.smwmovie"
 movie_DP2_B:
-		incbin "bin/movies/_______.smwmovie"
+		incbin "bin/movies/dp2_small.smwmovie"
 movie_DP3_B:
 		incbin "bin/movies/dp3_small.smwmovie"
 movie_DP4_B:
@@ -271,7 +271,7 @@ movie_VD3_B:
 movie_VD4_B:
 		incbin "bin/movies/vd4_small.smwmovie"
 movie_VS1_B:
-		incbin "bin/movies/_______.smwmovie"
+		incbin "bin/movies/vs1_nocape.smwmovie"
 movie_VS2_B:
 		incbin "bin/movies/vs2_fire.smwmovie"
 movie_VS3_B:
@@ -279,7 +279,7 @@ movie_VS3_B:
 movie_VGH_B:
 		incbin "bin/movies/vgh_small.smwmovie"
 movie_RSP_B:
-		incbin "bin/movies/_______.smwmovie"
+		incbin "bin/movies/rsp_small.smwmovie"
 movie_VF_B:
 		incbin "bin/movies/vf_small.smwmovie"
 movie_C3_B:
@@ -307,7 +307,7 @@ movie_FoI3_B:
 movie_FoI4_B:
 		incbin "bin/movies/foi4_firegrab.smwmovie"
 movie_FSA_B:
-		incbin "bin/movies/_______.smwmovie"
+		incbin "bin/movies/fsa_small.smwmovie"
 movie_FGH_B:
 		incbin "bin/movies/fgh_clip.smwmovie"
 movie_BSP_B:
@@ -355,7 +355,7 @@ movie_C7_B:
 movie_FD_B:
 		incbin "bin/movies/fd_cape.smwmovie"
 movie_BD_B:
-		incbin "bin/movies/_______.smwmovie"
+		incbin "bin/movies/bd_small.smwmovie"
 
 movie_SW1_B:
 		incbin "bin/movies/sw1_secret.smwmovie"
