@@ -81,7 +81,7 @@ movie_VS1_A:
 movie_VS2_A:
 		incbin "bin/movies/vs2_nocape.smwmovie"
 movie_VS3_A:
-		incbin "bin/movies/_______.smwmovie"
+		incbin "bin/movies/vs3_nocape.smwmovie"
 movie_VGH_A:
 		incbin "bin/movies/vgh_cape.smwmovie"
 movie_RSP_A:
@@ -288,7 +288,7 @@ movie_C3_B:
 movie_BB1_B:
 		incbin "bin/movies/bb1_nocape.smwmovie"
 movie_BB2_B:
-		incbin "bin/movies/_______.smwmovie"
+		incbin "bin/movies/bb2_small.smwmovie"
 movie_CBA_B:
 		incbin "bin/movies/cba_nocape.smwmovie"
 movie_CM_B:
@@ -311,7 +311,7 @@ movie_FSA_B:
 movie_FGH_B:
 		incbin "bin/movies/fgh_clip.smwmovie"
 movie_BSP_B:
-		incbin "bin/movies/_______.smwmovie"
+		incbin "bin/movies/bsp_small.smwmovie"
 movie_FF_B:
 		incbin "bin/movies/ff_nocape.smwmovie"
 movie_C5_B:
@@ -351,7 +351,7 @@ movie_VoBGH_B:
 movie_VoBF_B:
 		incbin "bin/movies/vobf_nocape.smwmovie"
 movie_C7_B:
-		incbin "bin/movies/_______.smwmovie"
+		incbin "bin/movies/c7_small.smwmovie"
 movie_FD_B:
 		incbin "bin/movies/fd_cape.smwmovie"
 movie_BD_B:
@@ -362,11 +362,11 @@ movie_SW1_B:
 movie_SW2_B:
 		incbin "bin/movies/sw2_secret.smwmovie"
 movie_SW3_B:
-		incbin "bin/movies/_______.smwmovie"
+		incbin "bin/movies/sw3_nocape.smwmovie"
 movie_SW4_B:
 		incbin "bin/movies/sw4_small.smwmovie"
 movie_SW5_B:
-		incbin "bin/movies/_______.smwmovie"
+		incbin "bin/movies/sw5_small.smwmovie"
 
 movie_SP1_B:
 		incbin "bin/movies/sp1_nowings.smwmovie"
@@ -375,7 +375,7 @@ movie_SP2_B:
 movie_SP3_B:
 		incbin "bin/movies/sp3_nocape.smwmovie"
 movie_SP4_B:
-		incbin "bin/movies/_______.smwmovie"
+		incbin "bin/movies/sp4_small.smwmovie"
 movie_SP5_B:
 		incbin "bin/movies/sp5_gbk.smwmovie"
 movie_SP6_B:

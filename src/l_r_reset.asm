@@ -20,17 +20,25 @@ activate_room_reset:
 		JSL set_global_exit
 		JSR trigger_screen_exit
 		
-		RTL
-
-; this code is run when the player presses L + R in the first room after entering midway - reset to midway
-activate_midway_reset:
-		LDA #$04
-		STA !l_r_function
+		LDA #$20 ; bow sound
+		STA $1DF9 ; apu i/o
 		
-		JSR get_level_low_byte
-		LDY #$00
+		RTL
+		
+; this code is run when the player buffers L + R upon level load or reset
+activate_midway_entrance:
+		LDA #$03
+		STA !l_r_function
+		STZ !start_midway
+		INC $13CE ; midway flag
+		
+		JSR get_level_low_byte ; use secondary exit that is equal to level number
+		LDY #$01
 		JSL set_global_exit
 		JSR trigger_screen_exit
+		
+		LDA #$05 ; midway sound
+		STA $1DF9 ; apu i/o
 		
 		RTL
 
@@ -43,6 +51,9 @@ activate_level_reset:
 		LDY #$00
 		JSL set_global_exit
 		JSR trigger_screen_exit
+		
+		LDA #$20 ; bow sound
+		STA $1DF9 ; apu i/o
 		
 		RTL
 
@@ -79,6 +90,10 @@ activate_room_advance:
 		PHX
 		JSL set_global_exit
 		JSR trigger_screen_exit
+		
+		LDA #$09 ; cape sound
+		STA $1DF9 ; apu i/o
+		
 		PLA
 		REP #$20
 		AND #$00FF
@@ -115,9 +130,6 @@ trigger_screen_exit:
 		STA $71 ; player animation trigger
 		STZ $88
 		STZ $89 ; pipe timers
-		
-		LDA #$20 ; bow sound
-		STA $1DF9 ; apu i/o
 		RTS
 
 ; given the current sub/level, return a sub/level that 'advances' one room forward

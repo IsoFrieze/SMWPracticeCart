@@ -19,6 +19,9 @@
 ; actually overwrites some sprite table, but that doesn't matter because this is only used on the overworld
 !dynamic_stripe_image        = $1938 ; 19 bytes
 
+; flag to tell whether to start level midway or not
+!start_midway                = $13C8
+
 ; variables that are restored upon a level reset
 !restore_level_powerup       = $19D8
 !restore_level_itembox       = $19D9

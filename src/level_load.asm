@@ -8,6 +8,8 @@ level_load:
 		PLB
 		SEP #$20
 		
+		JSR check_midway_entrance
+		
 		LDA !l_r_function
 		BEQ .no_l_r_reset
 		
@@ -44,6 +46,28 @@ l_r_functions:
 		dw setup_room_reset
 		dw setup_level_reset
 		dw setup_room_advance
+
+; check if we should advance to the midway entrance of the level
+check_midway_entrance:
+		LDA.L !status_lrreset
+		BNE .done
+		LDA !l_r_function
+		CMP #$02
+		BEQ .skip_sublevel_count
+		LDA $141A
+		AND #$7F
+		BNE .done
+	.skip_sublevel_count:
+		LDA $0DA4 ; axlr----
+		AND #%00110000
+		CMP #%00110000
+		BNE .done
+		
+		LDA #$01
+		STA !start_midway
+		
+	.done:
+		RTS
 
 ; prepare the level load if we just did a room reset
 setup_room_reset:
