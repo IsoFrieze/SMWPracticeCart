@@ -5,5 +5,6 @@ fixes.txt
 sram_map.txt
 movie_format.txt
 upload.html
-movie_format.txt
 *.srm
+*.xml
+TRANSFER.bat
