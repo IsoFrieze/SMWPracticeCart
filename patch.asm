@@ -12,7 +12,7 @@ ORG $00FFC0
 
 ; nintendo presents sound
 ORG $0093C1
-		db $0C
+		db $15
 
 ; include everything because I want to be organized this time
 

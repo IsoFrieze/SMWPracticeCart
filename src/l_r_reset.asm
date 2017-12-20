@@ -666,6 +666,7 @@ activate_load_state:
 		STZ $2100
 		WAI ; wait for IRQ
 		STZ $2100
+		INC !previous_sixty_hz ; waiting here shouldn't count as lag
 		BRA .loop
 	
 	.done_waiting:

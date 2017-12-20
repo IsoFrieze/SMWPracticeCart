@@ -73,11 +73,26 @@ overworld_load:
 		BEQ .no_movie
 		JSR save_movie_details
 		STZ !in_record_mode
+		
 	.no_movie:
+		LDA !in_playback_mode
+		BEQ .no_playback
 		STZ !in_playback_mode
+		
+		; restore settings
+		LDX #$1F
+	.loop_settings:
+		LDA.L !backup_status_table,X
+		STA.L !status_table,X
+		DEX
+		BPL .loop_settings
+		JSL restore_basic_settings
+		
+	.no_playback:
 		STZ !ow_display_times
 		LDA #$00
 		STA.L !spliced_run
+		STZ !start_midway
 		JSR identify_movies
 		
 		RTL
@@ -142,8 +157,16 @@ late_overworld_load:
 		STX $2116 ; vram address
 		PHK
 		PLA ; #bank of overworld_layer_3_tiles
-		LDX #overworld_layer_3_tiles+$170
+		LDX #overworld_layer_3_tiles+$160
 		LDY #$0010
+		JSL load_vram
+		
+		LDX #$4B70
+		STX $2116 ; vram address
+		PHK
+		PLA ; #bank of overworld_layer_3_tiles
+		LDX #overworld_layer_3_tiles+$170
+		LDY #$0070
 		JSL load_vram
 		
 		LDX #$6BD0
@@ -461,7 +484,7 @@ shadow_palette_hdma:
 		dw $0D0D,$573B
 		db $01
 		dw $0E0E,$551E
-		db $30
+		db $28
 		dw $0F0F,$0000
 		db $01
 		dw $0D0D,$3E75

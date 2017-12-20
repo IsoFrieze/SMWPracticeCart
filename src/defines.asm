@@ -88,7 +88,9 @@
 !status_movieload            = $700339
 !status_playername           = $70033A ; 4 bytes
 !status_region               = $70033E
-; $70033A - $70033F reserved for future expansion
+; $70033F reserved for future expansion.
+!backup_status_table         = $7006C0 ; $20 bytes
+
 
 ; location of cape interaction table at $1FE2
 !new_cape_interaction        = $0F5E
@@ -153,6 +155,31 @@
 
 ; the entire revamped status bar
 !status_bar                  = $1F2F ; 120 bytes
+
+; status bar meters
+!sb_mariox                   = $1F2F ; 2 bytes
+!sb_takeoff                  = $1F4D ; 2 bytes
+!sb_pmeter                   = $1F6B ; 2 bytes
+!sb_name                     = $1F89 ; 4 bytes
+!sb_yoshisp                  = $1F32 ; 2 bytes
+!sb_itemsp                   = $1F50 ; 2 bytes
+!sb_leveltimer               = $1F35 ; 7 bytes
+!sb_roomtimer                = $1F53 ; 7 bytes
+!sb_pausetimer               = $1F71 ; 7 bytes
+!sb_lag                      = $1F90 ; 6 bytes
+!sb_coins                    = $1F40 ; 3 bytes
+!sb_memory                   = $1F5E ; 4 bytes
+!sb_igt                      = $1F7C ; 5 bytes
+!sb_movie                    = $1F9A ; 13 bytes
+!sb_slowdown                 = $1F44 ; 1 byte
+!sb_input                    = $1F45 ; 8x3 bytes
+
+!sbbowser_leveltimer         = $0258 ; 7x4 bytes
+!sbbowser_leveltimer_2       = $0436 ; 7 bytes
+!sbbowser_roomtimer          = $03A0 ; 7x4 bytes
+!sbbowser_roomtimer_2        = $0488 ; 7 bytes
+!sbbowser_pausetimer         = $02C0 ; 7x4 bytes
+!sbbowser_pausetimer_2       = $0450 ; 7 bytes
 
 ; oam slots for added objects
 !oam_slot_sprite_slots       = $2C

@@ -32,6 +32,8 @@ ORG $00D0D8
 ; disable midway points
 ORG $00CA2C
 		db $00
+ORG $048F35
+		JMP $8F56
 
 ; disable yoshi message
 ORG $01EC36
@@ -69,6 +71,14 @@ ORG $0DA59C
 ORG $0DB2D7
 		LDA #$00
 		NOP
+		
+; overworld shadow HDMA during transitions
+ORG $04DB97
+		LDA #$C0
+
+; remove ! block party
+ORG $04F294
+		db $00
 
 ; activate ! blocks every time
 ORG $00EEB1

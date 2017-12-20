@@ -148,6 +148,7 @@ setup_level_reset:
 		STZ $1B95 ; yoshi heaven flag
 		STZ $1420 ; dragon coins
 		STZ $2A ; mode 7 center
+		STZ $13CE ; midway flag
 		STZ !level_timer_minutes
 		STZ !level_timer_seconds
 		STZ !level_timer_frames
@@ -553,8 +554,14 @@ upload_bowser_timer_graphics:
 		LDX #sprite_slots_graphics
 		JSL load_vram
 		
-		LDY #$0060
-		LDX #$6F00
+		LDY #$00C0
+		LDX #$6B80
+		STX $2116 ; vram address
+		LDX #sprite_slots_graphics+$140
+		JSL load_vram
+		
+		LDY #$0080
+		LDX #$6980
 		STX $2116 ; vram address
 		LDX #sprite_slots_graphics+$200
 		JSL load_vram

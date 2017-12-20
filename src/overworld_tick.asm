@@ -179,6 +179,15 @@ test_for_enter_level:
 		BNE .exit
 		
 		SEP #$30
+		
+		; backup settings
+		LDX #$1F
+	.loop_settings:
+		LDA.L !status_table,X
+		STA.L !backup_status_table,X
+		DEX
+		BPL .loop_settings
+		
 		INC !in_playback_mode	
 		LDA #$01
 		STA.L !spliced_run
@@ -443,11 +452,16 @@ draw_times:
 		TAY
 		LDA [$00],Y
 		CMP #$FF
-		BEQ .draw_unran
-		LDA !potential_translevel
-		BEQ .draw_unran
+		BNE +
+		JMP .draw_unran
+	+	LDA !potential_translevel
+		BNE +
+		JMP .draw_unran
 		
-		PHX
+	+	PHX
+		LDA.L !status_fractions
+		CMP #$02
+		BEQ .in_framecount
 		LDA [$00],Y
 		STA $0D
 		JSL $00974C ; hex2dec
@@ -476,6 +490,61 @@ draw_times:
 		TAX
 		LDA tile_numbers,X
 		STA !dynamic_stripe_image+16
+		JMP .merge_draw
+	.in_framecount:
+		LDA [$00],Y
+		STA $0D
+		STA $08
+		LDA #$3C ; frames in a second
+		STA $4202 ; mult A
+		INY
+		LDA [$00],Y
+		STA $0E
+		STA $4203 ; mult B
+		INY
+		LDA [$00],Y
+		STA $0F
+		STA $06
+		STZ $07
+		REP #$20
+		LDA #$0000
+		LDX $08
+	-	BEQ +
+		CLC
+		ADC #$0E10 ; frames in a minute
+		DEX
+		BRA -
+	+	CLC
+		ADC $4216 ; mult result
+		CLC
+		ADC $06
+		SEP #$20
+		PHA
+		AND #$0F
+		TAX
+		LDA tile_numbers,X
+		STA !dynamic_stripe_image+12
+		PLA
+		LSR #4
+		TAX
+		LDA tile_numbers,X
+		STA !dynamic_stripe_image+10
+		XBA
+		PHA
+		AND #$0F
+		TAX
+		LDA tile_numbers,X
+		STA !dynamic_stripe_image+8
+		PLA
+		LSR #4
+		TAX
+		LDA tile_numbers,X
+		STA !dynamic_stripe_image+6
+		LDA #$1F
+		STA !dynamic_stripe_image+4
+		STA !dynamic_stripe_image+14
+		
+	.merge_draw
 		PLX
 		JSR compare_to_gold
 		JSR compare_to_platinum
@@ -485,7 +554,8 @@ draw_times:
 	
 	.continue:
 		DEY
-		BPL .loop
+		BMI .done
+		JMP .loop
 		
 	.done:
 		PLB
@@ -536,7 +606,14 @@ load_unran_time:
 		PHY
 		LDY #$12
 	.loop:
+		LDA.L !status_fractions
+		CMP #$02
+		BEQ .default_frame
 		LDA default_time_stripe,Y
+		BRA .default_merge
+	.default_frame:
+		LDA default_framecount_stripe,Y
+	.default_merge:
 		STA !dynamic_stripe_image,Y
 		DEY
 		BPL .loop
@@ -555,7 +632,8 @@ load_unran_time:
 	.merge:
 		STA !dynamic_stripe_image+1
 		LDA.L !status_fractions
-		BEQ .done
+		CMP #$01
+		BNE .done
 		LDA #$5D
 		STA !dynamic_stripe_image+12
 	.done:
@@ -808,10 +886,11 @@ draw_icons:
 icon_properties:
 		db $39,$29,$2D
 
-; tiles for numbers 0-9
+; tiles for numbers 0-9,A-F
 tile_numbers:
 		db $22,$23,$24,$25,$26
 		db $27,$28,$29,$2A,$2B
+		db $6F,$70,$71,$72,$73,$74
 
 ; flags to tell which times to show by default for each level
 translevel_types:
@@ -853,6 +932,14 @@ default_time_stripe:
         db $1C,$39,$1C,$39
         db $1B,$39,$1C,$39
         db $1C,$39,$FF
+
+; a stripe image that shows _----_h
+default_framecount_stripe:
+        db $50,$FF,$00,$0D
+        db $1F,$39,$1C,$39
+        db $1C,$39,$1C,$39
+        db $1C,$39,$1F,$39
+        db $6E,$39,$FF
 
 ; a stripe image that shows completely blank
 blank_stripe:

@@ -340,30 +340,30 @@ display_memory:
 		LDY #$01
 		LDA ($00),Y
 		LSR #4
-		STA $1F7C
+		STA !sb_memory+0
 		LDA ($00),Y
 		AND #$0F
-		STA $1F7D
+		STA !sb_memory+1
 		
 		DEY
 		LDA ($00),Y
 		LSR #4
-		STA $1F7E
+		STA !sb_memory+2
 		LDA ($00),Y
 		AND #$0F
-		STA $1F7F
+		STA !sb_memory+3
 		RTS
 
 ; draw the current amount of coins collected this level to the status bar
 display_coins:
 		LDA $0DBF ; coins
 		JSL $00974C ; hex2dec
-		STA $1F42 ; ones
+		STA !sb_coins+2 ; ones
 		CPX #$00
-		BNE .not_zero
+		BNE .draw
 		LDX #$FC
-	.not_zero:
-		STX $1F41 ; tens
+	.draw:
+		STX !sb_coins+1 ; tens
 		RTS
 		
 ; draw the absolute value of the player's current speed to the status bar
@@ -374,16 +374,16 @@ display_speed:
 		INC A
 	.positive_speed:
 		JSL $00974C ; hex2dec
-		STX $1F2F ; tens
-		STA $1F30 ; ones
+		STX !sb_mariox+0 ; tens
+		STA !sb_mariox+1 ; ones
 		RTS
 		
 ; draw the player's takeoff meter to the status bar
 display_takeoff:
 		LDA $149F ; takeoff meter
 		JSL $00974C ; hex2dec
-		STX $1F4D ; tens
-		STA $1F4E ; ones
+		STX !sb_takeoff+0 ; tens
+		STA !sb_takeoff+1 ; ones
 		RTS
 
 ; draw the player's p meter to the status bar
@@ -391,28 +391,22 @@ display_takeoff:
 display_pmeter:
 		LDA $13E4 ; pmeter
 		AND #$F0
-		LSR A
-		LSR A
-		LSR A
-		LSR A
-		STA $1F6C ; ones
+		LSR #4
+		STA !sb_pmeter+1 ; ones
 		RTS
 
 ; draw the fractional igt bit (in a hijack instead because latency)
 display_time:
 		LDA $0F31 ; hundreds
-		STA $1F5E
+		STA !sb_igt+0
 		LDA $0F32 ; tens
-		STA $1F5F
+		STA !sb_igt+1
 		LDA $0F33 ; ones
-		STA $1F60
+		STA !sb_igt+2
 		LDA $0F30 ; igt fraction
-		CMP #$26
-		BCC .draw
-		CLC
-		ADC #$50
-	.draw:
-		STA $1F61
+		JSL $00974C ; hex2dec
+		STX !sb_igt+3 ; tens
+		STA !sb_igt+4 ; ones
 		RTL
 		
 ; sad wrapper is sad
@@ -426,76 +420,205 @@ display_timer_wrapper:
 		
 ; draw the level, room, and pause timers to the status bar
 display_timers:
+		LDA.L !status_fractions
+		CMP #$02
+		BEQ .draw_pause_framecount
 		LDA !pause_timer_minutes
 		JSL $00974C ; hex2dec
-		STA $1F71 ; ones
+		STA !sb_pausetimer+0 ; ones
 		LDA !pause_timer_seconds
 		JSL $00974C ; hex2dec
-		STX $1F73 ; tens
-		STA $1F74 ; ones
+		STX !sb_pausetimer+2 ; tens
+		STA !sb_pausetimer+3 ; ones
 		LDA.L !status_fractions
 		BEQ .draw_pause_fractions
 		LDA !pause_timer_frames
 		JSL $00974C ; hex2dec
-		STX $1F76 ; tens
-		STA $1F77 ; ones
+		STX !sb_pausetimer+5 ; tens
+		STA !sb_pausetimer+6 ; ones
 		LDA #$85
-		STA $1F75
+		STA !sb_pausetimer+4
 		JMP .display_level_timer
 	.draw_pause_fractions:
 		LDX !pause_timer_frames
 		LDA fractional_seconds,X
 		JSL $00974C ; hex2dec
-		STX $1F76 ; tens
-		STA $1F77 ; ones
+		STX !sb_pausetimer+5 ; tens
+		STA !sb_pausetimer+6 ; ones
+		JMP .display_level_timer
+	.draw_pause_framecount:
+		LDA !pause_timer_frames
+		STA $00
+		STZ $01
+		LDA #$3C ; frames in a second
+		STA $4202 ; mult A
+		LDA !pause_timer_seconds
+		STA $4203 ; mult B
+		REP #$20
+		LDA #$0000
+		LDX !pause_timer_minutes
+	-	BEQ +
+		CLC
+		ADC #$0E10 ; frames in a minute
+		DEX
+		BRA -
+	+	CLC
+		ADC $4216 ; mult result
+		CLC
+		ADC $00
+		SEP #$20
+		PHA
+		AND #$0F
+		STA !sb_pausetimer+4 ; $01s
+		PLA
+		LSR #4
+		STA !sb_pausetimer+3 ; $10s
+		XBA
+		PHA
+		AND #$0F
+		STA !sb_pausetimer+2 ; $100s
+		PLA
+		LSR #4
+		STA !sb_pausetimer+1 ; $1000s
+		LDA #$FC
+		STA !sb_pausetimer+5
+		STA !sb_pausetimer+0
+		LDA #$D7
+		STA !sb_pausetimer+6 ; h
 		
 	.display_level_timer:
+		LDA.L !status_fractions
+		CMP #$02
+		BEQ .draw_level_framecount
 		LDA !level_timer_minutes
 		JSL $00974C ; hex2dec
-		STA $1F35 ; ones
+		STA !sb_leveltimer+0 ; ones
 		LDA !level_timer_seconds
 		JSL $00974C ; hex2dec
-		STX $1F37 ; tens
-		STA $1F38 ; ones
+		STX !sb_leveltimer+2 ; tens
+		STA !sb_leveltimer+3 ; ones
 		LDA.L !status_fractions
 		BEQ .draw_level_fractions
 		LDA !level_timer_frames
 		JSL $00974C ; hex2dec
-		STX $1F3A ; tens
-		STA $1F3B ; ones
+		STX !sb_leveltimer+5 ; tens
+		STA !sb_leveltimer+6 ; ones
 		LDA #$85
-		STA $1F39
+		STA !sb_leveltimer+4
 		JMP .display_room_timer
 	.draw_level_fractions:
 		LDX !level_timer_frames
 		LDA fractional_seconds,X
 		JSL $00974C ; hex2dec
-		STX $1F3A ; tens
-		STA $1F3B ; ones
+		STX !sb_leveltimer+5 ; tens
+		STA !sb_leveltimer+6 ; ones
+		JMP .display_room_timer
+	.draw_level_framecount:
+		LDA !level_timer_frames
+		STA $00
+		STZ $01
+		LDA #$3C ; frames in a second
+		STA $4202 ; mult A
+		LDA !level_timer_seconds
+		STA $4203 ; mult B
+		REP #$20
+		LDA #$0000
+		LDX !level_timer_minutes
+	-	BEQ +
+		CLC
+		ADC #$0E10 ; frames in a minute
+		DEX
+		BRA -
+	+	CLC
+		ADC $4216 ; mult result
+		CLC
+		ADC $00
+		SEP #$20
+		PHA
+		AND #$0F
+		STA !sb_leveltimer+4 ; $01s
+		PLA
+		LSR #4
+		STA !sb_leveltimer+3 ; $10s
+		XBA
+		PHA
+		AND #$0F
+		STA !sb_leveltimer+2 ; $100s
+		PLA
+		LSR #4
+		STA !sb_leveltimer+1 ; $1000s
+		LDA #$FC
+		STA !sb_leveltimer+5
+		STA !sb_leveltimer+0
+		LDA #$D7
+		STA !sb_leveltimer+6 ; h
 		
 	.display_room_timer:
+		LDA.L !status_fractions
+		CMP #$02
+		BEQ .draw_room_framecount
 		LDA !room_timer_minutes
 		JSL $00974C ; hex2dec
-		STA $1F53 ; ones
+		STA !sb_roomtimer+0 ; ones
 		LDA !room_timer_seconds
 		JSL $00974C ; hex2dec
-		STX $1F55 ; tens
-		STA $1F56 ; ones
+		STX !sb_roomtimer+2 ; tens
+		STA !sb_roomtimer+3 ; ones
 		LDA.L !status_fractions
 		BEQ .draw_room_fractions
 		LDA !room_timer_frames
 		JSL $00974C ; hex2dec
-		STX $1F58 ; tens
-		STA $1F59 ; ones
+		STX !sb_roomtimer+5 ; tens
+		STA !sb_roomtimer+6 ; ones
 		LDA #$85
-		STA $1F57
+		STA !sb_roomtimer+4
 		JMP .draw_clock
 	.draw_room_fractions:
 		LDX !room_timer_frames
 		LDA fractional_seconds,X
 		JSL $00974C ; hex2dec
-		STX $1F58 ; tens
-		STA $1F59 ; ones
+		STX !sb_roomtimer+5 ; tens
+		STA !sb_roomtimer+6 ; ones
+		JMP .draw_clock
+	.draw_room_framecount:
+		LDA !room_timer_frames
+		STA $00
+		STZ $01
+		LDA #$3C ; frames in a second
+		STA $4202 ; mult A
+		LDA !room_timer_seconds
+		STA $4203 ; mult B
+		REP #$20
+		LDA #$0000
+		LDX !room_timer_minutes
+	-	BEQ +
+		CLC
+		ADC #$0E10 ; frames in a minute
+		DEX
+		BRA -
+	+	CLC
+		ADC $4216 ; mult result
+		CLC
+		ADC $00
+		SEP #$20
+		PHA
+		AND #$0F
+		STA !sb_roomtimer+4 ; $01s
+		PLA
+		LSR #4
+		STA !sb_roomtimer+3 ; $10s
+		XBA
+		PHA
+		AND #$0F
+		STA !sb_roomtimer+2 ; $100s
+		PLA
+		LSR #4
+		STA !sb_roomtimer+1 ; $1000s
+		LDA #$FC
+		STA !sb_roomtimer+5
+		STA !sb_roomtimer+0
+		LDA #$D7
+		STA !sb_roomtimer+6 ; h
 		
 	; draw flashing clock symbol if run was not spliced
 	.draw_clock:
@@ -505,11 +628,11 @@ display_timers:
 		AND #%00100000
 		BEQ .merge
 		LDA #$76
-		STA $1F34
+		STA !sb_leveltimer-1
 		BRA .done
 	.merge:
 		LDA #$FC
-		STA $1F34
+		STA !sb_leveltimer-1
 	.done:
 		RTS
 
@@ -527,30 +650,28 @@ display_dropped_frames:
 		LDA !dropped_frames+1
 		PHA
 		LSR #4
-		STA $1F91 ; 0x1000's
+		STA !sb_lag+0 ; 0x1000's
 		PLA
 		AND #$0F
-		STA $1F92 ; 0x100's
+		STA !sb_lag+1 ; 0x100's
 		LDA !dropped_frames
 		PHA
 		LSR #4
-		STA $1F93 ; 0x10's
+		STA !sb_lag+2 ; 0x10's
 		PLA
 		AND #$0F
-		STA $1F94 ; 0x01's
+		STA !sb_lag+3 ; 0x01's
 
 		LDX #$00 ; replace 0's with spaces cause it looks better for a 4 digit number
 	.loop:
-		LDA $1F91,X
+		LDA !sb_lag+0,X
 		BNE .done
 		LDA #$FC
-		STA $1F91,X
+		STA !sb_lag+0,X
 		INX
 		CPX #$03
 		BNE .loop
 	.done:
-		LDA #$11
-		STA $1F95
 		RTS
 		
 ; draw the current controller input to the status bar
@@ -627,7 +748,7 @@ display_slowdown:
 	.not_zero:
 		INC A
 	.store:
-		STA $1F44
+		STA !sb_slowdown
 		RTS
 
 ; if yoshi is present, draw his x and y subpixels to the status bar
@@ -638,15 +759,15 @@ display_yoshi_subpixel:
 		TAX
 		LDA $14F8,X ; sprite x subpixel
 		LSR #4
-		STA $1F32
+		STA !sb_yoshisp+0
 		LDA $14EC,X ; sprite y subpixel
 		LSR #4
-		STA $1F33
+		STA !sb_yoshisp+1
 		BRA .done
 	.erase:
 		LDA #$FC
-		STA $1F32
-		STA $1F33
+		STA !sb_yoshisp+0
+		STA !sb_yoshisp+1
 	.done:
 		RTS
 
@@ -662,8 +783,8 @@ display_held_subpixel:
 		LDA #$FF
 		STA !held_item_slot
 		LDA #$FC
-		STA $1F50
-		STA $1F51
+		STA !sb_itemsp+0
+		STA !sb_itemsp+1
 		
 	.done_check_despawn:
 		LDA $148F ; held item flag
@@ -685,10 +806,10 @@ display_held_subpixel:
 		TAX
 		LDA $14F8,X ; sprite x subpixel
 		LSR #4
-		STA $1F50
+		STA !sb_itemsp+0
 		LDA $14EC,X ; sprite y subpixel
 		LSR #4
-		STA $1F51
+		STA !sb_itemsp+1
 		
 	.done:
 		RTS
@@ -773,14 +894,14 @@ get_screen_y:
 ; if recording, display red dot and capacity meter
 display_movie_capacity:
 		LDA #$FC
-		STA $1F9F
-		STA $1FA0
-		STA $1FA1
-		STA $1FA2
-		STA $1FA3
-		STA $1FA4
-		STA $1FA5
-		STA $1FA6
+		STA !sb_movie+5
+		STA !sb_movie+6
+		STA !sb_movie+7
+		STA !sb_movie+8
+		STA !sb_movie+9
+		STA !sb_movie+10
+		STA !sb_movie+11
+		STA !sb_movie+12
 		LDA !in_record_mode
 		ORA !in_playback_mode
 		BNE .draw
@@ -795,22 +916,22 @@ display_movie_capacity:
 		BRA .icon
 	.triangle:
 		LDA #$1B
-		STA $1FA0
+		STA !sb_movie+6
 		LDA #$0E
-		STA $1FA1
+		STA !sb_movie+7
 		LDA #$19
-		STA $1FA2
+		STA !sb_movie+8
 		LDA #$15
-		STA $1FA3
+		STA !sb_movie+9
 		LDA #$0A
-		STA $1FA4
+		STA !sb_movie+10
 		LDA #$22
-		STA $1FA5
+		STA !sb_movie+11
 		LDA #$FC
-		STA $1FA6
+		STA !sb_movie+12
 		LDA #$D2
 	.icon:
-		STA $1F9F
+		STA !sb_movie+5
 	.no_dot:
 		LDA $0100 ; game mode
 		CMP #$14
@@ -822,14 +943,14 @@ display_movie_capacity:
 		JMP .finish
 	.go:
 		LDA #$CE
-		STA $1FA0
-		STA $1FA6
+		STA !sb_movie+6
+		STA !sb_movie+12
 		LDA #$CF
-		STA $1FA1
-		STA $1FA2
-		STA $1FA3
-		STA $1FA4
-		STA $1FA5
+		STA !sb_movie+7
+		STA !sb_movie+8
+		STA !sb_movie+9
+		STA !sb_movie+10
+		STA !sb_movie+11
 		REP #$30
 		LDA.L !movie_location
 		TAX
@@ -840,49 +961,49 @@ display_movie_capacity:
 		XBA
 		SEP #$20
 		AND #$0F
-		STA $1F9B
+		STA !sb_movie+1
 		TYA
 		AND #$F0
 		LSR #4
-		STA $1F9C
+		STA !sb_movie+2
 		TYA
 		AND #$0F
-		STA $1F9D
+		STA !sb_movie+3
 		CPX #$0100
 		BCC .finish
 		LDA #$D0
-		STA $1FA0
+		STA !sb_movie+6
 		CPX #$0200
 		BCC .finish
 		LDA #$D1
-		STA $1FA1
+		STA !sb_movie+7
 		CPX #$0300
 		BCC .finish
 		LDA #$D1
-		STA $1FA2
+		STA !sb_movie+8
 		CPX #$0400
 		BCC .finish
 		LDA #$D1
-		STA $1FA3
+		STA !sb_movie+9
 		CPX #$0500
 		BCC .finish
 		LDA #$D1
-		STA $1FA4
+		STA !sb_movie+10
 		CPX #$0600
 		BCC .finish
 		LDA #$D1
-		STA $1FA5
+		STA !sb_movie+11
 		CPX #$0700
 		BCC .finish
 		LDA #$D0
-		STA $1FA6
+		STA !sb_movie+12
 		LDA $13
 		ASL #4
 		BCC .finish
 		LDA #$FC
 		LDX #$0006
 	.loop_flash:
-		STA $1FA0,X
+		STA !sb_movie+6,X
 		DEX
 		BPL .loop_flash
 	.finish:
@@ -892,23 +1013,23 @@ display_movie_capacity:
 ; display name under item box
 display_names:
 		LDA.L !player_name
-		STA $1F89
+		STA !sb_name+0
 		LDA.L !player_name+1
-		STA $1F8A
+		STA !sb_name+1
 		LDA.L !player_name+2
-		STA $1F8B
+		STA !sb_name+2
 		LDA.L !player_name+3
-		STA $1F8C
+		STA !sb_name+3
 		LDA !in_playback_mode
 		BEQ .done
 		LDA !movie_location+7
-		STA $1F9A
+		STA !sb_movie+0
 		LDA !movie_location+8
-		STA $1F9B
+		STA !sb_movie+1
 		LDA !movie_location+9
-		STA $1F9C
+		STA !sb_movie+2
 		LDA !movie_location+10
-		STA $1F9D
+		STA !sb_movie+3
 	.done:
 		RTS
 		
@@ -1347,47 +1468,95 @@ draw_bowser_timer:
 		PLB
 		
 		LDA #$69 ; empty tile
-		STA $0256
+		STA !sbbowser_leveltimer+2-(4*1)
 		LDA.L !spliced_run
 		BNE .spliced
 		LDA $13 ; true frame
 		AND #%00100000
 		BEQ .spliced
-		LDA #$F0 ; clock icon
-		STA $0256
+		LDA #$98 ; clock icon
+		STA !sbbowser_leveltimer+2-(4*1)
 	.spliced:
+		LDA.L !status_fractions
+		CMP #$02
+		BEQ .draw_level_framecount
 		LDA !level_timer_minutes
 		JSR hex_to_bowser
-		STA $025A
+		STA !sbbowser_leveltimer+2+(4*0)
 		LDA !level_timer_seconds
 		JSR hex_to_bowser
-		STX $0262
-		STA $0266
+		STX !sbbowser_leveltimer+2+(4*2)
+		STA !sbbowser_leveltimer+2+(4*3)
 		LDA.L !status_fractions
 		BEQ .draw_level_fractions
 		LDA !level_timer_frames
 		JSR hex_to_bowser
-		STX $026E
-		STA $0272
-		LDA #$F1
-		STA $026A
+		STX !sbbowser_leveltimer+2+(4*5)
+		STA !sbbowser_leveltimer+2+(4*6)
+		LDA #$99
+		STA !sbbowser_leveltimer+2+(4*4)
 		JMP .set_level_positions
 	.draw_level_fractions:
 		LDX !level_timer_frames
 		LDA fractional_seconds,X
 		JSR hex_to_bowser
-		STX $026E
-		STA $0272
-		LDA #$F2
-		STA $026A
+		STX !sbbowser_leveltimer+2+(4*5)
+		STA !sbbowser_leveltimer+2+(4*6)
+		LDA #$9A
+		STA !sbbowser_leveltimer+2+(4*4)
 	.set_level_positions:
-		LDA #$F1
-		STA $025E
+		LDA #$99
+		STA !sbbowser_leveltimer+2+(4*1)
+		JMP .level_attr
+	.draw_level_framecount:
+		LDA !level_timer_frames
+		STA $00
+		STZ $01
+		LDA #$3C ; frames in a second
+		STA $4202 ; mult A
+		LDA !level_timer_seconds
+		STA $4203 ; mult B
+		REP #$20
+		LDA #$0000
+		LDX !level_timer_minutes
+	-	BEQ +
+		CLC
+		ADC #$0E10 ; frames in a minute
+		DEX
+		BRA -
+	+	CLC
+		ADC $4216 ; mult result
+		CLC
+		ADC $00
+		SEP #$20
+		PHA
+		AND #$0F
+		JSR dec_to_bowser
+		STA !sbbowser_leveltimer+2+(4*4)
+		PLA
+		LSR #4
+		JSR dec_to_bowser
+		STA !sbbowser_leveltimer+2+(4*3)
+		XBA
+		PHA
+		AND #$0F
+		JSR dec_to_bowser
+		STA !sbbowser_leveltimer+2+(4*2)
+		PLA
+		LSR #4
+		JSR dec_to_bowser
+		STA !sbbowser_leveltimer+2+(4*1)
+		LDA #$69
+		STA !sbbowser_leveltimer+2+(4*5)
+		STA !sbbowser_leveltimer+2+(4*0)
+		LDA #$9B
+		STA !sbbowser_leveltimer+2+(4*6) ; h
 		
+	.level_attr:
 		LDY #$07
 	.level_loop:
 		TYX
-		STZ $0435,X
+		STZ !sbbowser_leveltimer_2-1,X
 		LDA timer_x,X
 		PHA
 		TYA
@@ -1395,46 +1564,94 @@ draw_bowser_timer:
 		ASL A
 		TAX
 		PLA
-		STA $0254,X
-		LDA #$10
-		STA $0255,X
+		STA !sbbowser_leveltimer+0-(4*1),X
+		LDA #$08
+		STA !sbbowser_leveltimer+1-(4*1),X
 		LDA #$30
-		STA $0257,X
+		STA !sbbowser_leveltimer+3-(4*1),X
 		DEY
 		BPL .level_loop
 		
+		LDA.L !status_fractions
+		CMP #$02
+		BEQ .draw_room_framecount
 		LDA !room_timer_minutes
 		JSR hex_to_bowser
-		STA $03A2
+		STA !sbbowser_roomtimer+2+(4*0)
 		LDA !room_timer_seconds
 		JSR hex_to_bowser
-		STX $03AA
-		STA $03AE
+		STX !sbbowser_roomtimer+2+(4*2)
+		STA !sbbowser_roomtimer+2+(4*3)
 		LDA.L !status_fractions
 		BEQ .draw_room_fractions
 		LDA !level_timer_frames
 		JSR hex_to_bowser
-		STX $03B6
-		STA $03BA
-		LDA #$F1
-		STA $03B2
+		STX !sbbowser_roomtimer+2+(4*5)
+		STA !sbbowser_roomtimer+2+(4*6)
+		LDA #$99
+		STA !sbbowser_roomtimer+2+(4*4)
 		JMP .set_room_positions
 	.draw_room_fractions:
 		LDX !level_timer_frames
 		LDA fractional_seconds,X
 		JSR hex_to_bowser
-		STX $03B6
-		STA $03BA
-		LDA #$F2
-		STA $03B2
+		STX !sbbowser_roomtimer+2+(4*5)
+		STA !sbbowser_roomtimer+2+(4*6)
+		LDA #$9A
+		STA !sbbowser_roomtimer+2+(4*4)
 	.set_room_positions:
-		LDA #$F1
-		STA $03A6
+		LDA #$99
+		STA !sbbowser_roomtimer+2+(4*1)
+		JMP .room_attr
+	.draw_room_framecount:
+		LDA !room_timer_frames
+		STA $00
+		STZ $01
+		LDA #$3C ; frames in a second
+		STA $4202 ; mult A
+		LDA !room_timer_seconds
+		STA $4203 ; mult B
+		REP #$20
+		LDA #$0000
+		LDX !room_timer_minutes
+	-	BEQ +
+		CLC
+		ADC #$0E10 ; frames in a minute
+		DEX
+		BRA -
+	+	CLC
+		ADC $4216 ; mult result
+		CLC
+		ADC $00
+		SEP #$20
+		PHA
+		AND #$0F
+		JSR dec_to_bowser
+		STA !sbbowser_roomtimer+2+(4*4)
+		PLA
+		LSR #4
+		JSR dec_to_bowser
+		STA !sbbowser_roomtimer+2+(4*3)
+		XBA
+		PHA
+		AND #$0F
+		JSR dec_to_bowser
+		STA !sbbowser_roomtimer+2+(4*2)
+		PLA
+		LSR #4
+		JSR dec_to_bowser
+		STA !sbbowser_roomtimer+2+(4*1)
+		LDA #$69
+		STA !sbbowser_roomtimer+2+(4*5)
+		STA !sbbowser_roomtimer+2+(4*0)
+		LDA #$9B
+		STA !sbbowser_roomtimer+2+(4*6) ; h
 		
+	.room_attr:
 		LDY #$06
 	.room_loop:
 		TYX
-		STZ $0488,X
+		STZ !sbbowser_roomtimer_2,X
 		INX
 		LDA timer_x,X
 		DEX
@@ -1444,13 +1661,110 @@ draw_bowser_timer:
 		ASL A
 		TAX
 		PLA
-		STA $03A0,X
-		LDA #$18
-		STA $03A1,X
+		STA !sbbowser_roomtimer+0,X
+		LDA #$10
+		STA !sbbowser_roomtimer+1,X
 		LDA #$32
-		STA $03A3,X
+		STA !sbbowser_roomtimer+3,X
 		DEY
 		BPL .room_loop
+		
+		LDA.L !status_fractions
+		CMP #$02
+		BEQ .draw_pause_framecount
+		LDA !pause_timer_minutes
+		JSR hex_to_bowser
+		STA !sbbowser_pausetimer+2+(4*0)
+		LDA !pause_timer_seconds
+		JSR hex_to_bowser
+		STX !sbbowser_pausetimer+2+(4*2)
+		STA !sbbowser_pausetimer+2+(4*3)
+		LDA.L !status_fractions
+		BEQ .draw_pause_fractions
+		LDA !level_timer_frames
+		JSR hex_to_bowser
+		STX !sbbowser_pausetimer+2+(4*5)
+		STA !sbbowser_pausetimer+2+(4*6)
+		LDA #$99
+		STA !sbbowser_pausetimer+2+(4*4)
+		JMP .set_pause_positions
+	.draw_pause_fractions:
+		LDX !level_timer_frames
+		LDA fractional_seconds,X
+		JSR hex_to_bowser
+		STX !sbbowser_pausetimer+2+(4*5)
+		STA !sbbowser_pausetimer+2+(4*6)
+		LDA #$9A
+		STA !sbbowser_pausetimer+2+(4*4)
+	.set_pause_positions:
+		LDA #$99
+		STA !sbbowser_pausetimer+2+(4*1)
+		JMP .pause_attr
+	.draw_pause_framecount:
+		LDA !pause_timer_frames
+		STA $00
+		STZ $01
+		LDA #$3C ; frames in a second
+		STA $4202 ; mult A
+		LDA !pause_timer_seconds
+		STA $4203 ; mult B
+		REP #$20
+		LDA #$0000
+		LDX !pause_timer_minutes
+	-	BEQ +
+		CLC
+		ADC #$0E10 ; frames in a minute
+		DEX
+		BRA -
+	+	CLC
+		ADC $4216 ; mult result
+		CLC
+		ADC $00
+		SEP #$20
+		PHA
+		AND #$0F
+		JSR dec_to_bowser
+		STA !sbbowser_pausetimer+2+(4*4)
+		PLA
+		LSR #4
+		JSR dec_to_bowser
+		STA !sbbowser_pausetimer+2+(4*3)
+		XBA
+		PHA
+		AND #$0F
+		JSR dec_to_bowser
+		STA !sbbowser_pausetimer+2+(4*2)
+		PLA
+		LSR #4
+		JSR dec_to_bowser
+		STA !sbbowser_pausetimer+2+(4*1)
+		LDA #$69
+		STA !sbbowser_pausetimer+2+(4*5)
+		STA !sbbowser_pausetimer+2+(4*0)
+		LDA #$9B
+		STA !sbbowser_pausetimer+2+(4*6) ; h
+		
+	.pause_attr:		
+		LDY #$06
+	.pause_loop:
+		TYX
+		STZ !sbbowser_pausetimer_2,X
+		INX
+		LDA timer_x,X
+		DEX
+		PHA
+		TYA
+		ASL A
+		ASL A
+		TAX
+		PLA
+		STA !sbbowser_pausetimer+0,X
+		LDA #$18
+		STA !sbbowser_pausetimer+1,X
+		LDA #$3A
+		STA !sbbowser_pausetimer+3,X
+		DEY
+		BPL .pause_loop
 		
 		PLB
 		RTL
@@ -1462,6 +1776,7 @@ timer_x:
 ; convert a hex number to decimal, then get tile numbers
 hex_to_bowser:
 		JSL $00974C ; hex2dec
+dec_to_bowser:
 		PHX
 		TAX
 		LDA bowser_numbers,X
@@ -1476,6 +1791,7 @@ hex_to_bowser:
 bowser_numbers:
 		db $A8,$A9,$AA,$AB,$AC
 		db $AD,$AE,$AF,$B0,$B1
+		db $B8,$B9,$BA,$BB,$BC,$BD
 		
 ; if sprite slots are enabled, don't draw background in morton, roy, ludwig
 boss_sprite_background:
@@ -1717,7 +2033,11 @@ play_input:
 		AND #$30
 		CMP #$30
 		BNE .no_cancel
-		STZ !in_playback_mode
+		
+		LDA #$0B
+		STA $0100 ; game mode
+		LDA #$11 ; pause sound
+		STA $1DF9 ; apu i/o
 		BRA .done
 	
 	.no_cancel:	
