@@ -104,8 +104,6 @@ test_for_enter_level:
 		STA !movie_location+$09
 		LDA.L !player_name+3
 		STA !movie_location+$0A
-		LDA.L !use_poverty_save_states
-		STA !movie_location+$0B
 		LDA #$00
 		STA !movie_location+$0E
 		LDA.L !status_yellow

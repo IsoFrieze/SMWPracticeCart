@@ -49,11 +49,6 @@ overworld_load:
 		JSR attempt_timer_save
 		
 	.done_saving:
-		LDA.L !use_poverty_save_states
-		BEQ .keep_state
-		LDA #$00
-		STA.L !save_state_exists
-	.keep_state:
 		LDA #$FF
 		STA !save_timer_address+2
 		STZ !l_r_function
@@ -268,7 +263,7 @@ set_overworld_position:
 		JSL delete_all_data
 	.reset:
 		JSL set_position_to_yoshis_house
-		BRA .merge
+		BRA .done
 	.already_exists:
 		LDA.L !save_overworld_submap
 		CMP #$07
@@ -289,20 +284,6 @@ set_overworld_position:
 		LDA.L !save_overworld_animation
 		STA $1F13
 		JSL update_ow_position_pointers
-		
-	.merge:
-		LDA #$00
-		STA.L !use_poverty_save_states
-		LDA #$AA
-		STA $717FFF
-		LDA #$BB
-		STA $737FFF
-		LDA $717FFF
-		CMP #$AA
-		BEQ .done
-		
-		LDA #$BD
-		STA.L !use_poverty_save_states
 		
 	.done:
 		RTS

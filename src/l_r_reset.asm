@@ -202,17 +202,18 @@ room_advance_table:
 		
 ; this code is run when the player presses R + select to make a save state
 activate_save_state:
-		LDA.L !use_poverty_save_states
-		BEQ .start
 		LDA !in_record_mode
 		ORA !in_playback_mode
-		BNE .cancel		
-	.start:
+		BNE .cancel
 		LDA #$0E ; swim sound
 		STA $1DF9 ; apu i/o
+		STZ $4200 ; nmi disable
+		
+	-	LDA $4212
+		BPL -
+		
 		LDA #$80
 		STA $2100 ; force blank
-		STZ $4200 ; nmi disable
 		
 		LDA !in_record_mode
 		BEQ .no_tag
@@ -220,13 +221,7 @@ activate_save_state:
 		STA !movie_location+$0E
 	.no_tag:
 		
-		LDA !use_poverty_save_states
-		BEQ .complete
-		JSR go_poverty_save_state
-		BRA .done
-	.complete:
-		JSR go_complete_save_state
-	.done:
+		JSR go_save_state
 		LDA !level_timer_minutes
 		ORA !level_timer_seconds
 		ORA !level_timer_frames
@@ -234,42 +229,49 @@ activate_save_state:
 		LDA #$BD
 		STA.L !save_state_exists
 		
+	-	LDA $4212
+		BPL -
+		
 		LDA #$81
-		STA $4200 ; nmi enable		
+		STA $4200 ; nmi enable
 		LDA #$0F
 		STA $2100 ; exit force blank
 	.cancel:
 		RTL
-		
-go_poverty_save_state:
+
+go_save_state:
 		PHP
 		REP #$10
 		
-		; save wram $0000-$1FFF to wram $7F9C7B-$7FBC7A
+		; save wram $0000-$1FFF to wram $7FA800-$7FC7FF
+		; mirrored wram
 		LDX #$1FFF
 	.loop_mirror:
 		LDA $7E0000,X
-		STA $7F9C7B,X
+		STA $7FA800,X
 		DEX
 		BPL .loop_mirror
 		
-		; save wram $C680-$C6DF to $707DA0-$707DFF
+		; save wram $C680-$C6DF to $704BE0-$704C3F
+		; mode 7 boss tilemap
 		LDX #$005F
 	.loop_boss:
 		LDA $7EC680,X
-		STA $707DA0,X
+		STA $704BE0,X
 		DEX
 		BPL .loop_boss
 		
-		; save wram $7F9A7B-$7F9C7A to $707BA0-$707D9F
+		; save wram $7F9A7B-$7F9C7A to $704AE0-$704BDF
+		; wiggler segments
 		LDX #$01FF
 	.loop_wiggler:
 		LDA $7F9A7B,X
-		STA $707BA0,X
+		STA $704AE0,X
 		DEX
 		BPL .loop_wiggler
 		
 		; save wram $C800-$FFFF to $700BA0-$70439F
+		; level tilemap low byte
 		LDX #$37FF
 	.loop_tilemap_low:
 		LDA $7EC800,X
@@ -277,7 +279,8 @@ go_poverty_save_state:
 		DEX
 		BPL .loop_tilemap_low
 		
-		; save wram $7FC800-$7FFFFF to $7043A0-$704ADF
+		; save wram $7FC800-$7FFFFF to $7043A0-$704A9F
+		; level tilemap high bit
 		; since only bit 0 is used for this data, crunch it into a 1:8 ratio
 		; unrolled inner loop is used for the speed increase
 		PHB
@@ -327,6 +330,7 @@ go_poverty_save_state:
 		BPL .loop_tilemap_high
 		
 		; do these separately because they actually use the upper 7 bits
+		; mode 7 level tilemaps
 		LDX #$001F
 	.loop_mode7_bridge_a:
 		LDA $7FC8B0,X
@@ -343,303 +347,40 @@ go_poverty_save_state:
 		
 		PLB
 		
-		; save cgram w$00-w$FF to $707E00-$707FFF
-		LDA #$00
-		STA $2121 ; cgram address
-		LDX #$7E00
-		STX $4302 ; dma0 destination address
-		LDA #$70
-		STA $4304 ; dma0 destination bank
-		LDX #$0200
-		STX $4305 ; dma0 length
-		LDA #$80 ; 1-byte
-		STA $4300 ; dma0 parameters
-		LDA #$3B ; $213B cgram data read
-		STA $4301 ; dma0 source
-		LDA #$01 ; channel 0
-		STA $420B ; dma enable
-		
-		; save vram w$0000-w$03FF to wram $7FBC7B-$7FC47A
-		LDA #$80
-		STA $2115 ; vram increment
-		LDX #$0000
-		STX $2116 ; vram address
-		LDX $2139 ; vram data read (dummy read)
-		LDX #$BC7B
-		STX $4302 ; dma0 destination address
-		LDA #$7F
-		STA $4304 ; dma0 destination bank
-		LDX #$0800
-		STX $4305 ; dma0 length
-		LDA #$81 ; 2-byte, low-high
-		STA $4300 ; dma0 parameters
-		LDA #$39 ; $2139 vram data read
-		STA $4301 ; dma0 source
-		LDA #$01 ; channel 0
-		STA $420B ; dma enable
-		
-		; save vram w$0400-w$06BF to wram $7EC100-$7EC67F
-		LDA #$80
-		STA $2115 ; vram increment
-		LDX #$0400
-		STX $2116 ; vram address
-		LDX $2139 ; vram data read (dummy read)
-		LDX #$C100
-		STX $4302 ; dma0 destination address
-		LDA #$7E
-		STA $4304 ; dma0 destination bank
-		LDX #$0580
-		STX $4305 ; dma0 length
-		LDA #$81 ; 2-byte, low-high
-		STA $4300 ; dma0 parameters
-		LDA #$39 ; $2139 vram data read
-		STA $4301 ; dma0 source
-		LDA #$01 ; channel 0
-		STA $420B ; dma enable
-		
-		; save vram w$06C0-w$07FF to wram $7FC47B-$7EC6FA
-		LDA #$80
-		STA $2115 ; vram increment
-		LDX #$06C0
-		STX $2116 ; vram address
-		LDX $2139 ; vram data read (dummy read)
-		LDX #$C47B
-		STX $4302 ; dma0 destination address
-		LDA #$7F
-		STA $4304 ; dma0 destination bank
-		LDX #$0280
-		STX $4305 ; dma0 length
-		LDA #$81 ; 2-byte, low-high
-		STA $4300 ; dma0 parameters
-		LDA #$39 ; $2139 vram data read
-		STA $4301 ; dma0 source
-		LDA #$01 ; channel 0
-		STA $420B ; dma enable
-		
-		; save vram w$0800-w$0FFF to wram $7F877B-$7F977A
-		LDA #$80
-		STA $2115 ; vram increment
-		LDX #$0800
-		STX $2116 ; vram address
-		LDX $2139 ; vram data read (dummy read)
-		LDX #$877B
-		STX $4302 ; dma0 destination address
-		LDA #$7F
-		STA $4304 ; dma0 destination bank
-		LDX #$1000
-		STX $4305 ; dma0 length
-		LDA #$81 ; 2-byte, low-high
-		STA $4300 ; dma0 parameters
-		LDA #$39 ; $2139 vram data read
-		STA $4301 ; dma0 source
-		LDA #$01 ; channel 0
-		STA $420B ; dma enable
-		
-		; save vram w$1000-w$3FFF to wram $7F0000-$7F5FFF
-		LDA #$80
-		STA $2115 ; vram increment
-		LDX #$1000
-		STX $2116 ; vram address
-		LDX $2139 ; vram data read (dummy read)
-		LDX #$0000
-		STX $4302 ; dma0 destination address
-		LDA #$7F
-		STA $4304 ; dma0 destination bank
-		LDX #$6000
-		STX $4305 ; dma0 length
-		LDA #$81 ; 2-byte, low-high
-		STA $4300 ; dma0 parameters
-		LDA #$39 ; $2139 vram data read
-		STA $4301 ; dma0 source
-		LDA #$01 ; channel 0
-		STA $420B ; dma enable
-		
-		; save vram w$5000-w$5FFF to wram $704AE0-$706ADF
-		LDA #$80
-		STA $2115 ; vram increment
-		LDX #$5000
-		STX $2116 ; vram address
-		LDX $2139 ; vram data read (dummy read)
-		LDX #$4AE0
-		STX $4302 ; dma0 destination address
-		LDA #$70
-		STA $4304 ; dma0 destination bank
-		LDX #$2000
-		STX $4305 ; dma0 length
-		LDA #$81 ; 2-byte, low-high
-		STA $4300 ; dma0 parameters
-		LDA #$39 ; $2139 vram data read
-		STA $4301 ; dma0 source
-		LDA #$01 ; channel 0
-		STA $420B ; dma enable
-		
-		; save vram w$7000-w$7FFF to wram $7F6000-$7F7FFF
-		LDA #$80
-		STA $2115 ; vram increment
-		LDX #$7000
-		STX $2116 ; vram address
-		LDX $2139 ; vram data read (dummy read)
-		LDX #$6000
-		STX $4302 ; dma0 destination address
-		LDA #$7F
-		STA $4304 ; dma0 destination bank
-		LDX #$2000
-		STX $4305 ; dma0 length
-		LDA #$81 ; 2-byte, low-high
-		STA $4300 ; dma0 parameters
-		LDA #$39 ; $2139 vram data read
-		STA $4301 ; dma0 source
-		LDA #$01 ; channel 0
-		STA $420B ; dma enable
-		
-		; save the stack pointer to $7FC7F7 - $7FC7F8
+		; save the stack pointer to $7F9C7B - $7F9C7C
 		REP #$30
 		TSX
 		TXA
-		STA $7FC7F7
+		STA $7F9C7B
 		
-		; save the currently used music to $7FC7F9
+		; save the currently used music to $7F9C7D
 		SEP #$20
 		LDA $2142
-		STA $7FC7F9
+		STA $7F9C7D
 		
 	.done:
-		PLP
-		RTS
-		
-go_complete_save_state:
-		PHP
-		
-		REP #$10
-		
-		; save wram $0000-$1FFF to $701000-$702FFF
-		LDX #$1FFF
-	.loop_mirror:
-		LDA $7E0000,X
-		STA $701000,X
-		DEX
-		BPL .loop_mirror
-		
-		; save wram $C680-$C6DF to $703000-$70305F
-		LDX #$005F
-	.loop_boss:
-		LDA $7EC680,X
-		STA $703000,X
-		DEX
-		BPL .loop_boss
-		
-		; save wram $7F9A7B-$7F9C7A to $703060-$70325F
-		LDX #$01FF
-	.loop_wiggler:
-		LDA $7F9A7B,X
-		STA $703060,X
-		DEX
-		BPL .loop_wiggler
-		
-		; save wram $C800-$FFFF to $703260-$706A5F
-		LDX #$37FF
-	.loop_tilemap_low:
-		LDA $7EC800,X
-		STA $703260,X
-		DEX
-		BPL .loop_tilemap_low
-		
-		; save wram $7FC800-$7FFFFF to $710000-$7137FF
-		LDX #$37FF
-	.loop_tilemap_high:
-		LDA $7FC800,X
-		STA $710000,X
-		DEX
-		BPL .loop_tilemap_high
-		
-		; save cgram w$00-w$FF to $713800-$713AFF
-		LDA #$00
-		STA $2121 ; cgram address
-		LDX #$3800
-		STX $4302 ; dma0 destination address
-		LDA #$71
-		STA $4304 ; dma0 destination bank
-		LDX #$0200
-		STX $4305 ; dma0 length
-		LDA #$80 ; 1-byte
-		STA $4300 ; dma0 parameters
-		LDA #$3B ; $213B cgram data read
-		STA $4301 ; dma0 source
-		LDA #$01 ; channel 0
-		STA $420B ; dma enable
-		
-		; save vram w$0000-w$3FFF to $720000-$727FFF
-		LDA #$80
-		STA $2115 ; vram increment
-		LDX #$0000
-		STX $2116 ; vram address
-		LDX $2139 ; vram data read (dummy read)
-		LDX #$0000
-		STX $4302 ; dma0 destination address
-		LDA #$72
-		STA $4304 ; dma0 destination bank
-		LDX #$8000
-		STX $4305 ; dma0 length
-		LDA #$81 ; 2-byte, low-high
-		STA $4300 ; dma0 parameters
-		LDA #$39 ; $2139 vram data read
-		STA $4301 ; dma0 source
-		LDA #$01 ; channel 0
-		STA $420B ; dma enable
-		
-		; save vram w$4000-w$7FFF to $730000-$737FFF
-		LDA #$80
-		STA $2115 ; vram increment
-		LDX #$4000
-		STX $2116 ; vram address
-		LDX $2139 ; vram data read (dummy read)
-		LDX #$0000
-		STX $4302 ; dma0 destination address
-		LDA #$73
-		STA $4304 ; dma0 destination bank
-		LDX #$8000
-		STX $4305 ; dma0 length
-		LDA #$81 ; 2-byte, low-high
-		STA $4300 ; dma0 parameters
-		LDA #$39 ; $2139 vram data read
-		STA $4301 ; dma0 source
-		LDA #$01 ; channel 0
-		STA $420B ; dma enable
-		
-		; save the stack pointer to $717FF7 - $717FF8
-		REP #$30
-		TSX
-		TXA
-		STA $717FF7
-		
-		; save the currently used music to $717FF9
-		SEP #$20
-		LDA $2142
-		STA $717FF9
-		
 		PLP
 		RTS
 
 ; this code is run when the player presses L + select to load a save state
 activate_load_state:
-		LDA.L !use_poverty_save_states
-		BEQ .start
 		LDA !in_record_mode
 		ORA !in_playback_mode
-		BNE .done_waiting		
-	.start:
-		LDA #$80
-		STA $2100 ; force blank
+		BNE .done_waiting
 		STZ $4200 ; nmi disable
 		
-		LDA !use_poverty_save_states
-		BEQ .complete
-		JSR go_poverty_load_state
-		BRA .done
-	.complete:
-		JSR go_complete_load_state
+	-	LDA $4212
+		BPL -
+		
+		LDA #$80
+		STA $2100 ; force blank
+		
+		JSR go_load_state
 	.done:
 		JSR restore_hardware_regs
+		
+		JSR restore_all_graphics
+		JSR restore_all_tilemaps
 		
 		LDA !level_timer_minutes
 		ORA !level_timer_seconds
@@ -672,7 +413,7 @@ activate_load_state:
 	.done_waiting:
 		RTL
 		
-go_poverty_load_state:
+go_load_state:
 		PHP
 		
 		LDA !in_record_mode
@@ -685,26 +426,36 @@ go_poverty_load_state:
 		
 		REP #$10
 		
-		; load wram $7F9C7B-$7FBC7A to wram $0000-$1FFF 
+		; load wram $7FA800-$7FC7FF to wram $0000-$1FFF
+		; mirror wram
+		; copy old graphics files into state
+		LDX #$0007
+	.loop_graphics_files:
+		LDA $7E0101,X
+		STA $7F9C7E,X
+		DEX
+		BPL .loop_graphics_files
 		LDX #$1FFF
 	.loop_mirror:
-		LDA $7F9C7B,X
+		LDA $7FA800,X
 		STA $7E0000,X
 		DEX
 		BPL .loop_mirror
 		
-		; load $707DA0-$707DFF to wram $C680-$C6DF
+		; load $704BE0-$704C3F to wram $C680-$C6DF
+		; mode 7 boss tilemap
 		LDX #$005F
 	.loop_boss:
-		LDA $707DA0,X
+		LDA $704BE0,X
 		STA $7EC680,X
 		DEX
 		BPL .loop_boss
 		
-		; load $707BA0-$707D9F to wram $7F9A7B-$7F9C7A
+		; load $704AE0-$704BDF to wram $7F9A7B-$7F9C7A
+		; wiggler segments
 		LDX #$01FF
 	.loop_wiggler:
-		LDA $707BA0,X
+		LDA $704AE0,X
 		STA $7F9A7B,X
 		DEX
 		BPL .loop_wiggler
@@ -717,7 +468,7 @@ go_poverty_load_state:
 		DEX
 		BPL .loop_tilemap_low
 		
-		; load $7043A0-$704ABF to wram $7FC800-$7FFFFF
+		; load $7043A0-$704A9F to wram $7FC800-$7FFFFF
 		; since only bit 0 is used for this data, expand it into a 8:1 ratio
 		; unrolled inner loop is used for the speed increase
 		LDX #$0007
@@ -796,156 +547,15 @@ go_poverty_load_state:
 		
 		PLB
 		
-		; load $707E00-$707FFF to cgram w$00-w$FF
-		LDA #$00
-		STA $2121 ; cgram address
-		LDX #$7E00
-		STX $4302 ; dma0 destination address
-		LDA #$70
-		STA $4304 ; dma0 destination bank
-		LDX #$0200
-		STX $4305 ; dma0 length
-		STZ $4300 ; dma0 parameters
-		LDA #$22 ; $2122 cgram data write
-		STA $4301 ; dma0 source
-		LDA #$01 ; channel 0
-		STA $420B ; dma enable
-		
-		; load wram $7FBC7B-$7FC47A to vram w$0000-w$03FF
-		LDA #$80
-		STA $2115 ; vram increment
-		LDX #$0000
-		STX $2116 ; vram address
-		LDX #$BC7B
-		STX $4302 ; dma0 destination address
-		LDA #$7F
-		STA $4304 ; dma0 destination bank
-		LDX #$0800
-		STX $4305 ; dma0 length
-		LDA #$01 ; 2-byte, low-high
-		STA $4300 ; dma0 parameters
-		LDA #$18 ; $2118 vram data write
-		STA $4301 ; dma0 source
-		LDA #$01 ; channel 0
-		STA $420B ; dma enable
-		
-		; load wram $7EC100-$7EC67F to vram w$0400-w$06BF
-		LDA #$80
-		STA $2115 ; vram increment
-		LDX #$0400
-		STX $2116 ; vram address
-		LDX #$C100
-		STX $4302 ; dma0 destination address
-		LDA #$7E
-		STA $4304 ; dma0 destination bank
-		LDX #$0580
-		STX $4305 ; dma0 length
-		LDA #$01 ; 2-byte, low-high
-		STA $4300 ; dma0 parameters
-		LDA #$18 ; $2118 vram data write
-		STA $4301 ; dma0 source
-		LDA #$01 ; channel 0
-		STA $420B ; dma enable
-		
-		; load wram $7FC47B-$7EC6FA to vram w$06C0-w$07FF
-		LDA #$80
-		STA $2115 ; vram increment
-		LDX #$06C0
-		STX $2116 ; vram address
-		LDX #$C47B
-		STX $4302 ; dma0 destination address
-		LDA #$7F
-		STA $4304 ; dma0 destination bank
-		LDX #$0280
-		STX $4305 ; dma0 length
-		LDA #$01 ; 2-byte, low-high
-		STA $4300 ; dma0 parameters
-		LDA #$18 ; $2118 vram data write
-		STA $4301 ; dma0 source
-		LDA #$01 ; channel 0
-		STA $420B ; dma enable
-		
-		; load wram $7F877B-$7F977A to vram w$0800-w$0FFF
-		LDA #$80
-		STA $2115 ; vram increment
-		LDX #$0800
-		STX $2116 ; vram address
-		LDX #$877B
-		STX $4302 ; dma0 destination address
-		LDA #$7F
-		STA $4304 ; dma0 destination bank
-		LDX #$1000
-		STX $4305 ; dma0 length
-		LDA #$01 ; 2-byte, low-high
-		STA $4300 ; dma0 parameters
-		LDA #$18 ; $2118 vram data write
-		STA $4301 ; dma0 source
-		LDA #$01 ; channel 0
-		STA $420B ; dma enable
-		
-		; load wram $7F0000-$7F5FFF to vram w$1000-w$3FFF
-		LDA #$80
-		STA $2115 ; vram increment
-		LDX #$1000
-		STX $2116 ; vram address
-		LDX #$0000
-		STX $4302 ; dma0 destination address
-		LDA #$7F
-		STA $4304 ; dma0 destination bank
-		LDX #$6000
-		STX $4305 ; dma0 length
-		LDA #$01 ; 2-byte, low-high
-		STA $4300 ; dma0 parameters
-		LDA #$18 ; $2118 vram data write
-		STA $4301 ; dma0 source
-		LDA #$01 ; channel 0
-		STA $420B ; dma enable
-		
-		; load wram $704AE0-$706ADF to vram w$5000-w$5FFF
-		LDA #$80
-		STA $2115 ; vram increment
-		LDX #$5000
-		STX $2116 ; vram address
-		LDX #$4AE0
-		STX $4302 ; dma0 destination address
-		LDA #$70
-		STA $4304 ; dma0 destination bank
-		LDX #$2000
-		STX $4305 ; dma0 length
-		LDA #$01 ; 2-byte, low-high
-		STA $4300 ; dma0 parameters
-		LDA #$18 ; $2118 vram data write
-		STA $4301 ; dma0 source
-		LDA #$01 ; channel 0
-		STA $420B ; dma enable
-		
-		; load wram $7F6000-$7F7FFF to vram w$7000-w$7FFF
-		LDA #$80
-		STA $2115 ; vram increment
-		LDX #$7000
-		STX $2116 ; vram address
-		LDX #$6000
-		STX $4302 ; dma0 destination address
-		LDA #$7F
-		STA $4304 ; dma0 destination bank
-		LDX #$2000
-		STX $4305 ; dma0 length
-		LDA #$01 ; 2-byte, low-high
-		STA $4300 ; dma0 parameters
-		LDA #$18 ; $2118 vram data write
-		STA $4301 ; dma0 source
-		LDA #$01 ; channel 0
-		STA $420B ; dma enable
-		
-		; load the stack pointer from $7FC7F7 - $7FC7F8
+		; load the stack pointer from $7F9C7B - $7F9C7C
 		REP #$30
-		LDA $7FC7F7
+		LDA $7F9C7B
 		TAX
 		TXS
 		
-		; load the currently used music from $7FC7F9
+		; load the currently used music from $7F9C7D
 		SEP #$20
-		LDA $7FC7F9
+		LDA $7F9C7D
 		CMP $2142
 		BEQ .same_music
 		STA $2142
@@ -960,128 +570,6 @@ go_poverty_load_state:
 		STA $02,S
 		
 	.done:
-		PLP
-		RTS
-		
-go_complete_load_state:
-		PHP
-		
-		REP #$10
-		
-		; load $701000-$702FFF to wram $0000-$1FFF
-		LDX #$1FFF
-	.loop_mirror:
-		LDA $701000,X
-		STA $7E0000,X
-		DEX
-		BPL .loop_mirror
-		
-		; load $703000-$70305F to wram $C680-$C6DF
-		LDX #$005F
-	.loop_boss:
-		LDA $703000,X
-		STA $7EC680,X
-		DEX
-		BPL .loop_boss
-		
-		; load $703060-$70325F to wram $7F9A7B-$7F9C7A
-		LDX #$01FF
-	.loop_wiggler:
-		LDA $703060,X
-		STA $7F9A7B,X
-		DEX
-		BPL .loop_wiggler
-		
-		; load $703260-$706A5F to save wram $C800-$FFFF
-		LDX #$37FF
-	.loop_tilemap_low:
-		LDA $703260,X
-		STA $7EC800,X
-		DEX
-		BPL .loop_tilemap_low
-		
-		; load $710000-$7137FF to wram $7FC800-$7FFFFF
-		LDX #$37FF
-	.loop_tilemap_high:
-		LDA $710000,X
-		STA $7FC800,X
-		DEX
-		BPL .loop_tilemap_high
-		
-		; load $713800-$713AFF to cgram w$00-w$FF
-		LDA #$00
-		STA $2121 ; cgram address
-		LDX #$3800
-		STX $4302 ; dma0 destination address
-		LDA #$71
-		STA $4304 ; dma0 destination bank
-		LDX #$0200
-		STX $4305 ; dma0 length
-		LDA #$02
-		STA $4300 ; dma0 parameters
-		LDA #$22 ; $2122 cgram data write
-		STA $4301 ; dma0 source
-		LDA #$01 ; channel 0
-		STA $420B ; dma enable
-		
-		; load $720000-$727FFF to vram w$0000-w$3FFF
-		LDA #$80
-		STA $2115 ; vram increment
-		LDX #$0000
-		STX $2116 ; vram address
-		LDX #$0000
-		STX $4302 ; dma0 destination address
-		LDA #$72
-		STA $4304 ; dma0 destination bank
-		LDX #$8000
-		STX $4305 ; dma0 length
-		LDA #$01 ; 2-byte, low-high
-		STA $4300 ; dma0 parameters
-		LDA #$18 ; $2118 vram data write
-		STA $4301 ; dma0 source
-		LDA #$01 ; channel 0
-		STA $420B ; dma enable
-		
-		; load $730000-$737FFF to vram w$4000-w$7FFF
-		LDA #$80
-		STA $2115 ; vram increment
-		LDX #$4000
-		STX $2116 ; vram address
-		LDX #$0000
-		STX $4302 ; dma0 destination address
-		LDA #$73
-		STA $4304 ; dma0 destination bank
-		LDX #$8000
-		STX $4305 ; dma0 length
-		LDA #$01 ; 2-byte, low-high
-		STA $4300 ; dma0 parameters
-		LDA #$18 ; $2118 vram data write
-		STA $4301 ; dma0 source
-		LDA #$01 ; channel 0
-		STA $420B ; dma enable
-		
-		; load the stack pointer from $717FF7 - $717FF8
-		REP #$30
-		LDA $717FF7
-		TAX
-		TXS
-		
-		; load the currently used music from $717FF9
-		SEP #$20
-		LDA $717FF9
-		CMP $2142
-		BEQ .same_music
-		STA $2142
-	.same_music:
-		REP #$20
-		
-		; since we restored the stack, we need to update the return
-		; address of this routine to what we want it to be. otherwise,
-		; it would return to the save state routine.
-		LDX #activate_load_state_done-1
-		TXA
-		STA $02,S
-
 		PLP
 		RTS
 
@@ -1111,4 +599,92 @@ restore_hardware_regs:
 		STA $210B ; bg12nba
 		LDA #$04
 		STA $210C ; bg34nba
+		RTS
+		
+vram_locations:
+		dw $7800,$7000,$6800,$6000
+		dw $1800,$1000,$0800,$0000
+
+; restore all graphics files from $0101-$0108
+restore_all_graphics:
+		PHP
+		PHB
+		PHK
+		PLB
+		REP #$30
+		LDX #$0007
+		
+	-	PHX
+		TXA
+		ASL A
+		TAX
+		LDY vram_locations,X
+		PLX
+		PHX
+		SEP #$20
+		LDA $7F9C7E,X
+		CMP $0101,X
+		BEQ +
+		LDA $0101,X
+		LDX #$1000
+		JSL load_a_graphics
+		
+	+	PLX
+		DEX
+		BPL -	
+		PLB
+		PLP
+		RTS
+
+; thank you Kaizoman for the help for the following routines!
+decompress_it:
+		PHX
+		PHY
+		PHP
+		CMP #$7F
+		BCS .label_0FF96B
+		TAX
+		SEP #$30
+		LDA $00B992,X
+		STA $8A
+		LDA $00B9C4,X
+		STA $8B
+		LDA $00B9F6,X
+		STA $8C
+		
+		PHK
+		PER $0005
+		PHB
+		PHY
+		JML $00BA47
+	 
+	.label_0FF96B:
+		PLP
+		PLY
+		PLX
+		RTL
+
+load_a_graphics:
+		PHP
+		PHA
+		LDA #$7E
+		STA $02
+		REP #$20
+		LDA #$AD00
+		STA $00
+		SEP #$20
+		PLA
+		PHA
+		JSL decompress_it ; decompress to $7EAD00
+		STY $2116
+		SEP #$30
+		PLA
+		
+		JSL upload_3bpp_to_vram
+
+		PLP
+		RTL
+
+; restore all tilemaps from respective data
+restore_all_tilemaps:
 		RTS

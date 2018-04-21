@@ -212,8 +212,4 @@
 !spliced_run                 = $700007
 ; player name
 !player_name                 = $70000C ; 4 bytes
-; flag = #$BD if it is detected that this platform does not support the needed sram
-; for complete save states; this will prevent save states from being saved across
-; levels and power cycles
-!use_poverty_save_states     = $70001F
 

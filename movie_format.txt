@@ -19,7 +19,7 @@ if P set:
 			+04    = translevel
 			+05-06 = length of movie minus header in bytes
 			+07-0A = author name
-			+0B    = poverty version
+			+0B    = UNUSED
 			+0C    = checksum of movie minus header
 			+0D    = $BD
 			+0E    = movie uses save states

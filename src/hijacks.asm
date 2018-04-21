@@ -69,6 +69,11 @@ level_load_hijack:
 		STZ $4200
 		INC !level_loaded
 		RTS
+; run on loading graphics from save state
+ORG $00CDCE
+upload_3bpp_to_vram:
+		JSR $AA6F
+		RTL
 
 ; run on temporary fade game modes
 ORG $009F37

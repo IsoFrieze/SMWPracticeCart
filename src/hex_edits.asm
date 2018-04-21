@@ -268,5 +268,4 @@ ORG $05FF00
 
 ; give the cartridge more SRAM
 ORG $00FFD8
-		db $07
-;		db $05 ; some platforms will treat $07 as $05 here
+		db $05
