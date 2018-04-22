@@ -70,9 +70,12 @@ level_load_hijack:
 		INC !level_loaded
 		RTS
 ; run on loading graphics from save state
-ORG $00CDCE
+ORG $00CDD0
 upload_3bpp_to_vram:
 		JSR $AA6F
+		RTL
+update_layer3_tilemap:
+		JSR $A01F
 		RTL
 
 ; run on temporary fade game modes

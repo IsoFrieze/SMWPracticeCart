@@ -270,6 +270,15 @@ go_save_state:
 		DEX
 		BPL .loop_wiggler
 		
+		; save wram $B900-$C0FF to $704C40-$70543F
+		; background tilemap
+		LDX #$07FF
+	.loop_background:
+		LDA $7EB900,X
+		STA $704C40,X
+		DEX
+		BPL .loop_background
+		
 		; save wram $C800-$FFFF to $700BA0-$70439F
 		; level tilemap low byte
 		LDX #$37FF
@@ -381,6 +390,7 @@ activate_load_state:
 		
 		JSR restore_all_graphics
 		JSR restore_all_tilemaps
+		JSR restore_all_palettes
 		
 		LDA !level_timer_minutes
 		ORA !level_timer_seconds
@@ -459,6 +469,15 @@ go_load_state:
 		STA $7F9A7B,X
 		DEX
 		BPL .loop_wiggler
+		
+		; load $704C40-$70543F to wram $B900-$C0FF
+		; background tilemap
+		LDX #$07FF
+	.loop_background:
+		LDA $704C40,X
+		STA $7EB900,X
+		DEX
+		BPL .loop_background
 		
 		; load $700BA0-$70439F to wram $C800-$FFFF
 		LDX #$37FF
@@ -642,7 +661,7 @@ decompress_it:
 		PHY
 		PHP
 		CMP #$7F
-		BCS .label_0FF96B
+		BCS +
 		TAX
 		SEP #$30
 		LDA $00B992,X
@@ -658,8 +677,7 @@ decompress_it:
 		PHY
 		JML $00BA47
 	 
-	.label_0FF96B:
-		PLP
+	+	PLP
 		PLY
 		PLX
 		RTL
@@ -687,4 +705,65 @@ load_a_graphics:
 
 ; restore all tilemaps from respective data
 restore_all_tilemaps:
+		PHP
+		
+		PHB
+		LDA #$00
+		PHA
+		PLB
+		JSL $05809E ; layer 1 & 2
+		PLB
+		
+		REP #$10
+
+		; clear layer 3 tilemap
+		LDA #$FC
+		STA $0F
+		STZ $2115 ; vram increment
+		LDX #$50A0
+		STX $2116 ; vram address
+		LDX #$000F
+		STX $4302 ; dma0 destination address
+		LDA #$7E
+		STA $4304 ; dma0 destination bank
+		LDX #$1EC0
+		STX $4305 ; dma0 length
+		LDX #$1809 ; $2118 vram data write
+		STX $4300 ; dma0 parameters, source
+		LDA #$01 ; channel 0
+		STA $420B ; dma enable
+		
+		SEP #$30
+		LDA $1931
+		ASL A
+		CLC
+		ADC $1931
+		STA $00
+		JSL update_layer3_tilemap
+		
+		PLP
 		RTS
+
+; restore all palettes from respective data
+restore_all_palettes:
+		PHP
+		REP #$10
+		SEP #$20
+
+		LDA #$00
+		STA $2121 ; cgram address
+		LDX #$0703
+		STX $4302 ; dma0 destination address
+		LDA #$7E
+		STA $4304 ; dma0 destination bank
+		LDX #$0200
+		STX $4305 ; dma0 length
+		STZ $4300 ; dma0 parameters
+		LDA #$22 ; $2122 cgram data write
+		STA $4301 ; dma0 source
+		LDA #$01 ; channel 0
+		STA $420B ; dma enable
+		
+		PLP
+		RTS
+		
