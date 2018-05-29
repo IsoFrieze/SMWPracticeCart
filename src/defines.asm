@@ -69,10 +69,6 @@
 
 ; flag that is set if we are in the overworld menu
 !in_overworld_menu           = $0EFC
-; flag that is set if we are in the help menu part of the overworld menu
-!in_help_menu                = $0EFD
-; the currently selected help menu item
-!help_menu_item              = $0EFE
 
 ; status flags for each of the overworld menu options
 !status_table                = $700320 ; $20 bytes

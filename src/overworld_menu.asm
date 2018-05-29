@@ -164,20 +164,6 @@ upload_overworld_menu_graphics:
 		LDY #$0800
 		JSL load_vram
 		
-		LDX #$5000
-		STX $2116 ; vram address
-		LDA #$19 ; #bank of menu_layer3_tilemap
-		LDX #menu_layer3_tilemap
-		LDY #$0C00
-		JSL load_vram
-		
-		LDX #$5400
-		STX $2116 ; vram address
-		LDA #$19 ; #bank of menu_layer3_tilemap
-		LDX #menu_layer3_tilemap
-		LDY #$0C00
-		JSL load_vram
-		
 		LDX #$6000
 		STX $2116 ; vram address
 		LDA #$18 ; #bank of menu_object_tiles
@@ -198,6 +184,13 @@ upload_overworld_menu_graphics:
 		LDX #menu_palette
 		LDY #$0100
 		JSL load_cgram
+		
+		LDX #$5000
+		STX $2116 ; vram address
+		LDA #$19 ; #bank of menu_layer3_tilemap
+		LDX #menu_layer3_tilemap
+		LDY #$0800
+		JSL load_vram
 		
 		PLP
 		RTS
@@ -356,7 +349,7 @@ overworld_menu:
 		INC $14
 		JSL $7F8000
 		
-		LDA !in_help_menu
+		LDA #$00
 		ASL A
 		TAX
 		JSR (overworld_menu_submodes,X)
@@ -367,7 +360,6 @@ overworld_menu:
 
 overworld_menu_submodes:
 		dw option_selection_mode
-		dw help_menu_mode
 		
 ; run the default part of the menu
 option_selection_mode:
@@ -556,10 +548,6 @@ option_selection_mode:
 	.select_help:
 		LDA #$0B ; on/off sound
 		STA $1DF9 ; apu i/o
-		LDA #$01
-		STA !in_help_menu
-		STZ !help_menu_item
-		STZ !text_timer
 		JMP .no_update_text
 	.select_yoshi:
 		LDA #$1F ; yoshi sound
@@ -759,158 +747,6 @@ restore_basic_settings:
 		STA.L !player_name+2
 		LDA.L !status_playername+3
 		STA.L !player_name+3
-		RTL
-
-; run the help menu section of the menu
-help_menu_mode:
-		LDA !util_axlr_frame
-		ORA !util_byetudlr_frame
-		AND #%11110000
-		BEQ .continue
-		LDA #$0B ; on/off sound
-		STA $1DF9 ; apu i/o
-		STZ !in_help_menu
-		STZ !text_timer
-		BRL .no_update_text
-		
-	.continue:
-		LDA $24
-		CMP #$8C
-		BEQ .no_scroll
-		CLC
-		ADC #$04
-		STA $24
-		LDA $20
-		CLC
-		ADC #$04
-		STA $20
-	.no_scroll:
-	
-		LDA !help_menu_item
-		STA $0A
-	.test_dup:
-		LDA !util_byetudlr_frame
-		AND #%00001000
-		BEQ .test_ddown
-		LDA !help_menu_item
-		TAX
-		LDA help_press_up,X
-		STA !help_menu_item
-		JMP .play_sound
-		
-	.test_ddown:
-		LDA !util_byetudlr_frame
-		AND #%00000100
-		BEQ .test_dleft
-		LDA !help_menu_item
-		TAX
-		LDA help_press_down,X
-		STA !help_menu_item
-		JMP .play_sound
-		
-	.test_dleft:
-		LDA !util_byetudlr_frame
-		AND #%00000010
-		BEQ .test_dright
-		LDA !help_menu_item
-		TAX
-		LDA help_press_left,X
-		STA !help_menu_item
-		JMP .play_sound
-		
-	.test_dright:
-		LDA !util_byetudlr_frame
-		AND #%00000001
-		BEQ .done
-		LDA !help_menu_item
-		TAX
-		LDA help_press_right,X
-		STA !help_menu_item
-		JMP .play_sound
-		
-	.play_sound:
-		LDA #$06 ; fireball sound
-		STA $1DFC ; apu i/o
-	.done:
-		JSL draw_help_cursor
-		JSL draw_help_text
-		
-		LDA !text_timer
-		CMP #$31
-		BCS .no_inc_text
-		INC A
-		STA !text_timer
-	.no_inc_text:
-		LDX !help_menu_item
-		CPX $0A
-		BEQ .no_update_text
-		STZ !text_timer
-	.no_update_text:
-		RTS
-
-; which help item to go to when a direction is pressed
-;		db $00,$01,$02,$03,$04,$05,$06,$07,$08,$09,$0A,$0B,$0C,$0D,$0E,$0F,$10,$11,$12,$13,$14,$15,$16,$17,$18
-help_press_up:
-		db $10,$00,$18,$14,$05,$03,$14,$14,$16,$08,$09,$0C,$0B,$02,$0D,$0E,$0F,$15,$11,$12,$13,$07,$0A,$04,$01
-help_press_down:
-		db $01,$18,$0D,$05,$17,$04,$05,$15,$09,$0A,$16,$0C,$0B,$0E,$0F,$10,$00,$12,$13,$14,$03,$11,$08,$11,$02
-help_press_left:
-		db $0B,$0C,$16,$00,$18,$01,$03,$06,$07,$07,$07,$08,$09,$11,$12,$13,$14,$0D,$0E,$0F,$10,$17,$15,$02,$0A
-help_press_right:
-		db $03,$05,$17,$06,$07,$07,$07,$09,$0B,$0C,$18,$00,$01,$11,$12,$13,$14,$0D,$0E,$0F,$10,$16,$02,$15,$04
-		
-help_x_position:
-		db $38,$38,$50,$90,$90,$90,$B0,$B8,$08,$08,$08,$20,$20,$50,$50,$50,$50,$90,$90,$90,$90,$B8,$08,$90,$38
-help_y_position:
-		db $5C,$64,$74,$5C,$6C,$64,$5C,$5C,$5C,$64,$6C,$5C,$64,$9C,$A4,$AC,$B4,$9C,$A4,$AC,$B4,$74,$74,$74,$6C
-help_width:
-		db $38,$38,$20,$18,$28,$20,$08,$40,$10,$10,$10,$10,$10,$38,$38,$38,$38,$38,$38,$38,$38,$40,$20,$20,$38
-help_height:
-		db $08,$08,$08,$08,$08,$08,$08,$18,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08
-		
-; draw the flashing cursor to the screen:
-draw_help_cursor:
-		PHP
-		PHB
-		PHK
-		PLB
-		
-		LDA !help_menu_item
-		TAX
-		LDA help_width,X
-		STA $00
-		LDA help_height,X
-		STA $01
-		LDA help_y_position,X
-		SEC
-		SBC #$09
-		REP #$20
-		AND #$00FF
-		SEC
-		SBC $24
-		CLC
-		ADC #$008C
-		BMI .continue
-		CMP #$00E8
-		BCS .done		
-	.continue:
-		SEP #$20
-		TAY
-		LDA help_x_position,X
-		SEC
-		SBC #$08
-		TAX
-		STZ $03
-		STZ $04
-		STZ $02
-		
-		SEP #$10
-		JSR draw_generic_cursor
-		
-	.done:
-		SEP #$20
-		PLB
-		PLP
 		RTL
 		
 ; draw the flashing cursor to the screen:
@@ -1344,83 +1180,6 @@ draw_option_text:
 		ASL #5
 		CLC
 		ADC #option_title
-		STA $00
-		LDA #$3434
-		STA $02
-		LDY #$6052
-		
-		JSR draw_text_string
-		
-		LDA.L $7F837B
-		TAX
-		LDA #$A052
-		STA.L $7F837D,X
-		LDA #$7F41
-		STA.L $7F837F,X
-		LDA #$38FC
-		STA.L $7F8381,X
-		LDA #$FFFF
-		STA.L $7F8383,X
-		TXA
-		CLC
-		ADC #$0006
-		STA.L $7F837B	
-	.done:
-		SEP #$30
-		RTL
-
-; draw help menu title and description
-draw_help_text:
-		LDA !text_timer
-		AND #$07
-		BEQ .continue
-		BRL .done
-		
-	.continue:
-		LDA !text_timer
-		BNE .draw_description_line
-		BRL .draw_title_and_clear
-	.draw_description_line:
-		REP #$30
-		LDA !help_menu_item
-		AND #$00FF
-		ASL #6
-		STA $00
-		ASL A
-		CLC
-		ADC $00
-		CLC
-		ADC #help_descriptions
-		STA $00
-		LDA !text_timer
-		AND #$00FF
-		SEC
-		SBC #$0008
-		ASL #2
-		CLC
-		ADC $00
-		STA $00
-		LDA #$3C3C
-		STA $02
-		LDA !text_timer
-		AND #$00FF
-		SEC
-		SBC #$0008
-		ASL #2
-		CLC
-		ADC #$52A0
-		XBA
-		TAY
-		
-		JSR draw_text_string
-		BRL .done
-	.draw_title_and_clear:
-		REP #$30
-		LDA !help_menu_item
-		AND #$00FF
-		ASL #5
-		CLC
-		ADC #help_title
 		STA $00
 		LDA #$3434
 		STA $02
