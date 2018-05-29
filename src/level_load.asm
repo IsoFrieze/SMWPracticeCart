@@ -58,7 +58,7 @@ check_midway_entrance:
 		AND #$7F
 		BNE .done
 	.skip_sublevel_count:
-		LDA $0DA4 ; axlr----
+		LDA !util_axlr_hold
 		AND #%00110000
 		CMP #%00110000
 		BNE .done

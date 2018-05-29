@@ -3,6 +3,18 @@
 !version_b                   = $00
 !version_c                   = $00
 
+; controller regs
+!mario_byetudlr_hold         = $15
+!mario_byetudlr_frame        = $16
+!mario_axlr_hold             = $17
+!mario_axlr_frame            = $18
+!util_byetudlr_hold          = $0DA2
+!util_byetudlr_frame         = $0DA6
+!util_byetudlr_mask          = $0DAA
+!util_axlr_hold              = $0DA4
+!util_axlr_frame             = $0DA8
+!util_axlr_mask              = $0DAC
+
 ; number of frames dropped this execution frame
 !dropped_frames              = $FB ; 2 bytes, 16-bit value
 ; number of frames used this execution frame (basically !dropped_frames + 1)
@@ -42,6 +54,10 @@
 !restore_room_xpos           = $19F3 ; 2 bytes, 16-bit value
 !restore_room_dragoncoins    = $19F5
 
+; determines when to load state from different level
+!load_state_timer            = $0EF9
+!load_state_delay            = $40
+
 ; determines when to start scrolling fast through options
 !fast_scroll_timer           = $0EF9
 !fast_scroll_delay           = $20
@@ -71,7 +87,7 @@
 !status_enemy                = $700328
 !status_erase                = $700329
 !status_slots                = $70032A
-!status_fractions            = $70032B
+!status_controller           = $70032B
 !status_pause                = $70032C
 !status_timedeath            = $70032D
 !status_music                = $70032E
@@ -82,13 +98,13 @@
 !status_slowdown             = $700333
 !status_help                 = $700334
 !status_lrreset              = $700335
-!status_memoryhi             = $700336
-!status_memorylo             = $700337
+!status_memoryhi             = $700336 ; x
+!status_memorylo             = $700337 ; x
 !status_moviesave            = $700338
 !status_movieload            = $700339
 !status_playername           = $70033A ; 4 bytes
 !status_region               = $70033E
-; $70033F reserved for future expansion.
+; $7003FF reserved for future expansion
 !backup_status_table         = $7006C0 ; $20 bytes
 
 

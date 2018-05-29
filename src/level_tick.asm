@@ -420,7 +420,7 @@ display_timer_wrapper:
 		
 ; draw the level, room, and pause timers to the status bar
 display_timers:
-		LDA.L !status_fractions
+		LDA #$00;.L !status_fractions
 		CMP #$02
 		BEQ .draw_pause_framecount
 		LDA !pause_timer_minutes
@@ -430,7 +430,7 @@ display_timers:
 		JSL $00974C ; hex2dec
 		STX !sb_pausetimer+2 ; tens
 		STA !sb_pausetimer+3 ; ones
-		LDA.L !status_fractions
+		LDA #$00;.L !status_fractions
 		BEQ .draw_pause_fractions
 		LDA !pause_timer_frames
 		JSL $00974C ; hex2dec
@@ -487,7 +487,7 @@ display_timers:
 		STA !sb_pausetimer+6 ; h
 		
 	.display_level_timer:
-		LDA.L !status_fractions
+		LDA #$00;.L !status_fractions
 		CMP #$02
 		BEQ .draw_level_framecount
 		LDA !level_timer_minutes
@@ -497,7 +497,7 @@ display_timers:
 		JSL $00974C ; hex2dec
 		STX !sb_leveltimer+2 ; tens
 		STA !sb_leveltimer+3 ; ones
-		LDA.L !status_fractions
+		LDA #$00;.L !status_fractions
 		BEQ .draw_level_fractions
 		LDA !level_timer_frames
 		JSL $00974C ; hex2dec
@@ -554,7 +554,7 @@ display_timers:
 		STA !sb_leveltimer+6 ; h
 		
 	.display_room_timer:
-		LDA.L !status_fractions
+		LDA #$00;.L !status_fractions
 		CMP #$02
 		BEQ .draw_room_framecount
 		LDA !room_timer_minutes
@@ -564,7 +564,7 @@ display_timers:
 		JSL $00974C ; hex2dec
 		STX !sb_roomtimer+2 ; tens
 		STA !sb_roomtimer+3 ; ones
-		LDA.L !status_fractions
+		LDA #$00;.L !status_fractions
 		BEQ .draw_room_fractions
 		LDA !room_timer_frames
 		JSL $00974C ; hex2dec
@@ -681,7 +681,7 @@ display_input:
 		LDA #$1F
 		STA $01
 		
-		LDA $0DA2 ; byetudlr
+		LDA !util_byetudlr_hold
 		LDX #$08
 	.loop_cont_a:
 		DEX
@@ -703,7 +703,7 @@ display_input:
 		BRA .loop_cont_a
 		
 	.next_cont:
-		LDA $0DA4 ; axlr----
+		LDA !util_axlr_hold
 		LSR #4
 		LDX #$04
 	.loop_cont_b:
@@ -907,7 +907,7 @@ display_movie_capacity:
 		BNE .draw
 		JMP .finish
 	.draw:
-		LDA $13
+		LDA $13 ; frame
 		ASL #3
 		BCC .no_dot
 		LDA !in_record_mode
@@ -997,7 +997,7 @@ display_movie_capacity:
 		BCC .finish
 		LDA #$D0
 		STA !sb_movie+12
-		LDA $13
+		LDA $13 ; frame
 		ASL #4
 		BCC .finish
 		LDA #$FC
@@ -1190,7 +1190,7 @@ test_reset:
 		BNE .done
 		
 	.continue:
-		LDA $0DA4 ; axlr----
+		LDA !util_axlr_hold
 		AND #%00110000
 		CMP #%00110000
 		BNE .done
@@ -1198,10 +1198,10 @@ test_reset:
 		INC $9D ; sprite lock flag
 		
 		; test X + Y for advance room
-		LDA $0DA4 ; axlr----
+		LDA !util_axlr_hold
 		AND #%01000000
 		BEQ .test_ab
-		LDA $0DA2 ; byetudlr
+		LDA !util_byetudlr_hold
 		AND #%01000000
 		BEQ .test_ab
 		JSL activate_room_advance
@@ -1209,10 +1209,10 @@ test_reset:
 		
 		; test A + B for level reset
 	.test_ab:
-		LDA $0DA4 ; axlr----
+		LDA !util_axlr_hold
 		AND #%10000000
 		BEQ .room_reset
-		LDA $0DA2 ; byetudlr
+		LDA !util_byetudlr_hold
 		AND #%10000000
 		BEQ .room_reset
 		JSL activate_level_reset
@@ -1232,28 +1232,51 @@ test_savestate:
 		LDA $0D9B ; overworld flag
 		CMP #$02
 		BEQ .done
-		
-		LDA $0DA2 ; byetudlr
+				
+		LDA !util_byetudlr_hold
 		AND #%00100000
-		BEQ .done
+		BEQ .no_load
 		
-		LDA $0DA4 ; axlr----
+		LDA !util_axlr_hold
 		AND #%00010000
 		BEQ .test_load
 		
 		JSL activate_save_state
-		BRA .done
+		BRA .no_load
 		
 	.test_load:
 		LDA.L !save_state_exists
 		CMP #$BD
-		BNE .done
-		LDA $0DA4 ; axlr----
+		BNE .no_load
+		LDA !util_axlr_hold
 		AND #%00100000
-		BEQ .done
+		BEQ .no_load
 		
-		JSL activate_load_state
+		LDA $705000+$13BF ; save state translevel
+		CMP $13BF
+		BEQ .go
+		
+		LDA !load_state_timer
+		AND #$07
+		BNE .no_sound
+		LDA #$1A ; grinder sound
+		STA $1DF9 ; apu i/o	
+	.no_sound:
+		LDA !load_state_timer
+		BEQ .actuate
+		CMP #$01
+		BEQ .go
+		DEC !load_state_timer
+		JMP .done
+	.actuate:
+		LDA #!load_state_delay
+		STA !load_state_timer
+		BRA .done
 	
+	.go:
+		JSL activate_load_state
+	.no_load:
+		STZ !load_state_timer
 	.done:
 		RTS
 		
@@ -1262,11 +1285,11 @@ test_slowdown:
 		LDA !status_slowdown
 		BNE .done
 		
-		LDA $0DA6 ; byetudlr frame
+		LDA !util_byetudlr_frame
 		AND #%00010000
 		BEQ .done
 		
-		LDA $0DA4 ; axlr----
+		LDA !util_axlr_hold
 		AND #%00010000
 		BEQ .test_undo
 		
@@ -1278,7 +1301,7 @@ test_slowdown:
 		BRA .store_speed
 		
 	.test_undo:
-		LDA $0DA4 ; axlr----
+		LDA !util_axlr_hold
 		AND #%00100000
 		BEQ .done
 		
@@ -1477,7 +1500,7 @@ draw_bowser_timer:
 		LDA #$98 ; clock icon
 		STA !sbbowser_leveltimer+2-(4*1)
 	.spliced:
-		LDA.L !status_fractions
+		LDA #$00;.L !status_fractions
 		CMP #$02
 		BEQ .draw_level_framecount
 		LDA !level_timer_minutes
@@ -1487,7 +1510,7 @@ draw_bowser_timer:
 		JSR hex_to_bowser
 		STX !sbbowser_leveltimer+2+(4*2)
 		STA !sbbowser_leveltimer+2+(4*3)
-		LDA.L !status_fractions
+		LDA #$00;.L !status_fractions
 		BEQ .draw_level_fractions
 		LDA !level_timer_frames
 		JSR hex_to_bowser
@@ -1572,7 +1595,7 @@ draw_bowser_timer:
 		DEY
 		BPL .level_loop
 		
-		LDA.L !status_fractions
+		LDA #$00;.L !status_fractions
 		CMP #$02
 		BEQ .draw_room_framecount
 		LDA !room_timer_minutes
@@ -1582,7 +1605,7 @@ draw_bowser_timer:
 		JSR hex_to_bowser
 		STX !sbbowser_roomtimer+2+(4*2)
 		STA !sbbowser_roomtimer+2+(4*3)
-		LDA.L !status_fractions
+		LDA #$00;.L !status_fractions
 		BEQ .draw_room_fractions
 		LDA !level_timer_frames
 		JSR hex_to_bowser
@@ -1669,7 +1692,7 @@ draw_bowser_timer:
 		DEY
 		BPL .room_loop
 		
-		LDA.L !status_fractions
+		LDA #$00;.L !status_fractions
 		CMP #$02
 		BEQ .draw_pause_framecount
 		LDA !pause_timer_minutes
@@ -1679,7 +1702,7 @@ draw_bowser_timer:
 		JSR hex_to_bowser
 		STX !sbbowser_pausetimer+2+(4*2)
 		STA !sbbowser_pausetimer+2+(4*3)
-		LDA.L !status_fractions
+		LDA #$00;.L !status_fractions
 		BEQ .draw_pause_fractions
 		LDA !level_timer_frames
 		JSR hex_to_bowser
@@ -1903,11 +1926,11 @@ record_input:
 		TAX
 		SEP #$20
 		LDA.L !movie_location+$43,X
-		CMP $0DA2
+		CMP !util_byetudlr_hold
 		BNE .advance
 		LDA.L !movie_location+$44,X
 		AND #$F0
-		CMP $0DA4
+		CMP !util_axlr_hold
 		BNE .advance
 		LDA.L !movie_location+$44,X
 		AND #$08
@@ -1926,9 +1949,9 @@ record_input:
 		LDX #$0000
 		SEP #$20
 	.record_new_byte:
-		LDA $0DA2
+		LDA !util_byetudlr_hold
 		STA.L !movie_location+$43,X
-		LDA $0DA4
+		LDA !util_axlr_hold
 		AND #$F0
 		STA.L !movie_location+$44,X
 		BRA .done
@@ -2041,12 +2064,12 @@ play_input:
 		BRA .done
 	
 	.no_cancel:	
-		STZ $0DA3
-		STZ $0DA5
-		STZ $0DA7
-		STZ $0DA9
-		STZ $0DAB
-		STZ $0DAD
+		STZ !util_byetudlr_hold+1
+		STZ !util_axlr_hold+1
+		STZ !util_byetudlr_frame+1
+		STZ !util_axlr_frame+1
+		STZ !util_byetudlr_mask+1
+		STZ !util_axlr_mask
 		
 		REP #$30
 		LDA.L !movie_location
@@ -2063,18 +2086,18 @@ play_input:
 		
 		; this part copied from $008650
 		LDA $01
-		EOR $0DA4
+		EOR !util_axlr_hold
 		AND $01
-		STA $0DA8
+		STA !util_axlr_frame
 		LDA $01
-		STA $0DA4
+		STA !util_axlr_hold
 		
 		LDA $00
-		EOR $0DA2
+		EOR !util_byetudlr_hold
 		AND $00
-		STA $0DA6
+		STA !util_byetudlr_frame
 		LDA $00
-		STA $0DA2
+		STA !util_byetudlr_hold
 		
 	.done:
 		PLP

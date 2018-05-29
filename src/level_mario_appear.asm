@@ -13,10 +13,10 @@ playback_buffered_inputs:
 		BEQ .done
 		LDA !in_playback_mode
 		BEQ .done
-		STZ $0DA2
-		STZ $0DA3
-		STZ $0DA4
-		STZ $0DA5
+		STZ !util_byetudlr_hold
+		STZ !util_byetudlr_hold+1
+		STZ !util_axlr_hold
+		STZ !util_axlr_hold+1
 	.done:
 		RTS
 

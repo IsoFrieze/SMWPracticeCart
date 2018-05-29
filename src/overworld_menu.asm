@@ -289,6 +289,8 @@ option_width:
 		db $10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$08,$08,$08,$08,$10
 option_height:
 		db $10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10
+option_type:
+		db $00,$01,$01,$01,$01,$01,$01,$01,$02,$03,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$02,$01,$01,$01,$03,$03,$01,$01,$01,$01,$01
 option_index:
 		dw $0000,$0002,$0004,$0006,$0008,$000A,$010A,$020A
 		dw $030A,$030B,$0315,$0318,$031B,$031D,$031F,$0321
@@ -384,7 +386,7 @@ option_selection_mode:
 	.no_scroll:
 		
 		INC !fast_scroll_timer
-		LDA $0DA4 ; axlr----
+		LDA !util_axlr_hold
 		AND #%00110000
 		BNE .fast_scroll
 		STZ !fast_scroll_timer
@@ -398,14 +400,14 @@ option_selection_mode:
 	.test_select:
 		LDA !erase_records_flag
 		BEQ .test_dup
-		LDA $0DA2 ; byetudlr
+		LDA !util_byetudlr_hold
 		AND #%00100000
 		BEQ .test_dup
 		JSR delete_data
 		JMP .finish_no_sound
 		
 	.test_dup:
-		LDA $0DA6 ; byetudlr frame
+		LDA !util_byetudlr_frame
 		AND #%00001000
 		BEQ .test_ddown
 		LDA !current_selection
@@ -415,7 +417,7 @@ option_selection_mode:
 		JMP .finish_sound
 		
 	.test_ddown:
-		LDA $0DA6 ; byetudlr frame
+		LDA !util_byetudlr_frame
 		AND #%00000100
 		BEQ .test_dleft
 		LDA !current_selection
@@ -425,7 +427,7 @@ option_selection_mode:
 		JMP .finish_sound
 		
 	.test_dleft:
-		LDA $0DA6 ; byetudlr frame
+		LDA !util_byetudlr_frame
 		AND #%00000010
 		BEQ .test_dright
 		LDA !current_selection
@@ -435,7 +437,7 @@ option_selection_mode:
 		JMP .finish_sound
 		
 	.test_dright:
-		LDA $0DA6 ; byetudlr frame
+		LDA !util_byetudlr_frame
 		AND #%00000001
 		BEQ .test_left
 		LDA !current_selection
@@ -445,10 +447,10 @@ option_selection_mode:
 		JMP .finish_sound
 		
 	.test_left:
-		LDA $0DA8 ; axlr---- frame
+		LDA !util_axlr_frame
 		AND #%00100000
 		BNE .go_left
-		LDA $0DA4 ; axlr----
+		LDA !util_axlr_hold
 		AND #%00100000
 		BEQ .test_right
 		LDA !fast_scroll_timer
@@ -464,10 +466,10 @@ option_selection_mode:
 		JMP .finish_sound
 		
 	.test_right:
-		LDA $0DA8 ; axlr---- frame
+		LDA !util_axlr_frame
 		AND #%00010000
 		BNE .go_right
-		LDA $0DA4 ; axlr----
+		LDA !util_axlr_hold
 		AND #%00010000
 		BEQ .test_selection
 		LDA !fast_scroll_timer
@@ -483,8 +485,8 @@ option_selection_mode:
 		JMP .finish_sound
 		
 	.test_selection:
-		LDA $0DA8 ; byetudlr
-		ORA $0DA6 ; axlr----
+		LDA !util_axlr_frame
+		ORA !util_byetudlr_frame
 		AND #%10000000
 		BNE .make_selection
 		JMP .test_start
@@ -591,7 +593,7 @@ option_selection_mode:
 		JMP .quit
 	
 	.test_start:
-		LDA $0DA6 ; byetudlr frame
+		LDA !util_byetudlr_frame
 		AND #%00010000
 		BEQ .finish_no_sound
 		JMP .select_exit
@@ -633,7 +635,7 @@ export_movie_to_sram:
 		REP #$30
 		LDA #$7070
 		STA $02
-		LDA #$6AE0
+		LDA #$7000
 		STA $00
 		LDA.L !status_moviesave
 		AND #$00FF
@@ -725,7 +727,7 @@ load_movie:
 		RTS
 		
 sram_movie_locations:
-		dl $706AE0, $7072E0
+		dl $707000, $707800
 rom_movie_locations:
 		dl translevel_movie_ptr_A, translevel_movie_ptr_B
 
@@ -761,8 +763,8 @@ restore_basic_settings:
 
 ; run the help menu section of the menu
 help_menu_mode:
-		LDA $0DA8
-		ORA $0DA6
+		LDA !util_axlr_frame
+		ORA !util_byetudlr_frame
 		AND #%11110000
 		BEQ .continue
 		LDA #$0B ; on/off sound
@@ -787,7 +789,7 @@ help_menu_mode:
 		LDA !help_menu_item
 		STA $0A
 	.test_dup:
-		LDA $0DA6 ; byetudlr frame
+		LDA !util_byetudlr_frame
 		AND #%00001000
 		BEQ .test_ddown
 		LDA !help_menu_item
@@ -797,7 +799,7 @@ help_menu_mode:
 		JMP .play_sound
 		
 	.test_ddown:
-		LDA $0DA6 ; byetudlr frame
+		LDA !util_byetudlr_frame
 		AND #%00000100
 		BEQ .test_dleft
 		LDA !help_menu_item
@@ -807,7 +809,7 @@ help_menu_mode:
 		JMP .play_sound
 		
 	.test_dleft:
-		LDA $0DA6 ; byetudlr frame
+		LDA !util_byetudlr_frame
 		AND #%00000010
 		BEQ .test_dright
 		LDA !help_menu_item
@@ -817,7 +819,7 @@ help_menu_mode:
 		JMP .play_sound
 		
 	.test_dright:
-		LDA $0DA6 ; byetudlr frame
+		LDA !util_byetudlr_frame
 		AND #%00000001
 		BEQ .done
 		LDA !help_menu_item
@@ -924,6 +926,8 @@ draw_option_cursor:
 		STA $00
 		LDA option_height,X
 		STA $01
+		LDA option_type,X
+		STA $03
 		LDA option_y_position,X
 		ASL #3
 		SEC
@@ -943,11 +947,9 @@ draw_option_cursor:
 		SEC
 		SBC #$08
 		TAX
-		LDA #$01
-		STA $03
 		
-		LDA $17 ; axlr----
-		ORA $15 ; byetudlr
+		LDA !util_axlr_hold
+		ORA !util_byetudlr_hold
 		AND #%01000000
 		BEQ .no_color
 		LDA #$01
@@ -1036,8 +1038,8 @@ check_bounds:
 		REP #$10
 		PHY
 		PHA
-		LDA $0DA2 ; byetudlr
-		ORA $0DA4 ; axlr----
+		LDA !util_byetudlr_hold
+		ORA !util_axlr_hold
 		AND #%01000000
 		BEQ .not_extended
 		LDA minimum_selection_extended,X
@@ -1486,7 +1488,7 @@ draw_text_string:
 		RTS
 
 ; draw a cursor
-; where X = x pos, Y = y pos, $00 = width, $01 = height, $02 = squeezed, $03 = show bumpers, $04 = change color
+; where X = x pos, Y = y pos, $00 = width, $01 = height, $02 = squeezed, $03 = cursor type, $04 = change color
 draw_generic_cursor:
 		PHX
 		PHY
@@ -1516,7 +1518,7 @@ draw_generic_cursor:
 		SEC
 		SBC $0F
 		TAY
-		LDA $17 ; axlr----
+		LDA !util_axlr_hold
 		AND #%00100000
 		BEQ .tl_not_red
 		LDA #$3C
@@ -1533,6 +1535,7 @@ draw_generic_cursor:
 		LDA #$00
 		STA $06
 		LDA $03
+		AND #$01
 		TAX
 		LDA cursor_tiles,X
 		LDX $0E
@@ -1552,7 +1555,7 @@ draw_generic_cursor:
 		SEC
 		SBC $0F
 		TAY
-		LDA $17 ; axlr----
+		LDA !util_axlr_hold
 		AND #%00010000
 		BEQ .tr_not_red
 		LDA #$3C
@@ -1570,6 +1573,7 @@ draw_generic_cursor:
 		LDA #$04
 		STA $06
 		LDA $03
+		AND #$01
 		TAX
 		LDA cursor_tiles,X
 		LDX $0E
@@ -1631,7 +1635,10 @@ draw_generic_cursor:
 		STA $05
 		LDA #$0C
 		STA $06
-		LDA cursor_tiles
+		LDA $03
+		AND #$02
+		TAX
+		LDA cursor_tiles,X
 		LDX $0E
 		JSR draw_cursor_bit
 		
@@ -1649,7 +1656,7 @@ draw_generic_cursor:
 		RTS
 
 cursor_tiles:
-		db $06,$08
+		db $06,$08,$0A
 
 ; draw 1/4 of a cursor
 ; where x = x pos, Y = y pos, A = tile byte, $05 = property byte, $06 = pointer to oam

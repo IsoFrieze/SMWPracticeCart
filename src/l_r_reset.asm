@@ -243,12 +243,12 @@ go_save_state:
 		PHP
 		REP #$10
 		
-		; save wram $0000-$1FFF to wram $7FA800-$7FC7FF
+		; save wram $0000-$1FFF to wram $705000-$706FFF
 		; mirrored wram
 		LDX #$1FFF
 	.loop_mirror:
 		LDA $7E0000,X
-		STA $7FA800,X
+		STA $705000,X
 		DEX
 		BPL .loop_mirror
 		
@@ -270,14 +270,14 @@ go_save_state:
 		DEX
 		BPL .loop_wiggler
 		
-		; save wram $B900-$C0FF to $704C40-$70543F
-		; background tilemap
-		LDX #$07FF
-	.loop_background:
-		LDA $7EB900,X
-		STA $704C40,X
-		DEX
-		BPL .loop_background
+;		; save wram $B900-$C0FF to $704C40-$70543F
+;		; background tilemap
+;		LDX #$07FF
+;	.loop_background:
+;		LDA $7EB900,X
+;		STA $704C40,X
+;		DEX
+;		BPL .loop_background
 		
 		; save wram $C800-$FFFF to $700BA0-$70439F
 		; level tilemap low byte
@@ -356,16 +356,16 @@ go_save_state:
 		
 		PLB
 		
-		; save the stack pointer to $7F9C7B - $7F9C7C
+		; save the stack pointer to $704C48 - $704C49
 		REP #$30
 		TSX
 		TXA
-		STA $7F9C7B
+		STA $704C48
 		
-		; save the currently used music to $7F9C7D
+		; save the currently used music to $704C4A
 		SEP #$20
 		LDA $2142
-		STA $7F9C7D
+		STA $704C4A
 		
 	.done:
 		PLP
@@ -375,8 +375,10 @@ go_save_state:
 activate_load_state:
 		LDA !in_record_mode
 		ORA !in_playback_mode
-		BNE .done_waiting
-		STZ $4200 ; nmi disable
+		BEQ +
+		JMP .exit
+	
+	+	STZ $4200 ; nmi disable
 		
 	-	LDA $4212
 		BPL -
@@ -412,7 +414,7 @@ activate_load_state:
 		TAX
 	.loop:
 		DEX
-		BEQ .done_waiting
+		BEQ .exit
 		WAI ; wait for NMI
 		STZ $2100
 		WAI ; wait for IRQ
@@ -420,7 +422,7 @@ activate_load_state:
 		INC !previous_sixty_hz ; waiting here shouldn't count as lag
 		BRA .loop
 	
-	.done_waiting:
+	.exit:
 		RTL
 		
 go_load_state:
@@ -436,18 +438,18 @@ go_load_state:
 		
 		REP #$10
 		
-		; load wram $7FA800-$7FC7FF to wram $0000-$1FFF
+		; load wram $705000-$706FFF to wram $0000-$1FFF
 		; mirror wram
 		; copy old graphics files into state
 		LDX #$0007
 	.loop_graphics_files:
 		LDA $7E0101,X
-		STA $7F9C7E,X
+		STA $704C40,X
 		DEX
 		BPL .loop_graphics_files
 		LDX #$1FFF
 	.loop_mirror:
-		LDA $7FA800,X
+		LDA $705000,X
 		STA $7E0000,X
 		DEX
 		BPL .loop_mirror
@@ -470,14 +472,14 @@ go_load_state:
 		DEX
 		BPL .loop_wiggler
 		
-		; load $704C40-$70543F to wram $B900-$C0FF
-		; background tilemap
-		LDX #$07FF
-	.loop_background:
-		LDA $704C40,X
-		STA $7EB900,X
-		DEX
-		BPL .loop_background
+;		; load $704C40-$70543F to wram $B900-$C0FF
+;		; background tilemap
+;		LDX #$07FF
+;	.loop_background:
+;		LDA $704C40,X
+;		STA $7EB900,X
+;		DEX
+;		BPL .loop_background
 		
 		; load $700BA0-$70439F to wram $C800-$FFFF
 		LDX #$37FF
@@ -566,15 +568,15 @@ go_load_state:
 		
 		PLB
 		
-		; load the stack pointer from $7F9C7B - $7F9C7C
+		; load the stack pointer from $704C48 - $704C49
 		REP #$30
-		LDA $7F9C7B
+		LDA $704C48
 		TAX
 		TXS
 		
-		; load the currently used music from $7F9C7D
+		; load the currently used music from $704C4A
 		SEP #$20
-		LDA $7F9C7D
+		LDA $704C4A
 		CMP $2142
 		BEQ .same_music
 		STA $2142
@@ -641,7 +643,7 @@ restore_all_graphics:
 		PLX
 		PHX
 		SEP #$20
-		LDA $7F9C7E,X
+		LDA $704C40,X
 		CMP $0101,X
 		BEQ +
 		LDA $0101,X
@@ -706,6 +708,9 @@ load_a_graphics:
 ; restore all tilemaps from respective data
 restore_all_tilemaps:
 		PHP
+		
+		; load layer 2 tilemap from data! TODO
+		; mode 7 graphics/tilemap! TODO
 		
 		PHB
 		LDA #$00

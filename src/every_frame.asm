@@ -47,10 +47,10 @@ stack_overflow:
 
 ; press ABXYLR + up to force a bsod
 check_kill:
-		LDA $0DA2 ; byetudlr
+		LDA !util_byetudlr_hold
 		CMP #%11001000
 		BNE .done
-		LDA $0DA4 ; axlr----
+		LDA !util_axlr_hold
 		CMP #%11110000
 		BNE .done
 		BRK #$C8

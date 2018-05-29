@@ -71,8 +71,8 @@ test_for_enter_level:
 		BNE .on_a_tile
 		JMP .done
 	.on_a_tile:
-		LDA $0DA8
-		ORA $0DA6
+		LDA !util_axlr_frame
+		ORA !util_byetudlr_frame
 		AND #$C0
 		BNE .entering_level
 		JMP .done
@@ -82,7 +82,7 @@ test_for_enter_level:
 		STZ !in_playback_mode
 		STZ $1496 ; player animation timer
 		
-		LDA $0DA8
+		LDA !util_axlr_frame
 		AND #$40
 		BNE .yes_record
 		JMP .no_record
@@ -148,7 +148,7 @@ test_for_enter_level:
 		STA !movie_location+$38
 		JMP .finish
 	.no_record:
-		LDA $0DA6
+		LDA !util_byetudlr_frame
 		AND #$40
 		BNE .yes_playback
 	.exit:
@@ -249,10 +249,10 @@ test_for_enter_level:
 
 ; if R is pressed, cycle through powerup
 test_for_powerup:
-		LDA $0DA8 ; frame axlr----
+		LDA !util_axlr_frame
 		AND #%00010000
 		BEQ .done
-		LDA $0DA4 ; axlr----
+		LDA !util_axlr_hold
 		AND #%00100000
 		BNE .done
 		
@@ -271,10 +271,10 @@ test_for_powerup:
 
 ; if L is pressed, cycle through yoshi color
 test_for_yoshi:
-		LDA $0DA8 ; frame axlr----
+		LDA !util_axlr_frame
 		AND #%00100000
 		BEQ .done
-		LDA $0DA4 ; axlr----
+		LDA !util_axlr_hold
 		AND #%00010000
 		BNE .done
 		
@@ -299,7 +299,7 @@ test_for_yoshi:
 
 ; if select is pressed, swap powerup and item box powerup (if applicable)
 test_for_swap:
-		LDA $0DA6 ; frame byetudlr
+		LDA !util_byetudlr_frame
 		AND #%00100000
 		BEQ .done
 		LDA $19 ; powerup
@@ -347,7 +347,7 @@ test_for_swap:
 
 ; if start is pressed, go to menu
 test_for_menu:
-		LDA $0DA6 ; frame byetudlr
+		LDA !util_byetudlr_frame
 		AND #%00010000
 		BEQ .done
 		LDA $144E ; ow mario animation
@@ -364,11 +364,11 @@ test_for_menu:
 
 ; if x, toggle the times
 test_for_time_toggle:
-		LDA $0DA4 ; axlr----
+		LDA !util_axlr_hold
 		AND #%00110000
 		CMP #%00110000
 		BNE .done
-		LDA $0DA8 ; axlr---- frame
+		LDA !util_axlr_frame
 		AND #%00110000
 		BEQ .done
 		LDA !ow_display_times
@@ -457,7 +457,7 @@ draw_times:
 		JMP .draw_unran
 		
 	+	PHX
-		LDA.L !status_fractions
+		LDA #$00;.L !status_fractions
 		CMP #$02
 		BEQ .in_framecount
 		LDA [$00],Y
@@ -588,7 +588,7 @@ times_ptrs:
 		
 get_fractions_of_time:
 		PHA
-		LDA.L !status_fractions
+		LDA #$00;.L !status_fractions
 		BNE .frames
 		PLA
 		TAX
@@ -604,7 +604,7 @@ load_unran_time:
 		PHY
 		LDY #$12
 	.loop:
-		LDA.L !status_fractions
+		LDA #$00;.L !status_fractions
 		CMP #$02
 		BEQ .default_frame
 		LDA default_time_stripe,Y
@@ -629,7 +629,7 @@ load_unran_time:
 		LDA times_position,Y
 	.merge:
 		STA !dynamic_stripe_image+1
-		LDA.L !status_fractions
+		LDA #$00;.L !status_fractions
 		CMP #$01
 		BNE .done
 		LDA #$5D

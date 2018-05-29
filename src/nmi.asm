@@ -15,55 +15,77 @@ nmi_expand:
 		
 controller_update:
 		LDA !in_playback_mode
-		BNE .skip
+		BEQ +
+		JMP .skip
 		
-		LDA.W $4218
+	+	LDA.W $4218
 		AND.B #$F0 
-		STA.W $0DA4
-		TAY        
-		EOR.W $0DAC
-		AND.W $0DA4
-		STA.W $0DA8
-		STY.W $0DAC
+		STA.W !util_axlr_hold
+		TAY
+		EOR.W !util_axlr_mask
+		AND.W !util_axlr_hold
+		STA.W !util_axlr_frame
+		STY.W !util_axlr_mask
 		LDA.W $4219
-		STA.W $0DA2
-		TAY        
-		EOR.W $0DAA
-		AND.W $0DA2
-		STA.W $0DA6
-		STY.W $0DAA
+		STA.W !util_byetudlr_hold
+		TAY
+		EOR.W !util_byetudlr_mask
+		AND.W !util_byetudlr_hold
+		STA.W !util_byetudlr_frame
+		STY.W !util_byetudlr_mask
+		
+		STZ !util_byetudlr_hold+1
+		STZ !util_byetudlr_frame+1
+		STZ !util_axlr_hold+1
+		STZ !util_axlr_frame+1
+		
+		LDA.L !status_controller
+		BEQ .skip
+		
 		LDA.W $421A
 		AND.B #$F0 
-		STA.W $0DA5
-		TAY        
-		EOR.W $0DAD
-		AND.W $0DA5
-		STA.W $0DA9
-		STY.W $0DAD
+		STA.W !util_axlr_hold+1
+		TAY
+		EOR.W !util_axlr_mask+1
+		AND.W !util_axlr_hold+1
+		STA.W !util_axlr_frame+1
+		STY.W !util_axlr_mask+1
 		LDA.W $421B
-		STA.W $0DA3
-		TAY        
-		EOR.W $0DAB
-		AND.W $0DA3
-		STA.W $0DA7
-		STY.W $0DAB
+		STA.W !util_byetudlr_hold+1
+		TAY
+		EOR.W !util_byetudlr_mask+1
+		AND.W !util_byetudlr_hold+1
+		STA.W !util_byetudlr_frame+1
+		STY.W !util_byetudlr_mask+1
+		
+		LDA.L !status_controller
+		CMP #$02
+		BNE .skip
+		LDA !util_byetudlr_hold+1
+		TSB !util_byetudlr_hold
+		LDA !util_byetudlr_frame+1
+		TSB !util_byetudlr_frame
+		LDA !util_axlr_hold+1
+		TSB !util_axlr_hold
+		LDA !util_axlr_frame+1
+		TSB !util_axlr_frame
 	.skip:
 		
 		JSL empty_controller_regs
 		LDX #$01
 	.loop:
-		LDA $0DA4,X
+		LDA !util_axlr_hold,X
 		AND #$C0
-		ORA $0DA2,X
-		TSB $15
-		LDA $0DA4,X
-		TSB $17
-		LDA $0DA8,X
+		ORA !util_byetudlr_hold,X
+		TSB !mario_byetudlr_hold
+		LDA !util_axlr_hold,X
+		TSB !mario_axlr_hold
+		LDA !util_axlr_frame,X
 		AND #$40
-		ORA $0DA6,X
-		TSB $16
-		LDA $0DA8,X
-		TSB $18
+		ORA !util_byetudlr_frame,X
+		TSB !mario_byetudlr_frame
+		LDA !util_axlr_frame,X
+		TSB !mario_axlr_frame
 		DEX
 		BPL .loop
 		RTL
