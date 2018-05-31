@@ -1,59 +1,23 @@
 ; status bar default tiles and properties for each tile
 ORG $008C59
-Status_bar_tiles:
-		db $00,$2C,$00,$2C,$FC,$3C,$FC,$28,$FC,$28,$FC,$3C,$27,$3C,$85,$3C,$27,$3C,$27,$3C,$24,$3C,$27,$3C,$27,$3C,$3A,$38,$3B,$38,$3B,$38,$3A,$78,$2E,$3C,$FC,$38,$00,$38,$FC,$3C,$FC,$2C,$FC,$28,$27,$28,$FC,$28,$27,$28,$27,$28,$FC,$28,$27,$28,$FC,$28
-		db $FC,$38,$FC,$38,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$27,$38,$85,$38,$27,$38,$27,$38,$24,$38,$27,$38,$27,$38,$4A,$38,$FC,$3C,$FC,$3C,$4A,$78,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$27,$28,$FC,$28,$27,$28,$FC,$28,$FC,$28,$27,$28,$FC,$28,$27,$28
-		db $19,$3C,$00,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$3C,$27,$28,$85,$28,$27,$28,$27,$28,$24,$28,$27,$28,$27,$28,$4A,$38,$FC,$3C,$FC,$3C,$4A,$78,$FC,$3C,$FC,$3C,$00,$3C,$FC,$38,$FC,$38,$FC,$28,$27,$28,$FC,$28,$27,$28,$27,$28,$FC,$28,$27,$28,$FC,$28
-		db $FC,$28,$FC,$28,$FC,$28,$FC,$28,$FC,$3C,$FC,$3C,$FC,$3C,$FC,$2C,$FC,$2C,$FC,$2C,$00,$2C,$FC,$2C,$D7,$2C,$3A,$B8,$3B,$B8,$3B,$B8,$3A,$F8,$FC,$2C,$FC,$2C,$FC,$2C,$FC,$2C,$FC,$3C,$FC,$28,$FC,$28,$FC,$28,$FC,$28,$FC,$28,$FC,$28,$FC,$28,$FC,$68
 	
 ; DMA 4 lines of status bar tile properties+default tiles
 DMA_Status_Bar:		
-		LDX #$03
-	.loop_property_lines:
-		LDA #$01
-		STA $4310
-		LDA #$18
-		STA $4311
-		LDA #$00
-		STA $4314
-		LDA #$3C
-		STA $4315
-		LDA #$00
-		STA $4316
-		
-		LDA #$80
-		STA $2115
-		LDA line_pos,X
-		STA $2116
-		LDA #$50
-		STA $2117
-		LDA properties_low,X
-		STA $4312
-		LDA properties_high,X
-		STA $4313
-		LDA #$02
-		STA $420B
-		DEX
-		BPL .loop_property_lines
-		
+		JSL init_statusbar_properties
 		JSR default_status_bar
 		JSR DMA_Status_Bar_Tiles
 		RTS
 		
 	line_pos:
-		db $21,$41,$61,$81
+		db $00,$20,$40,$60,$80
 	tiles_high:
-		db $1F,$1F,$1F,$1F
+		db $1F,$1F,$1F,$1F,$1F
 	tiles_low:
-		db $2F,$4D,$6B,$89
-	properties_high:
-		db $8C,$8C,$8C,$8D
-	properties_low:
-		db $59,$95,$D1,$0D
+		db $30,$50,$70,$90,$B0
 
-; DMA 4 lines of status bar tiles based on !status_bar
+; DMA 5 lines of status bar tiles based on !status_bar
 DMA_Status_Bar_Tiles:
-		LDX #$03
+		LDX #$04
 	.loop_tile_lines:
 		LDA #$00
 		STA $4310
@@ -61,7 +25,7 @@ DMA_Status_Bar_Tiles:
 		STA $4311
 		LDA #$00
 		STA $4314
-		LDA #$1E
+		LDA #$20
 		STA $4315
 		LDA #$00
 		STA $4316
@@ -81,17 +45,14 @@ DMA_Status_Bar_Tiles:
 		BPL .loop_tile_lines
 		RTS
 
-; initialize !status_bar with default tiles in tilemap
+; clear the status bar
 default_status_bar:
-		LDX #$EE
-		LDY #$77
+		LDA #$FC
+		LDX #$A0
 	.loop:
-		LDA Status_bar_tiles,X
-		STA !status_bar,Y
+		STA !status_bar-1,X
 		DEX
-		DEX
-		DEY
-		BPL .loop
+		BNE .loop
 		RTS
 
 ; number of scanlines used by layer 3 in normal level mode

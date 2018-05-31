@@ -65,7 +65,7 @@
 !text_timer                  = $0EFA
 
 ; the number of frames to skip for the slowdown feature (0 = normal)
-!slowdown_speed              = $0EFB
+!slowdown_speed              = $7E0EFB
 
 ; flag that is set if we are in the overworld menu
 !in_overworld_menu           = $0EFC
@@ -103,6 +103,9 @@
 ; $7003FF reserved for future expansion
 !backup_status_table         = $7006C0 ; $20 bytes
 
+; table for status bar meters
+!statusbar_meters            = $704D50 ; $60 bytes (4x24)
+
 
 ; location of cape interaction table at $1FE2
 !new_cape_interaction        = $0F5E
@@ -114,7 +117,7 @@
 !recent_secondary_flag       = $0F1A
 ; the slot of the currently carried sprite
 ; obviously if 2+ items are held, this only holds the highest slot number
-!held_item_slot              = $0F1B
+!held_item_slot              = $7E0F1B
 ; what action to take upon pressing L+R (level reset, room reset, room advance)
 !l_r_function                = $0F1C
 ; when set, the timers will not tick
@@ -166,7 +169,7 @@
 !pause_timer_frames          = $0F47
 
 ; the entire revamped status bar
-!status_bar                  = $1F2F ; 120 bytes
+!status_bar                  = $1F30 ; 160 bytes
 
 ; status bar meters
 !sb_mariox                   = $1F2F ; 2 bytes

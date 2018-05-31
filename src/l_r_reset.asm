@@ -252,16 +252,16 @@ go_save_state:
 		DEX
 		BPL .loop_mirror
 		
-		; save wram $C680-$C6DF to $704BE0-$704C3F
+		; save wram $C680-$C6DF to $704CE0-$704D3F
 		; mode 7 boss tilemap
 		LDX #$005F
 	.loop_boss:
 		LDA $7EC680,X
-		STA $704BE0,X
+		STA $704CE0,X
 		DEX
 		BPL .loop_boss
 		
-		; save wram $7F9A7B-$7F9C7A to $704AE0-$704BDF
+		; save wram $7F9A7B-$7F9C7A to $704AE0-$704CDF
 		; wiggler segments
 		LDX #$01FF
 	.loop_wiggler:
@@ -356,16 +356,16 @@ go_save_state:
 		
 		PLB
 		
-		; save the stack pointer to $704C48 - $704C49
+		; save the stack pointer to $704D48 - $704D49
 		REP #$30
 		TSX
 		TXA
-		STA $704C48
+		STA $704D48
 		
-		; save the currently used music to $704C4A
+		; save the currently used music to $704D4A
 		SEP #$20
 		LDA $2142
-		STA $704C4A
+		STA $704D4A
 		
 	.done:
 		PLP
@@ -444,7 +444,7 @@ go_load_state:
 		LDX #$0007
 	.loop_graphics_files:
 		LDA $7E0101,X
-		STA $704C40,X
+		STA $704D40,X
 		DEX
 		BPL .loop_graphics_files
 		LDX #$1FFF
@@ -454,11 +454,11 @@ go_load_state:
 		DEX
 		BPL .loop_mirror
 		
-		; load $704BE0-$704C3F to wram $C680-$C6DF
+		; load $704CE0-$704D3F to wram $C680-$C6DF
 		; mode 7 boss tilemap
 		LDX #$005F
 	.loop_boss:
-		LDA $704BE0,X
+		LDA $704CE0,X
 		STA $7EC680,X
 		DEX
 		BPL .loop_boss
@@ -568,15 +568,15 @@ go_load_state:
 		
 		PLB
 		
-		; load the stack pointer from $704C48 - $704C49
+		; load the stack pointer from $704D48 - $704D49
 		REP #$30
-		LDA $704C48
+		LDA $704D48
 		TAX
 		TXS
 		
-		; load the currently used music from $704C4A
+		; load the currently used music from $704D4A
 		SEP #$20
-		LDA $704C4A
+		LDA $704D4A
 		CMP $2142
 		BEQ .same_music
 		STA $2142
@@ -643,7 +643,7 @@ restore_all_graphics:
 		PLX
 		PHX
 		SEP #$20
-		LDA $704C40,X
+		LDA $704D40,X
 		CMP $0101,X
 		BEQ +
 		LDA $0101,X

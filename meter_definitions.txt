@@ -1,0 +1,54 @@
+00tt tttt ssss ssss ssss ssss yyyx xxxx
+
+00 - nothing
+01 - item box square (fixed position) (4x4)
+02 - mario speed (2)
+03 - mario takeoff (2)
+04 - mario p meter (2)
+		00 - PX, msb
+		01 - Xx, msb & lsb
+05 - yoshi subpixel (2)
+		00 - XY
+		01 - Xx
+		02 - Yy
+06 - held item subpixel (2)
+		00 - XY
+		01 - Xx
+		02 - Yy
+07 - lag frame counter (5)
+08 - level timer
+		00 - .decimal (8)
+		01 - 'frames (8)
+		02 - hex counter (6)
+09 - room timer
+		00 - .decimal (7)
+		01 - 'frames (7)
+		02 - hex counter (5)
+0A - stopwatch
+		00 - .decimal (7)
+		01 - 'frames (7)
+		02 - hex counter (5)
+0B - coin counter
+		00 - coins (3)
+		01 - dragon coins (2)
+0C - in game timer
+		00 - just timer (3)
+		01 - .xx decimal (5)
+		02 - .X symbolic (4)
+0D - slowdown meter (1)
+0F - input display
+		00 - standard (8x3)
+		01 - compact A (6x2)
+		02 - compact B (6x2)
+		03 - compact C (3x4)
+		04 - compact D (3x4)
+10 - name (4)
+		00/03 - color
+11 - movie author (4)
+12 - movie recording bar
+		00 - visual bar (7)
+		01 - hex counter (3)
+13 - memory viewer (2)
+		SS - byte
+14 - memory viewer (7F) (2)
+		SS - byte

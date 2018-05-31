@@ -930,6 +930,9 @@ reset_enemy_states:
 ; this is also run the first time you start up the game
 delete_all_data:
 		PHP
+		PHB
+		PHK
+		PLB
 		REP #$30
 		
 		LDA #$FFFF
@@ -948,8 +951,43 @@ delete_all_data:
 		DEX
 		BPL .loop_options
 		
+		LDX #$005E
+	.loop_meters:
+		LDA default_meters,X
+		STA.L !statusbar_meters,X
+		DEX #2
+		BPL .loop_meters
+		
+		PLB
 		PLP
 		RTL
+
+; the default set of statusbar meters
+default_meters:
+		db $01,$00,$00,$21
+		db $02,$00,$00,$21
+		db $03,$00,$00,$41
+		db $04,$00,$00,$61
+		db $10,$00,$00,$81
+		db $05,$00,$00,$24
+		db $06,$00,$00,$44
+		db $08,$00,$00,$26
+		db $09,$00,$00,$47
+		db $0A,$00,$00,$67
+		db $07,$00,$00,$89
+		db $0B,$00,$00,$32
+		db $13,$14,$8D,$52
+		db $13,$14,$8E,$54
+		db $0C,$01,$00,$72
+		db $0D,$00,$00,$36
+		db $0F,$00,$00,$37
+		db $11,$00,$00,$92
+		db $12,$00,$00,$97
+		db $00,$00,$00,$00
+		db $00,$00,$00,$00
+		db $00,$00,$00,$00
+		db $00,$00,$00,$00
+		db $00,$00,$00,$00
 
 ; clear all records from one level
 ; A = translevel to delete

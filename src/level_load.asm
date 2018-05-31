@@ -696,6 +696,10 @@ load_level_layer1_ptr:
 	.done:
 		RTL
 
+; initialize status bar properties
+init_statusbar_properties: ; TODO
+		RTL
+
 ORG $12F000
 
 j_levels:

@@ -52,7 +52,7 @@ overworld_load:
 		LDA #$FF
 		STA !save_timer_address+2
 		STZ !l_r_function
-		STZ !slowdown_speed
+		STZ.W !slowdown_speed
 		STZ !in_overworld_menu
 		JSL $04DAAD ; layer 2 tilemap upload routine
 		JSR setup_shadow

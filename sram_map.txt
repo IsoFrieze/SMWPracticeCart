@@ -1,0 +1,91 @@
+sram map:
+
+OLD
+
+---TRUE SETUP---
+$700000-$70001F
+	: special vars
+$700020-$700B9F
+	: saved times
+$700BA0-$700FFF
+		: UNUSED
+$701000-$702FFF
+	: save state wram 7E0000-7E1FFF (mirrored ram)
+$703000-$70305F
+	: save state wram 7EC680-7EC6DF (mode7 boss tilemap)
+$703060-$70325F
+	: save state wram 7F9A7B-7B9C7A (wiggler)
+$703260-$706A5F
+	: save state wram 7EC800-7EFFFF (low byte map16)
+$706A60-$706ADF
+		: UNUSED
+$706AE0-$707B9F
+	: movie slots 1 and 2
+$707BA0-$707FFF
+		: UNUSED
+$710000-$7137FF
+	: save state wram 7FC800-7FFFFF (high byte map16)
+$713800-$713AFF
+	: save state cgram
+$713B00-$717FF6
+		: UNUSED
+$717FF7-$717FF9
+	: save state stack pointer, music
+$717FFA-$717FFF
+		: UNUSED
+$720000-$727FFF
+	: save state vram w$0000-w$3FFF
+$730000-$737FFF
+	: save state vram w$4000-W$7FFF
+	
+	
+---POVERTY SETUP---
+$700000-$70001F
+	: special vars
+$700020-$700B9F
+	: saved times
+$700BA0-$70439F
+	: save state wram 7EC800-7EFFFF (low byte map16)
+$7043A0-$704ADF
+	: save state wram 7FC800-7FFFFF (high byte map16 compressed)
+$704AE0-$706ADF
+	: save state vram w$5000-w$5FFF
+$706AE0-$707B9F
+	: movie slots 1 and 2
+$707AE0-$707B9F
+		: UNUSED
+$707BA0-$707D9F
+	: save state wram 7F9A7B-7B9C7A (wiggler)
+$707DA0-$707DFF
+	: save state wram 7EC680-7EC6DF (mode7 boss tilemap)
+$707E00-$707FFF
+	: save state cgram
+	
+NEW
+
+---ONLY SETUP---
+$700000-$70001F ($20 bytes)
+	: special vars
+$700020-$700B9F ($B80 bytes)
+	: saved times
+$700BA0-$70439F ($3800 bytes)
+	: save state wram 7EC800-7EFFFF (low byte layer 1) ; this will compress well if needed eventually
+$7043A0-$704ADF ($740 bytes)
+	: save state wram 7FC800-7FFFFF (high byte layer 1 compressed) + mode 7 tilemaps
+$704AE0-$704CDF ($200 bytes)
+	: save state wram 7F9A7B-7B9C7A (wiggler)
+$704CE0-$704D3F ($60 bytes)
+	: save state wram 7EC680-7EC6DF (mode7 boss tilemap)
+$704D40-$704D4A ($0B bytes)
+	: 8 bytes graphics files, 2 bytes stack point, 1 byte music track
+$704D4B-$704D4F ($05 bytes)
+		: UNUSED
+$704D50-$704DAF ($60 bytes)
+	: 24 status bar meters, 4 bytes each
+$704DB0-$704FFF ($250 bytes)
+		: UNUSED
+$705000-$706FFF ($2000 bytes)
+	; save state wram 7E0000-7E1FFF (mirror ram)
+$707000-$707FFF ($1000 bytes)
+	: movie slots 1 and 2
+

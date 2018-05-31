@@ -2,8 +2,6 @@
 *.smc
 *.zst
 fixes.txt
-sram_map.txt
-movie_format.txt
 upload.html
 *.srm
 *.xml
