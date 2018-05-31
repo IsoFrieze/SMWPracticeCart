@@ -697,8 +697,402 @@ load_level_layer1_ptr:
 		RTL
 
 ; initialize status bar properties
-init_statusbar_properties: ; TODO
+init_statusbar_properties:
+		PHP
+		PHB
+		SEP #$30
+		
+		LDX #$A0
+		LDA #$38
+	-	STA $0904,X
+		DEX
+		BNE -
+		
+		LDA #$7E
+		STA $02
+		LDA #$09
+		STA $01
+		
+		LDA #$70
+		PHA
+		PLB
+		
+		LDY #$5C
+		
+	-	LDA.W !statusbar_meters+3,Y
+		CLC
+		ADC #$05 ; 7E0905 - temporary mirror for statusbar properties (shared with fade palette)
+		STA $00
+		
+		LDA.W !statusbar_meters,Y
+		ASL A
+		TAX
+		JSR (.meter,X)
+		DEY #4
+		BPL -
+		
+		PHK
+		PLB
+		
+		LDX #$04
+	.loop_tile_lines:
+		LDA #$00
+		STA $4310
+		LDA #$19
+		STA $4311
+		LDA #$7E
+		STA $4314
+		LDA #$20
+		STA $4315
+		LDA #$00
+		STA $4316
+		
+		LDA #$80
+		STA $2115
+		LDA .line_pos,X
+		STA $2116
+		LDA #$50
+		STA $2117
+		LDA .tiles_low,X
+		STA $4312
+		LDA .tiles_high,X
+		STA $4313
+		LDA #$02
+		STA $420B
+		DEX
+		BPL .loop_tile_lines
+		
+		PLB
+		PLP
 		RTL
+		
+	.line_pos:
+		db $00,$20,$40,$60,$80
+	.tiles_high:
+		db $09,$09,$09,$09,$09
+	.tiles_low:
+		db $05,$25,$45,$65,$85
+	
+	.meter:
+		dw .nothing
+		dw .item_box
+		dw .mario_speed
+		dw .mario_takeoff
+		dw .mario_pmeter
+		dw .yoshi_subpixel
+		dw .held_subpixel
+		dw .lag_frames
+		dw .timer_level
+		dw .timer_room
+		dw .timer_stopwatch
+		dw .coin_count
+		dw .in_game_time
+		dw .slowdown
+		dw .input_display
+		dw .name
+		dw .movie_recording
+		dw .memory_7e
+		dw .memory_7f
+		
+	.mario_speed:
+		LDA #$2C
+		JMP .store_2
+		
+	.memory_7e:
+	.mario_takeoff:
+		LDA #$38
+		JMP .store_2
+		
+	.mario_pmeter:
+	.yoshi_subpixel:
+		LDA #$28
+		JMP .store_2
+		
+	.memory_7f:
+	.held_subpixel:
+		LDA #$3C
+		JMP .store_2
+		
+	.lag_frames:
+		LDA #$2C
+		JMP .store_5
+		
+	.timer_level:
+		LDA.W !statusbar_meters+1,Y
+		CMP #$02
+		PHP
+		LDA #$3C
+		PLP
+		BEQ .store_6
+		JMP .store_8
+		
+	.timer_room:
+		LDA.W !statusbar_meters+1,Y
+		CMP #$02
+		PHP
+		LDA #$38
+		PLP
+		BEQ .store_5
+		JMP .store_7
+		
+	.timer_stopwatch:
+		LDA.W !statusbar_meters+1,Y
+		CMP #$02
+		PHP
+		LDA #$28
+		PLP
+		BEQ .store_5
+		JMP .store_7
+		
+	.coin_count:
+		LDA #$3C
+		STA [$00]
+		INC $00
+		LDA.W !statusbar_meters+1,Y
+		PHP
+		LDA #$38
+		PLP
+		BEQ .store_2
+		JMP .store_1
+		
+	.in_game_time:
+		LDA #$3C
+		STA [$00]
+		INC $00
+		STA [$00]
+		INC $00
+		STA [$00]
+		INC $00
+		LDA.W !statusbar_meters+1,Y
+		CMP #$01
+		PHP
+		LDA #$38
+		PLP
+		BEQ .store_2
+		BCS .store_1
+		RTS
+	
+	.slowdown:
+		LDA #$2C
+		JMP .store_1
+		
+	.name:
+		PHB
+		PHK
+		PLB
+		LDA !in_playback_mode
+		BEQ +
+		PLB
+		LDA #$2C
+		JMP .store_4
+	+	PLB
+		LDA.W !statusbar_meters+1,Y
+		TAX
+		LDA.L name_colors,X
+		JMP .store_4
+		
+	.store_8:
+		STA [$00]
+		INC $00
+	.store_7:
+		STA [$00]
+		INC $00
+	.store_6:
+		STA [$00]
+		INC $00
+	.store_5:
+		STA [$00]
+		INC $00
+	.store_4:
+		STA [$00]
+		INC $00
+	.store_3:
+		STA [$00]
+		INC $00
+	.store_2:
+		STA [$00]
+		INC $00
+	.store_1:
+		STA [$00]
+		RTS
+		
+	.movie_recording:
+		LDA.W !statusbar_meters+1,Y
+		BEQ +
+		LDA #$2C
+		JMP .store_3
+	+	LDA #$28
+		STA [$00]
+		INC $00
+		STA [$00]
+		INC $00
+		STA [$00]
+		INC $00
+		STA [$00]
+		INC $00
+		STA [$00]
+		INC $00
+		STA [$00]
+		INC $00
+		LDA #$48
+		STA [$00]
+		RTS
+	
+	.input_display:
+		LDA.W !statusbar_meters+1,Y
+		ASL A
+		TAX
+		JMP (.input_properties,X)
+		
+	.input_properties:
+		dw .wide
+		dw .compact_horiz
+		dw .compact_horiz
+		dw .compact_vert
+		dw .compact_vert
+		
+	.wide:
+		LDA #$28
+		INC $00
+		STA [$00]
+		INC $00
+		INC $00
+		STA [$00]
+		INC $00
+		STA [$00]
+		INC $00
+		INC $00
+		STA [$00]
+		LDA $00
+		CLC
+		ADC #$1A
+		STA $00
+		LDA #$28
+		STA [$00]
+		INC $00
+		INC $00
+		STA [$00]
+		INC $00
+		INC $00
+		INC $00
+		STA [$00]
+		INC $00
+		INC $00
+		STA [$00]
+		LDA $00
+		CLC
+		ADC #$1A
+		STA $00
+		LDA #$28
+		STA [$00]
+		INC $00
+		INC $00
+		STA [$00]
+		INC $00
+		STA [$00]
+		INC $00
+		INC $00
+		STA [$00]
+		RTS
+		
+	.compact_horiz:
+		LDA #$28
+		STA [$00]
+		INC $00
+		STA [$00]
+		INC $00
+		STA [$00]
+		INC $00
+		STA [$00]
+		INC $00
+		STA [$00]
+		INC $00
+		STA [$00]
+		LDA $00
+		CLC
+		ADC #$1B
+		STA $00
+		LDA #$28
+		STA [$00]
+		INC $00
+		STA [$00]
+		INC $00
+		STA [$00]
+		INC $00
+		STA [$00]
+		INC $00
+		STA [$00]
+		INC $00
+		STA [$00]
+		RTS
+		
+	.compact_vert:
+		LDA #$28
+		STA [$00]
+		INC $00
+		STA [$00]
+		INC $00
+		STA [$00]
+		LDA $00
+		CLC
+		ADC #$1E
+		STA $00
+		LDA #$28
+		STA [$00]
+		INC $00
+		STA [$00]
+		INC $00
+		STA [$00]
+		LDA $00
+		CLC
+		ADC #$1E
+		STA $00
+		LDA #$28
+		STA [$00]
+		INC $00
+		STA [$00]
+		INC $00
+		STA [$00]
+		LDA $00
+		CLC
+		ADC #$1E
+		STA $00
+		LDA #$28
+		STA [$00]
+		INC $00
+		STA [$00]
+		INC $00
+		STA [$00]
+		RTS
+	
+	.item_box:
+		PHD
+		PEA $0905
+		PLD
+		
+		LDA #$38
+		STA $2E
+		STA $2F
+		STA $30
+		STA $4E
+		STA $6E
+		LDA #$58
+		STA $31
+		STA $51
+		STA $71
+		LDA #$B8
+		STA $8E
+		STA $8F
+		STA $90
+		LDA #$F8
+		STA $91
+		
+		PLD
+	.nothing:
+		RTS
+
+name_colors:
+		db $28,$38,$5C
 
 ORG $12F000
 

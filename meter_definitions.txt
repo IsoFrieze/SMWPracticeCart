@@ -36,19 +36,21 @@
 		01 - .xx decimal (5)
 		02 - .X symbolic (4)
 0D - slowdown meter (1)
-0F - input display
+0E - input display
 		00 - standard (8x3)
 		01 - compact A (6x2)
 		02 - compact B (6x2)
 		03 - compact C (3x4)
 		04 - compact D (3x4)
-10 - name (4)
-		00/03 - color
-11 - movie author (4)
-12 - movie recording bar
+0F - name (4)
+		00 - green
+		01 - white
+		02 - yellow
+		(always red for movie playback)
+10 - movie recording bar
 		00 - visual bar (7)
 		01 - hex counter (3)
-13 - memory viewer (2)
+11 - memory viewer (2)
 		SS - byte
-14 - memory viewer (7F) (2)
+12 - memory viewer (7F) (2)
 		SS - byte

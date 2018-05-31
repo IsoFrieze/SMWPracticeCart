@@ -7,13 +7,6 @@ DMA_Status_Bar:
 		JSR default_status_bar
 		JSR DMA_Status_Bar_Tiles
 		RTS
-		
-	line_pos:
-		db $00,$20,$40,$60,$80
-	tiles_high:
-		db $1F,$1F,$1F,$1F,$1F
-	tiles_low:
-		db $30,$50,$70,$90,$B0
 
 ; DMA 5 lines of status bar tiles based on !status_bar
 DMA_Status_Bar_Tiles:
@@ -31,19 +24,26 @@ DMA_Status_Bar_Tiles:
 		STA $4316
 		
 		STZ $2115
-		LDA line_pos,X
+		LDA .line_pos,X
 		STA $2116
 		LDA #$50
 		STA $2117
-		LDA tiles_low,X
+		LDA .tiles_low,X
 		STA $4312
-		LDA tiles_high,X
+		LDA .tiles_high,X
 		STA $4313
 		LDA #$02
 		STA $420B
 		DEX
 		BPL .loop_tile_lines
 		RTS
+		
+	.line_pos:
+		db $00,$20,$40,$60,$80
+	.tiles_high:
+		db $1F,$1F,$1F,$1F,$1F
+	.tiles_low:
+		db $30,$50,$70,$90,$B0
 
 ; clear the status bar
 default_status_bar:
@@ -82,7 +82,7 @@ ORG $008F3B
 ; draw the time to the status bar
 ; in a hijack to preserve the one-frame latency
 ORG $008E6F
-		JSL display_time
+	;	JSL display_time ; TODO fix latency
 		JMP $8E81
 ORG $008E8C
 		STA $1F4E,X

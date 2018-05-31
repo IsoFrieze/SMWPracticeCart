@@ -136,13 +136,11 @@ display_meters:
 		dw meter_coin_count
 		dw meter_in_game_time
 		dw meter_slowdown
-		dw .nothing
 		dw meter_input_display
-		dw .nothing;meter_name
-		dw .nothing;meter_movie_author
-		dw .nothing;meter_movie_recording
-		dw .nothing;meter_memory_7e
-		dw .nothing;meter_memory_7f
+		dw meter_name
+		dw meter_movie_recording
+		dw meter_memory_7e
+		dw meter_memory_7f
 
 ; draw the item box meter (fixed position)
 meter_item_box:
@@ -566,6 +564,14 @@ meter_timer_all:
 		
 		RTS
 
+; table to convert frames into hundredths of seconds
+fractional_seconds:
+		db $00,$01,$03,$05,$07,$08,$0A,$0B,$0D,$0F,$11,$12
+		db $14,$15,$17,$19,$1B,$1C,$1E,$1F,$21,$23,$25,$26
+		db $28,$29,$2B,$2D,$2F,$30,$32,$33,$35,$37,$39,$3A
+		db $3C,$3D,$3F,$41,$43,$44,$46,$47,$49,$4B,$4D,$4E
+		db $50,$51,$53,$55,$57,$58,$5A,$5B,$5D,$5F,$61,$62
+
 ; display the coin count meter
 meter_coin_count:
 		LDA #$2E
@@ -701,7 +707,7 @@ input_display_type:
 		CLC
 		ADC $00
 		STA $00
-		LDA input_tile_no_button
+		LDA no_button_tile
 		PLP
 		BCC +
 		LDA layout_tiles,Y
@@ -726,6 +732,163 @@ layout_locations:
 		db $61,$41,$60,$40,$01,$21,$20,$22,$62,$42,$00,$02 ; compact vertical 1
 		db $61,$41,$60,$40,$02,$62,$22,$42,$21,$01,$00,$20 ; compact vertical 2
 
+; display the name meter
+meter_name:
+		LDA.L !in_playback_mode
+		BNE +
+		
+		LDA.L !player_name
+		STA [$00]
+		INC $00
+		LDA.L !player_name+1
+		STA [$00]
+		INC $00
+		LDA.L !player_name+2
+		STA [$00]
+		INC $00
+		LDA.L !player_name+3
+		STA [$00]
+		RTS
+	
+	+	LDA.L !movie_location+7
+		STA [$00]
+		INC $00
+		LDA.L !movie_location+8
+		STA [$00]
+		INC $00
+		LDA.L !movie_location+9
+		STA [$00]
+		INC $00
+		LDA.L !movie_location+10
+		STA [$00]
+		RTS
+
+; display the movie recording meter
+meter_movie_recording:
+		LDA.W !statusbar_meters+1,Y
+		ASL A
+		TAX
+		JMP (.recording_types,X)
+		
+	.recording_types:
+		dw .bar
+		dw .hex
+		
+	.bar:
+		PHB
+		PHK
+		PLB
+		LDA !in_record_mode
+		BEQ .erase
+		
+		LDA.L !movie_location+1
+		CMP #$07
+		BNE +
+		LDA $13 ; true frame
+		ASL #4
+		BCS .erase
+		
+	+	LDX #$00
+	-	TXA
+		CMP.L !movie_location+1
+		PHP
+		LDA #$CE
+		PLP
+		BCS +
+		INC #2
+	+	CPX #$00
+		BEQ +
+		CPX #$06
+		BEQ +
+		INC A
+	+	STA [$00]
+		INC $00	
+		INX
+		CPX #$07
+		BCC -
+		
+		PLB
+		RTS
+	
+	.erase:
+		LDA #$FC
+		STA [$00]
+		INC $00
+		STA [$00]
+		INC $00
+		STA [$00]
+		INC $00
+		STA [$00]
+		INC $00
+	-	STA [$00]
+		INC $00
+		STA [$00]
+		INC $00
+		STA [$00]
+		PLB
+		RTS
+	
+	.hex:
+		PHB
+		PHK
+		PLB
+		LDA !in_record_mode
+		PHP
+		LDA #$FC
+		PLP
+		BEQ -
+		PHP
+		REP #$20
+		LDA #$07C0
+		SEC
+		SBC.L !movie_location
+		SEP #$20
+		XBA
+		AND #$0F
+		STA [$00]
+		INC $00
+		XBA
+		PHA
+		LSR #4
+		STA [$00]
+		INC $00
+		PLA
+		AND #$0F
+		STA [$00]
+		PLP
+		PLB
+		RTS
+
+; draw the bank 7E memory viewer meter
+meter_memory_7e:
+		LDA #$7E
+		STA $05
+		JSR meter_memory_all
+		RTS
+		
+; draw the bank 7F memory viewer meter
+meter_memory_7f:
+		LDA #$7F
+		STA $05
+		JSR meter_memory_all
+		RTS
+
+; draw a generic memory viewer where the bank is in $05
+meter_memory_all:
+		LDA.W !statusbar_meters+2,Y
+		STA $03
+		LDA.W !statusbar_meters+1,Y
+		STA $04
+		LDA [$03]
+		PHA
+		LSR #4
+		STA [$00]
+		INC $00
+		PLA
+		AND #$0F
+		STA [$00]
+		RTS
+		
 ; slow down the game depending on how large the slowdown number is
 wait_slowdown:
 		LDA.W !slowdown_speed
@@ -980,491 +1143,7 @@ tile_x_offsets:
 		db $00,$08,$00,$08
 tile_y_offsets:
 		db $00,$00,$08,$08
-
-; draw the current memory viewer bytes to the status bar
-display_memory:
-		LDA.L !status_memorylo
-		STA $00
-		LDA.L !status_memoryhi
-		STA $01
 		
-		LDY #$01
-		LDA ($00),Y
-		LSR #4
-		STA !sb_memory+0
-		LDA ($00),Y
-		AND #$0F
-		STA !sb_memory+1
-		
-		DEY
-		LDA ($00),Y
-		LSR #4
-		STA !sb_memory+2
-		LDA ($00),Y
-		AND #$0F
-		STA !sb_memory+3
-		RTS
-
-; draw the current amount of coins collected this level to the status bar
-display_coins:
-		LDA $0DBF ; coins
-		JSL $00974C ; hex2dec
-		STA !sb_coins+2 ; ones
-		CPX #$00
-		BNE .draw
-		LDX #$FC
-	.draw:
-		STX !sb_coins+1 ; tens
-		RTS
-		
-; draw the absolute value of the player's current speed to the status bar
-display_speed:
-		LDA $7B ; speed
-		BPL .positive_speed
-		EOR #$FF
-		INC A
-	.positive_speed:
-		JSL $00974C ; hex2dec
-		STX !sb_mariox+0 ; tens
-		STA !sb_mariox+1 ; ones
-		RTS
-		
-; draw the player's takeoff meter to the status bar
-display_takeoff:
-		LDA $149F ; takeoff meter
-		JSL $00974C ; hex2dec
-		STX !sb_takeoff+0 ; tens
-		STA !sb_takeoff+1 ; ones
-		RTS
-
-; draw the player's p meter to the status bar
-; p meter goes from #$00 to #$70, but we only show tens place because ones place changes too much to be useful
-display_pmeter:
-		LDA $13E4 ; pmeter
-		AND #$F0
-		LSR #4
-		STA !sb_pmeter+1 ; ones
-		RTS
-
-; draw the fractional igt bit (in a hijack instead because latency)
-display_time:
-	;	LDA $0F31 ; hundreds
-	;	STA !sb_igt+0
-	;	LDA $0F32 ; tens
-	;	STA !sb_igt+1
-	;	LDA $0F33 ; ones
-	;	STA !sb_igt+2
-	;	LDA $0F30 ; igt fraction
-	;	JSL $00974C ; hex2dec
-	;	STX !sb_igt+3 ; tens
-	;	STA !sb_igt+4 ; ones
-		RTL
-		
-; sad wrapper is sad
-display_timer_wrapper:
-		PHB
-		PHK
-		PLB
-		JSR display_timers
-		PLB
-		RTL
-		
-; draw the level, room, and pause timers to the status bar
-display_timers:
-		LDA #$00;.L !status_fractions
-		CMP #$02
-		BEQ .draw_pause_framecount
-		LDA !pause_timer_minutes
-		JSL $00974C ; hex2dec
-		STA !sb_pausetimer+0 ; ones
-		LDA !pause_timer_seconds
-		JSL $00974C ; hex2dec
-		STX !sb_pausetimer+2 ; tens
-		STA !sb_pausetimer+3 ; ones
-		LDA #$00;.L !status_fractions
-		BEQ .draw_pause_fractions
-		LDA !pause_timer_frames
-		JSL $00974C ; hex2dec
-		STX !sb_pausetimer+5 ; tens
-		STA !sb_pausetimer+6 ; ones
-		LDA #$85
-		STA !sb_pausetimer+4
-		JMP .display_level_timer
-	.draw_pause_fractions:
-		LDX !pause_timer_frames
-		LDA fractional_seconds,X
-		JSL $00974C ; hex2dec
-		STX !sb_pausetimer+5 ; tens
-		STA !sb_pausetimer+6 ; ones
-		JMP .display_level_timer
-	.draw_pause_framecount:
-		LDA !pause_timer_frames
-		STA $00
-		STZ $01
-		LDA #$3C ; frames in a second
-		STA $4202 ; mult A
-		LDA !pause_timer_seconds
-		STA $4203 ; mult B
-		REP #$20
-		LDA #$0000
-		LDX !pause_timer_minutes
-	-	BEQ +
-		CLC
-		ADC #$0E10 ; frames in a minute
-		DEX
-		BRA -
-	+	CLC
-		ADC $4216 ; mult result
-		CLC
-		ADC $00
-		SEP #$20
-		PHA
-		AND #$0F
-		STA !sb_pausetimer+4 ; $01s
-		PLA
-		LSR #4
-		STA !sb_pausetimer+3 ; $10s
-		XBA
-		PHA
-		AND #$0F
-		STA !sb_pausetimer+2 ; $100s
-		PLA
-		LSR #4
-		STA !sb_pausetimer+1 ; $1000s
-		LDA #$FC
-		STA !sb_pausetimer+5
-		STA !sb_pausetimer+0
-		LDA #$D7
-		STA !sb_pausetimer+6 ; h
-		
-	.display_level_timer:
-		LDA #$00;.L !status_fractions
-		CMP #$02
-		BEQ .draw_level_framecount
-		LDA !level_timer_minutes
-		JSL $00974C ; hex2dec
-		STA !sb_leveltimer+0 ; ones
-		LDA !level_timer_seconds
-		JSL $00974C ; hex2dec
-		STX !sb_leveltimer+2 ; tens
-		STA !sb_leveltimer+3 ; ones
-		LDA #$00;.L !status_fractions
-		BEQ .draw_level_fractions
-		LDA !level_timer_frames
-		JSL $00974C ; hex2dec
-		STX !sb_leveltimer+5 ; tens
-		STA !sb_leveltimer+6 ; ones
-		LDA #$85
-		STA !sb_leveltimer+4
-		JMP .display_room_timer
-	.draw_level_fractions:
-		LDX !level_timer_frames
-		LDA fractional_seconds,X
-		JSL $00974C ; hex2dec
-		STX !sb_leveltimer+5 ; tens
-		STA !sb_leveltimer+6 ; ones
-		JMP .display_room_timer
-	.draw_level_framecount:
-		LDA !level_timer_frames
-		STA $00
-		STZ $01
-		LDA #$3C ; frames in a second
-		STA $4202 ; mult A
-		LDA !level_timer_seconds
-		STA $4203 ; mult B
-		REP #$20
-		LDA #$0000
-		LDX !level_timer_minutes
-	-	BEQ +
-		CLC
-		ADC #$0E10 ; frames in a minute
-		DEX
-		BRA -
-	+	CLC
-		ADC $4216 ; mult result
-		CLC
-		ADC $00
-		SEP #$20
-		PHA
-		AND #$0F
-		STA !sb_leveltimer+4 ; $01s
-		PLA
-		LSR #4
-		STA !sb_leveltimer+3 ; $10s
-		XBA
-		PHA
-		AND #$0F
-		STA !sb_leveltimer+2 ; $100s
-		PLA
-		LSR #4
-		STA !sb_leveltimer+1 ; $1000s
-		LDA #$FC
-		STA !sb_leveltimer+5
-		STA !sb_leveltimer+0
-		LDA #$D7
-		STA !sb_leveltimer+6 ; h
-		
-	.display_room_timer:
-		LDA #$00;.L !status_fractions
-		CMP #$02
-		BEQ .draw_room_framecount
-		LDA !room_timer_minutes
-		JSL $00974C ; hex2dec
-		STA !sb_roomtimer+0 ; ones
-		LDA !room_timer_seconds
-		JSL $00974C ; hex2dec
-		STX !sb_roomtimer+2 ; tens
-		STA !sb_roomtimer+3 ; ones
-		LDA #$00;.L !status_fractions
-		BEQ .draw_room_fractions
-		LDA !room_timer_frames
-		JSL $00974C ; hex2dec
-		STX !sb_roomtimer+5 ; tens
-		STA !sb_roomtimer+6 ; ones
-		LDA #$85
-		STA !sb_roomtimer+4
-		JMP .draw_clock
-	.draw_room_fractions:
-		LDX !room_timer_frames
-		LDA fractional_seconds,X
-		JSL $00974C ; hex2dec
-		STX !sb_roomtimer+5 ; tens
-		STA !sb_roomtimer+6 ; ones
-		JMP .draw_clock
-	.draw_room_framecount:
-		LDA !room_timer_frames
-		STA $00
-		STZ $01
-		LDA #$3C ; frames in a second
-		STA $4202 ; mult A
-		LDA !room_timer_seconds
-		STA $4203 ; mult B
-		REP #$20
-		LDA #$0000
-		LDX !room_timer_minutes
-	-	BEQ +
-		CLC
-		ADC #$0E10 ; frames in a minute
-		DEX
-		BRA -
-	+	CLC
-		ADC $4216 ; mult result
-		CLC
-		ADC $00
-		SEP #$20
-		PHA
-		AND #$0F
-		STA !sb_roomtimer+4 ; $01s
-		PLA
-		LSR #4
-		STA !sb_roomtimer+3 ; $10s
-		XBA
-		PHA
-		AND #$0F
-		STA !sb_roomtimer+2 ; $100s
-		PLA
-		LSR #4
-		STA !sb_roomtimer+1 ; $1000s
-		LDA #$FC
-		STA !sb_roomtimer+5
-		STA !sb_roomtimer+0
-		LDA #$D7
-		STA !sb_roomtimer+6 ; h
-		
-	; draw flashing clock symbol if run was not spliced
-	.draw_clock:
-		LDA.L !spliced_run
-		BNE .merge
-		LDA $13 ; true frame
-		AND #%00100000
-		BEQ .merge
-		LDA #$76
-		STA !sb_leveltimer-1
-		BRA .done
-	.merge:
-		LDA #$FC
-		STA !sb_leveltimer-1
-	.done:
-		RTS
-
-; table to convert frames into hundredths of seconds
-fractional_seconds:
-		db $00,$01,$03,$05,$07,$08,$0A,$0B,$0D,$0F,$11,$12
-		db $14,$15,$17,$19,$1B,$1C,$1E,$1F,$21,$23,$25,$26
-		db $28,$29,$2B,$2D,$2F,$30,$32,$33,$35,$37,$39,$3A
-		db $3C,$3D,$3F,$41,$43,$44,$46,$47,$49,$4B,$4D,$4E
-		db $50,$51,$53,$55,$57,$58,$5A,$5B,$5D,$5F,$61,$62
-
-; draw the number of dropped frames to the status bar
-; this number will stay in hex because it can get large and lag the game itself!
-display_dropped_frames:
-		LDA !dropped_frames+1
-		PHA
-		LSR #4
-		STA !sb_lag+0 ; 0x1000's
-		PLA
-		AND #$0F
-		STA !sb_lag+1 ; 0x100's
-		LDA !dropped_frames
-		PHA
-		LSR #4
-		STA !sb_lag+2 ; 0x10's
-		PLA
-		AND #$0F
-		STA !sb_lag+3 ; 0x01's
-
-		LDX #$00 ; replace 0's with spaces cause it looks better for a 4 digit number
-	.loop:
-		LDA !sb_lag+0,X
-		BNE .done
-		LDA #$FC
-		STA !sb_lag+0,X
-		INX
-		CPX #$03
-		BNE .loop
-	.done:
-		RTS
-		
-; draw the current controller input to the status bar
-display_input:
-		LDA #$7E
-		STA $02
-		LDA #$1F
-		STA $01
-		
-		LDA !util_byetudlr_hold
-		LDX #$08
-	.loop_cont_a:
-		DEX
-		BMI .next_cont
-		LSR A
-		PHA
-		BCS .draw_cont_a
-		LDA input_locs_1,X
-		STA $00
-		LDA input_tile_no_button
-		BRA .finish_cont_a
-	.draw_cont_a:
-		LDA input_locs_1,X
-		STA $00
-		LDA input_tiles_1,X
-	.finish_cont_a:
-		STA [$00]
-		PLA
-		BRA .loop_cont_a
-		
-	.next_cont:
-		LDA !util_axlr_hold
-		LSR #4
-		LDX #$04
-	.loop_cont_b:
-		DEX
-		BMI .done_cont
-		LSR A
-		PHA
-		BCS .draw_cont_b
-		LDA input_locs_2,X
-		STA $00
-		LDA input_tile_no_button
-		BRA .finish_cont_b
-	.draw_cont_b:
-		LDA input_locs_2,X
-		STA $00
-		LDA input_tiles_2,X
-	.finish_cont_b:
-		STA [$00]
-		PLA
-		BRA .loop_cont_b
-
-	.done_cont:
-		RTS
-
-input_locs_1:
-		db $87,$68,$84,$85,$46,$82,$63,$65
-input_locs_2:
-		db $6A,$4B,$48,$49
-input_tiles_1:
-		db $0B,$22,$44,$1C,$41,$42,$40,$43
-input_tiles_2:
-		db $0A,$21,$15,$1B
-input_tile_no_button:
-		db $27
-
-; display the slowdown number if it is not zero to the status bar
-display_slowdown:
-		LDA !slowdown_speed
-		BNE .not_zero
-		LDA #$FC
-		BRA .store
-	.not_zero:
-		INC A
-	.store:
-		STA !sb_slowdown
-		RTS
-
-; if yoshi is present, draw his x and y subpixels to the status bar
-display_yoshi_subpixel:
-		LDA $18DF ; yoshi slot
-		BEQ .erase
-		DEC A
-		TAX
-		LDA $14F8,X ; sprite x subpixel
-		LSR #4
-		STA !sb_yoshisp+0
-		LDA $14EC,X ; sprite y subpixel
-		LSR #4
-		STA !sb_yoshisp+1
-		BRA .done
-	.erase:
-		LDA #$FC
-		STA !sb_yoshisp+0
-		STA !sb_yoshisp+1
-	.done:
-		RTS
-
-; if an item is held, draw its x and y subpixels to the status bar
-display_held_subpixel:
-		LDA.W !held_item_slot
-		BMI .done_check_despawn
-		; check if item has despawned, and if so, erase the numbers
-		TAX
-		LDA $14C8,X ; sprite status
-		CMP #$07
-		BCS .done_check_despawn
-		LDA #$FF
-		STA.W !held_item_slot
-		LDA #$FC
-		STA !sb_itemsp+0
-		STA !sb_itemsp+1
-		
-	.done_check_despawn:
-		LDA $148F ; held item flag
-		BEQ .done_check_hold
-		LDX #$0B
-	.loop:
-		LDA $14C8,X ; sprite status
-		CMP #$0B
-		BEQ .store_held
-		DEX
-		BPL .loop
-		BRA .done_check_hold
-	.store_held:
-		STX.W !held_item_slot
-		
-	.done_check_hold:
-		LDA.W !held_item_slot
-		BMI .done
-		TAX
-		LDA $14F8,X ; sprite x subpixel
-		LSR #4
-		STA !sb_itemsp+0
-		LDA $14EC,X ; sprite y subpixel
-		LSR #4
-		STA !sb_itemsp+1
-		
-	.done:
-		RTS
-
 ; display a sprite's slot number next to it on the screen
 ; X = slot number
 display_slot:
@@ -1540,148 +1219,6 @@ get_screen_y:
 		SEC
 		SBC $1C ; layer 1 y position
 		SEP #$20
-		RTS
-
-; if recording, display red dot and capacity meter
-display_movie_capacity:
-		LDA #$FC
-		STA !sb_movie+5
-		STA !sb_movie+6
-		STA !sb_movie+7
-		STA !sb_movie+8
-		STA !sb_movie+9
-		STA !sb_movie+10
-		STA !sb_movie+11
-		STA !sb_movie+12
-		LDA !in_record_mode
-		ORA !in_playback_mode
-		BNE .draw
-		JMP .finish
-	.draw:
-		LDA $13 ; frame
-		ASL #3
-		BCC .no_dot
-		LDA !in_record_mode
-		BEQ .triangle
-		LDA #$CD
-		BRA .icon
-	.triangle:
-		LDA #$1B
-		STA !sb_movie+6
-		LDA #$0E
-		STA !sb_movie+7
-		LDA #$19
-		STA !sb_movie+8
-		LDA #$15
-		STA !sb_movie+9
-		LDA #$0A
-		STA !sb_movie+10
-		LDA #$22
-		STA !sb_movie+11
-		LDA #$FC
-		STA !sb_movie+12
-		LDA #$D2
-	.icon:
-		STA !sb_movie+5
-	.no_dot:
-		LDA $0100 ; game mode
-		CMP #$14
-		BEQ .k
-		JMP .finish
-	.k:
-		LDA !in_record_mode
-		BNE .go
-		JMP .finish
-	.go:
-		LDA #$CE
-		STA !sb_movie+6
-		STA !sb_movie+12
-		LDA #$CF
-		STA !sb_movie+7
-		STA !sb_movie+8
-		STA !sb_movie+9
-		STA !sb_movie+10
-		STA !sb_movie+11
-		REP #$30
-		LDA.L !movie_location
-		TAX
-		LDA #$07C0
-		SEC
-		SBC.L !movie_location
-		TAY
-		XBA
-		SEP #$20
-		AND #$0F
-		STA !sb_movie+1
-		TYA
-		AND #$F0
-		LSR #4
-		STA !sb_movie+2
-		TYA
-		AND #$0F
-		STA !sb_movie+3
-		CPX #$0100
-		BCC .finish
-		LDA #$D0
-		STA !sb_movie+6
-		CPX #$0200
-		BCC .finish
-		LDA #$D1
-		STA !sb_movie+7
-		CPX #$0300
-		BCC .finish
-		LDA #$D1
-		STA !sb_movie+8
-		CPX #$0400
-		BCC .finish
-		LDA #$D1
-		STA !sb_movie+9
-		CPX #$0500
-		BCC .finish
-		LDA #$D1
-		STA !sb_movie+10
-		CPX #$0600
-		BCC .finish
-		LDA #$D1
-		STA !sb_movie+11
-		CPX #$0700
-		BCC .finish
-		LDA #$D0
-		STA !sb_movie+12
-		LDA $13 ; frame
-		ASL #4
-		BCC .finish
-		LDA #$FC
-		LDX #$0006
-	.loop_flash:
-		STA !sb_movie+6,X
-		DEX
-		BPL .loop_flash
-	.finish:
-		SEP #$10
-		RTS
-
-; display name under item box
-display_names:
-		LDA.L !player_name
-		STA !sb_name+0
-		LDA.L !player_name+1
-		STA !sb_name+1
-		LDA.L !player_name+2
-		STA !sb_name+2
-		LDA.L !player_name+3
-		STA !sb_name+3
-		LDA !in_playback_mode
-		BEQ .done
-		LDA !movie_location+7
-		STA !sb_movie+0
-		LDA !movie_location+8
-		STA !sb_movie+1
-		LDA !movie_location+9
-		STA !sb_movie+2
-		LDA !movie_location+10
-		STA !sb_movie+3
-	.done:
 		RTS
 		
 ; increment the timer located at address at top of stack by the number of frames elapsed this execution frame
