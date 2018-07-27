@@ -698,6 +698,8 @@ load_a_graphics:
 		JSL decompress_it ; decompress to $7EAD00
 		STY $2116
 		SEP #$30
+		LDA #$80
+		STA $2115 ; vram increment
 		PLA
 		
 		JSL upload_3bpp_to_vram

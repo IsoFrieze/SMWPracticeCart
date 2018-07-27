@@ -90,6 +90,8 @@ overworld_load:
 		STZ !start_midway
 		JSR identify_movies
 		
+		JSL temp_default_meters ; TODO TEMPORARY
+		
 		RTL
 
 ; this code is run once on overworld load, but after everything else has loaded already
@@ -261,6 +263,7 @@ set_overworld_position:
 		CMP #$BD
 		BEQ .already_exists
 		JSL delete_all_data
+		JSR set_defaults
 	.reset:
 		JSL set_position_to_yoshis_house
 		BRA .done
@@ -288,6 +291,45 @@ set_overworld_position:
 	.done:
 		RTS
 
+; set default settings for all the overworld menu options
+set_defaults:
+		LDA #$00
+		STA.L !status_yellow
+		STA.L !status_green
+		STA.L !status_red
+		STA.L !status_blue
+		STA.L !status_special
+		STA.L !status_powerup
+		STA.L !status_itembox
+		STA.L !status_yoshi
+		STA.L !status_enemy
+		STA.L !status_erase
+		STA.L !status_slots
+		STA.L !status_controller
+		STA.L !status_pause
+		STA.L !status_timedeath
+		STA.L !status_music
+		STA.L !status_drop
+		STA.L !status_states
+		STA.L !status_statedelay
+		STA.L !status_dynmeter
+		STA.L !status_slowdown
+		STA.L !status_help
+		STA.L !status_lrreset
+		STA.L !status_scorelag
+		STA.L !status_moviesave
+		STA.L !status_movieload
+		STA.L !status_region
+		LDA #$17
+		STA.L !status_playername
+		LDA #$0A
+		STA.L !status_playername+1
+		LDA #$16
+		STA.L !status_playername+2
+		LDA #$0E
+		STA.L !status_playername+3
+		RTS
+
 ; set marios position on the overworld to yoshi's house
 set_position_to_yoshis_house:
 		LDA #$BD
@@ -310,27 +352,6 @@ set_position_to_yoshis_house:
 		LDA #$02
 		STA.L !save_overworld_animation
 		STA $1F13
-		LDA #$00
-		STA.L !status_yellow
-		STA.L !status_green
-		STA.L !status_red
-		STA.L !status_blue
-		STA.L !status_powerup
-		STA.L !status_itembox
-		STA.L !status_yoshi
-		STA.L !status_lrreset
-		LDA #$17
-		STA.L !player_name
-		LDA #$0A
-		STA.L !player_name+1
-		LDA #$16
-		STA.L !player_name+2
-		LDA #$1E
-		STA.L !player_name+3
-		LDA #$14
-		STA.L !status_memoryhi
-		LDA #$8D
-		STA.L !status_memorylo
 		JSL update_ow_position_pointers
 		RTL
 
@@ -439,7 +460,7 @@ identify_movies:
 		RTS
 
 movie_pointers:
-		dl $706AE0,$7072E0,#!movie_location+3
+		dl $707000,$707800,#!movie_location+3
 
 ; this sets up some hdma so we can correct the shadow palette
 setup_shadow:

@@ -32,6 +32,7 @@ level_tick:
 		
 		JSR prepare_input
 		JSR record_input
+		JSR emulate_score_lag
 		
 		JSR fade_and_in_level_common
 		
@@ -57,25 +58,24 @@ level_tick:
 
 ; these routines are called on both level tick and level fade tick
 fade_and_in_level_common:
-		JSR display_meters
-		
-	;	JSR display_coins
-	;;	JSR display_time ; already done in a hijack
-	;	JSR display_speed
-	;	JSR display_takeoff
-	;	JSR display_pmeter
-	;	JSR display_timers
-	;	JSR display_dropped_frames
-	;	JSR display_input
-	;	JSR display_yoshi_subpixel
-	;	JSR display_held_subpixel
-	;	JSR display_memory
-	;	JSR display_slowdown
-	;	JSR display_movie_capacity
-	;	JSR display_names
-		
+		JSR display_meters		
 		JSR test_savestate
 		JSR test_slowdown
+		RTS
+
+; emulate score lag by iterating through a useless loop
+emulate_score_lag:
+		PHP
+		LDA.L !status_scorelag
+		TAX
+	-	DEX
+		BMI +
+		LDY #$10
+	--	DEY
+		BNE --
+		BRA -
+	
+	+	PLP
 		RTS
 
 ; sad wrapper is sad
@@ -104,7 +104,11 @@ display_meters:
 		
 		LDY #$5C
 		
-	-	LDA.W !statusbar_meters+3,Y
+	-	LDA.W !statusbar_meters,Y
+		BEQ +
+		CMP #$13
+		BCS +
+		LDA.W !statusbar_meters+3,Y
 		CLC
 		ADC #$30 ; location of statusbar
 		STA $00
@@ -113,7 +117,7 @@ display_meters:
 		ASL A
 		TAX
 		JSR (.meter,X)
-		DEY #4
+	+	DEY #4
 		BPL -
 		
 		PLB
@@ -737,16 +741,16 @@ meter_name:
 		LDA.L !in_playback_mode
 		BNE +
 		
-		LDA.L !player_name
+		LDA.L !status_playername
 		STA [$00]
 		INC $00
-		LDA.L !player_name+1
+		LDA.L !status_playername+1
 		STA [$00]
 		INC $00
-		LDA.L !player_name+2
+		LDA.L !status_playername+2
 		STA [$00]
 		INC $00
-		LDA.L !player_name+3
+		LDA.L !status_playername+3
 		STA [$00]
 		RTS
 	

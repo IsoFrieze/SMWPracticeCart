@@ -21,10 +21,10 @@ option_title:
 		db "     SAVE STATE DELAY           "
 		db "     DYNAMIC METER DISPLAY      "
 		db "     SLOW MOTION                "
-		db "     HELP                       "
+		db "     EDIT STATUS BAR            "
 		db "     L-R RESET                  "
-		db "     MEMORY VIEWER HIGH BYTE    "
-		db "     MEMORY VIEWER LOW BYTE     "
+		db "     SCORE LAG                  "
+		db "     PLACEHOLDER                "
 		db "     SAVE MOVIE TO S-RAM        "
 		db "     LOAD MOVIE                 "
 		db "     PLAYER NAME                "
@@ -88,7 +88,7 @@ option_description:
 		db "  SUCH AS BOO CLOUDS            "
 		db "  AND BOO RINGS                 "
 		db "                                "
-		db "  REMOVE ALL SAVED DATA         "
+		db "  REMOVE ALL SAVED TIMES        "
 		db "  OR JUST SAVED TIMES FOR       "
 		db "  THE LEVEL MARIO IS CURRENTLY  "
 		db "  STANDING ON OR ONLY A         "
@@ -154,10 +154,10 @@ option_description:
 		db "  TO RETURN TO NORMAL SPEED     "
 		db "                                "
 		db "                                "
-		db "  DISPLAY INFORMATION ABOUT     "
-		db "  WHAT EVERYTHING IN THE        "
-		db "  STATUS BAR AND OVERWORLD      "
-		db "  HUD REPRESENTS                "
+		db "  COMING SOON                   "
+		db "                                "
+		db "                                "
+		db "                                "
 		db "                                "
 		db "                                "
 		db "  USE L-R TO RESET THE CURRENT  "
@@ -166,18 +166,18 @@ option_description:
 		db "  X-Y-L-R TO ADVANCE ONE ROOM   "
 		db "                                "
 		db "                                "
-		db "  THE MEMORY ADDRESS TO SHOW    "
-		db "  IN THE MEMORY VIEWER          "
-		db "  THIS IS THE UPPER 8 BITS      "
-		db "  FORMAT IS 7EXX--              "
-		db "                 RNG = 148D     "
-		db "            B5 CLOUD = 00E4     "
-		db "  THE MEMORY ADDRESS TO SHOW    "
-		db "  IN THE MEMORY VIEWER          "
-		db "  THIS IS THE LOWER 8 BITS      "
-		db "  FORMAT IS 7E--XX              "
-		db "                 RNG = 148D     "
-		db "            B5 CLOUD = 00E4     "
+		db "  EMULATE SCORE LAG BY          "
+		db "  SELECTING THE SUM OF THE      "
+		db "  DIGITS OF THE SCORE HERE      "
+		db "                                "
+		db "                                "
+		db "                                "
+		db "  OOF                           "
+		db "                                "
+		db "                                "
+		db "                                "
+		db "                                "
+		db "                                "
 		db "  PICK A SAVE SLOT TO SAVE      "
 		db "  EXPORT THE CURRENTLY          "
 		db "  LOADED MOVIE IN SAVE RAM      "
@@ -220,3 +220,80 @@ option_description:
 		db "  MECHANICS CHANGES             "
 		db "                                "
 		db "                                "
+
+meter_names:
+		db "     EMPTY    "
+		db "   ITEM BOX   "
+		db "  MARIO SPEED "
+		db " MARIO TAKEOFF"
+		db " MARIO P-SPEED"
+		db "YOSHI SUBPIXEL"
+		db " ITEM SUBPIXEL"
+		db "  LAG FRAMES  "
+		db "  LEVEL TIMER "
+		db "  ROOM TIMER  "
+		db "   STOPWATCH  "
+		db " COIN COUNTER "
+		db " IN GAME TIMER"
+		db "   SLOWDOWN   "
+		db " INPUT DISPLAY"
+		db "     NAME     "
+		db " RECORD LIMIT "
+		db " MEMORY VIEWER"
+		db " MEMORY VIEWER"
+
+meter_options:
+		dw meter_text_none
+		dw meter_text_none
+		dw meter_text_none
+		dw meter_text_none
+		dw meter_text_pmeter
+		dw meter_text_subpixels
+		dw meter_text_subpixels
+		dw meter_text_none
+		dw meter_text_timers
+		dw meter_text_timers
+		dw meter_text_timers
+		dw meter_text_coins
+		dw meter_text_igt
+		dw meter_text_none
+		dw meter_text_input
+		dw meter_text_name
+		dw meter_text_record
+		dw meter_text_none
+		dw meter_text_none
+		
+meter_text_none:
+		db "        "
+meter_text_pmeter:
+		db " 1 DIGIT"
+		db "2 DIGITS"
+meter_text_subpixels:
+		db " X AND Y"
+		db " X ONLY "
+		db " Y ONLY "
+meter_text_timers:
+		db "  :100  "
+		db "   :60  "
+		db " FRAMES "
+meter_text_coins:
+		db "  COINS "
+		db " DRAGON "
+meter_text_igt:
+		db "  PLAIN "
+		db "   :41  "
+		db " SYMBOL "
+meter_text_input:
+		db "STANDARD"
+		db "COMPACT1"
+		db "COMPACT2"
+		db "COMPACT3"
+		db "COMPACT4"
+meter_text_name:
+		db "  GREEN "
+		db "  WHITE "
+		db " YELLOW "
+meter_text_record:
+		db " VISUAL "
+		db " NUMERIC"
+		

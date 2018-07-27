@@ -96,13 +96,13 @@ test_for_enter_level:
 		STA !movie_location+$03
 		LDA !potential_translevel
 		STA !movie_location+$04
-		LDA.L !player_name
+		LDA.L !status_playername
 		STA !movie_location+$07
-		LDA.L !player_name+1
+		LDA.L !status_playername+1
 		STA !movie_location+$08
-		LDA.L !player_name+2
+		LDA.L !status_playername+2
 		STA !movie_location+$09
-		LDA.L !player_name+3
+		LDA.L !status_playername+3
 		STA !movie_location+$0A
 		LDA #$00
 		STA !movie_location+$0E

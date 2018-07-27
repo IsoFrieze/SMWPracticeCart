@@ -503,6 +503,8 @@ load_slots_graphics:
 		
 	.continue:
 		LDY #$0080
+		LDA #$80
+		STA $2115 ; vram increment
 		PHK
 		PLA
 		
@@ -725,10 +727,12 @@ init_statusbar_properties:
 		STA $00
 		
 		LDA.W !statusbar_meters,Y
+		CMP #$13
+		BCS +
 		ASL A
 		TAX
 		JSR (.meter,X)
-		DEY #4
+	+	DEY #4
 		BPL -
 		
 		PHK
@@ -1076,7 +1080,7 @@ init_statusbar_properties:
 		STA $30
 		STA $4E
 		STA $6E
-		LDA #$58
+		LDA #$78
 		STA $31
 		STA $51
 		STA $71
@@ -1092,7 +1096,7 @@ init_statusbar_properties:
 		RTS
 
 name_colors:
-		db $28,$38,$5C
+		db $28,$38,$3C
 
 ORG $12F000
 

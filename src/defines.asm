@@ -1,7 +1,7 @@
 ; the version of this patch Va.b.c
 !version_a                   = $03
-!version_b                   = $00
-!version_c                   = $00
+!version_b                   = $27
+!version_c                   = $01
 
 ; controller regs
 !mario_byetudlr_hold         = $15
@@ -94,7 +94,7 @@
 !status_slowdown             = $700333
 !status_help                 = $700334
 !status_lrreset              = $700335
-!status_memoryhi             = $700336 ; x
+!status_scorelag             = $700336
 !status_memorylo             = $700337 ; x
 !status_moviesave            = $700338
 !status_movieload            = $700339
@@ -225,6 +225,4 @@
 ; flag if a save state or room reset/advance or slowdown was used in this run
 ; used to detect when to not save the record (no cheating!)
 !spliced_run                 = $700007
-; player name
-!player_name                 = $70000C ; 4 bytes
 

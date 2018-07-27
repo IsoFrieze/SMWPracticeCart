@@ -1,6 +1,6 @@
 ;========================
 ; SMW Practice Cart
-; Version 2.5.1
+; Version 3.-.1
 ; Created by Dotsarecool
 ;========================
 
@@ -35,8 +35,6 @@ incsrc "src/movies.asm"             ; $1B8000 - $1C8000
 
 ; incbin "bin/spc_engine.bin"       ; $1F8000 (see relocations.asm)
 
-ORG $1FFFF0
-		db "EARLYACCESS"
 ; make sure the ROM is expanded to the full 1MBit
 ORG $1FFFFF
 		db $EA

@@ -45,15 +45,6 @@ overworld_menu_load:
 		STA.L !status_moviesave
 		STA.L !status_movieload
 		
-		LDA.L !player_name
-		STA.L !status_playername
-		LDA.L !player_name+1
-		STA.L !status_playername+1
-		LDA.L !player_name+2
-		STA.L !status_playername+2
-		LDA.L !player_name+3
-		STA.L !status_playername+3
-		
 		STZ !text_timer
 		
 		LDA #$80
@@ -283,12 +274,12 @@ option_width:
 option_height:
 		db $10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10
 option_type:
-		db $00,$01,$01,$01,$01,$01,$01,$01,$02,$03,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$02,$01,$01,$01,$03,$03,$01,$01,$01,$01,$01
+		db $01,$01,$01,$01,$01,$01,$01,$01,$02,$03,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$02,$01,$01,$01,$03,$03,$01,$01,$01,$01,$01
 option_index:
 		dw $0000,$0002,$0004,$0006,$0008,$000A,$010A,$020A
 		dw $030A,$030B,$0315,$0318,$031B,$031D,$031F,$0321
-		dw $0323,$0325,$0330,$0338,$033A,$033B,$033D,$033D
-		dw $043D,$043F,$0445,$0445,$0445,$0445,$0443
+		dw $0323,$0325,$0330,$0338,$033A,$033B,$033D,$0000
+		dw $03A1,$03A3,$03A9,$03A9,$03A9,$03A9,$03A7
 menu_option_tiles:
 		incbin "bin/menu_option_tiles.bin"
 menu_object_tiles:
@@ -332,11 +323,11 @@ selection_press_right:
 
 ; the number of options to allow when holding x or y
 minimum_selection_extended:
-		db $01,$01,$01,$01,$01,$FF,$FF,$FF,$00,$09,$02,$02,$01,$01,$01,$01,$01,$0A,$07,$01,$00,$01,$FF,$FF,$01,$03,$28,$28,$28,$28,$01
+		db $01,$01,$01,$01,$01,$FF,$FF,$FF,$00,$09,$02,$02,$01,$01,$01,$01,$01,$0A,$07,$01,$00,$01,$63,$FF,$01,$03,$28,$28,$28,$28,$01
 
 ; the number of options to allow when not holding x or y
 minimum_selection_normal:
-		db $01,$01,$01,$01,$01,$03,$04,$04,$00,$09,$02,$02,$01,$01,$01,$01,$01,$0A,$07,$01,$00,$01,$FF,$FF,$01,$03,$28,$28,$28,$28,$01
+		db $01,$01,$01,$01,$01,$03,$04,$04,$00,$09,$02,$02,$01,$01,$01,$01,$01,$0A,$07,$01,$00,$01,$36,$FF,$01,$03,$28,$28,$28,$28,$01
 
 ; this code is run on every frame during the overworld menu game mode (after fade in completes)
 ; GAME MODE #$1F
@@ -739,14 +730,6 @@ restore_basic_settings:
 		LDA.L !status_itembox
 		STA $0DC2 ; itembox
 		STA $0DBC ; ow itembox
-		LDA.L !status_playername
-		STA.L !player_name
-		LDA.L !status_playername+1
-		STA.L !player_name+1
-		LDA.L !status_playername+2
-		STA.L !player_name+2
-		LDA.L !status_playername+3
-		STA.L !player_name+3
 		RTL
 		
 ; draw the flashing cursor to the screen:
@@ -939,18 +922,25 @@ delete_all_data:
 		LDX #$0FDE
 	.loop:
 		STA $700020,X
-		DEX
+		CPX #$0320
+		BNE +
+		TXA
+		SEC
+		SBC #$0020
+		TAX
+		LDA #$FFFF
+	+	DEX
 		DEX
 		BPL .loop
+		BRA temp
 		
-		LDA #$0000
-		LDX #$001E
-	.loop_options
-		STA.L !status_table,X
-		DEX
-		DEX
-		BPL .loop_options
-		
+temp_default_meters:
+		PHP
+		PHB
+		PHK
+		PLB
+		REP #$30
+temp:
 		LDX #$005E
 	.loop_meters:
 		LDA default_meters,X
