@@ -1,4 +1,4 @@
-ORG $148000
+ORG !_F+$148000
 
 ; this code is run on every frame during the overworld game mode (after fade in completes)
 overworld_tick:
@@ -462,14 +462,14 @@ draw_times:
 		BEQ .in_framecount
 		LDA [$00],Y
 		STA $0D
-		JSL $00974C ; hex2dec
+		JSL !_F+$00974C ; hex2dec
 		TAX
 		LDA tile_numbers,X
 		STA !dynamic_stripe_image+4
 		INY
 		LDA [$00],Y
 		STA $0E
-		JSL $00974C ; hex2dec
+		JSL !_F+$00974C ; hex2dec
 		PHA
 		LDA tile_numbers,X
 		STA !dynamic_stripe_image+8
@@ -597,7 +597,7 @@ get_fractions_of_time:
 	.frames:
 		PLA
 	.done:
-		JSL $00974C ; hex2dec
+		JSL !_F+$00974C ; hex2dec
 		RTS
 		
 load_unran_time:

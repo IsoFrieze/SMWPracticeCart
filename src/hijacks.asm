@@ -12,12 +12,18 @@
 ; $04FFB1 -  4 / 79 bytes
 ; $05DC46 - 
 
+			ORG $85DC46
+					test_wrapper:
+						JSR $8D7A
+						RTL
+
+
 ; run on nmi
-ORG $0081AA
+ORG !_F+$0081AA
 		JSR nmi_hijack
 		NOP #2
 		
-ORG $009510
+ORG !_F+$009510
 nmi_hijack:
 		JSL nmi_expand
 		RTS
@@ -30,30 +36,30 @@ temp_fade_hijack:
 		RTS
 
 ; run on every frame
-ORG $008072
+ORG !_F+$008072
 		JSR every_frame_hijack
 
 ; run on overworld load
-ORG $00A087
+ORG !_F+$00A087
 		JSR overworld_load_hijack
-ORG $00A192
+ORG !_F+$00A192
 		JSR overworld_late_load_hijack
 	
-ORG $00A249
+ORG !_F+$00A249
 overworld_load_hijack:
 		JSR $937D
 		JSL overworld_load
 		RTS
 		
 ; run every frame on overworld
-ORG $00A1C3
+ORG !_F+$00A1C3
 		JSL overworld_tick
 		
 ; run every frame in level
-ORG $00A1DA
+ORG !_F+$00A1DA
 		JSR level_hijack
 		
-ORG $00F9F5
+ORG !_F+$00F9F5
 level_hijack:
 		JSL level_tick
 		LDA !level_loaded
@@ -70,7 +76,7 @@ level_load_hijack:
 		INC !level_loaded
 		RTS
 ; run on loading graphics from save state
-ORG $00CDD0
+ORG !_F+$00CDD0
 upload_3bpp_to_vram:
 		JSR $AA6F
 		RTL
@@ -79,31 +85,31 @@ update_layer3_tilemap:
 		RTL
 
 ; run on temporary fade game modes
-ORG $009F37
+ORG !_F+$009F37
 		JSR temp_fade_hijack
 
 ; run on level load in between game modes
-ORG $0096D5
+ORG !_F+$0096D5
 		JSR level_load_hijack
 
 ; run when setting layer 3 y position
-ORG $0082AA
+ORG !_F+$0082AA
 		NOP #2
 		JSL layer_3_y
 
 ; run when setting layer 3 priority
-ORG $0081D5
+ORG !_F+$0081D5
 		NOP
 		JSL layer_3_priority
 
 ; don't draw sprite BG when sprite slots enabled
-ORG $0282FA
+ORG !_F+$0282FA
 		JSL boss_sprite_background
 		
 ; test if level completed this frame
 ; X = 0 for normal exit, 1 for secret exit
 ; return 1 in A for finished, 0 for not finished
-ORG $00CC68
+ORG !_F+$00CC68
 		JMP $CCBB
 test_last_frame:
 		LDA !level_finished
@@ -138,17 +144,17 @@ test_last_frame:
 		RTL
 
 ; hijack temp fade exit level
-ORG $00933F
+ORG !_F+$00933F
 		dw tmp_fade_begin_hijack
 		
 ; hijack for overworld menu game modes
-ORG $009363
+ORG !_F+$009363
 		dw overworld_menu_load_gm
-ORG $009367
+ORG !_F+$009367
 		dw overworld_menu_gm
 		
 ; game modes for overworld menu
-ORG $00C578
+ORG !_F+$00C578
 overworld_menu_load_gm:
 		JSL overworld_menu_load
 		RTS
@@ -158,7 +164,7 @@ overworld_menu_gm:
 
 ; prepare sram for new file
 ; set all levels as beaten and enable all directions on all overworld tiles
-ORG $009F0E
+ORG !_F+$009F0E
 		JSL prepare_file
 		LDA #$8F
 		LDX #$5F
@@ -169,23 +175,23 @@ ORG $009F0E
 		RTS
 
 ; run during level load, like while $17BB is available
-ORG $05D7BD
+ORG !_F+$05D7BD
 		JSL level_load_exit_table
 		NOP #2
 
 ; run during level load, like while X = level index into timer table
-ORG $058583
+ORG !_F+$058583
 		JSL level_load_timer
 
 ; run after collecting an orb, like while X = its slot number
-ORG $018778
+ORG !_F+$018778
 		JSL collect_orb
 		NOP
 
 ; orb initialization will set flag in $1525 misc. table
-ORG $018211
+ORG !_F+$018211
 		dw init_orb
-ORG $01C062
+ORG !_F+$01C062
 init_orb:
 		LDA $14E0,X ; x position high byte + extra bits
 		AND #%00001100
@@ -196,7 +202,7 @@ init_orb:
 		RTS
 
 ; revamp how dropping an item from the item box works
-ORG $00C56C
+ORG !_F+$00C56C
 item_box:
 		JSL drop_item_box
 		CMP #$00
@@ -204,20 +210,20 @@ item_box:
 		JMP $C585
 		
 ; revamp how pausing works
-ORG $00A21B
+ORG !_F+$00A21B
 		JSL test_pause
-ORG $00A22C
+ORG !_F+$00A22C
 		JSL pause_timer
 		NOP
 		
 ; run subroutine on 99 and 0 seconds left
-ORG $008E4C
+ORG !_F+$008E4C
 		JSL hurry_up
 		JSL out_of_time
 		JMP $8E69
 
 ; disable score sprites if sprite slot numbers are enabled
-ORG $02AEA5
+ORG !_F+$02AEA5
 score_sprites:
 		JSL check_score_sprites
 		BEQ .not_disabled
@@ -226,20 +232,30 @@ score_sprites:
 		NOP #5
 		
 ; draw dynmeter
-ORG $01809E
+ORG !_F+$01809E
 		JSL display_dynmeter
 		NOP #2
 
+; draw bounce sprites
+ORG !_F+$029040
+		JSR bounce_hijack
+ORG !_F+$02B628
+bounce_hijack:
+		JSR $904D
+		JSL display_bounce_slot
+		RTS
+
 ; draw sprite slots
-ORG $0180AF
-		JSR $CD1E
-ORG $01CD1E
+ORG !_F+$0180AF
+		JSR sprite_hijack
+ORG !_F+$01CD1E
+sprite_hijack:
 		JSR $8127
 		JSL display_slot
 		RTS
 
 ; upload graphics after load state
-ORG $00D27C
+ORG !_F+$00D27C
 upload_all_graphics:
 		PHB
 		PHK
@@ -249,43 +265,43 @@ upload_all_graphics:
 		RTL
 
 ; faster overworld movement
-ORG $048244
+ORG !_F+$048244
 		JSL iterate_overworld_movement
 		JMP $8261
 
 ; stripe images for overworld menu record delete
-ORG $0084F4
+ORG !_F+$0084F4
 		dl stripe_confirm
 		dl stripe_deleted
 
 ; fix reznor/iggy/larry graphics upload
-ORG $00AB4A
+ORG !_F+$00AB4A
 		JSL fix_iggy_larry_graphics
 		NOP #2
 
 ; allow both controllers 1 and 2 to control mario at any time
-ORG $008650
+ORG !_F+$008650
 		JSL controller_update
 		RTS
 
 ; run at the very start of the game, to make sure the option save data is not corrupt
-ORG $00940F
+ORG !_F+$00940F
 		JSR check_option_bounds_hijack
 
 ; run at the very start of level load
-ORG $00968E
+ORG !_F+$00968E
 		JSR begin_loading_level
 		
 ; run at the very end of level load
-ORG $0093F4
+ORG !_F+$0093F4
 		JSR conclude_loading_level
 
 ; COP & BRK vectors
-ORG $00FFE6
+ORG !_F+$00FFE6
 		dw #break_wrapper,#break_wrapper
 
 ; clear the controller registers so we can tsb them
-ORG $00FC23
+ORG !_F+$00FC23
 empty_controller_regs:
 		JSL play_input
 		STZ $15
@@ -310,10 +326,11 @@ conclude_loading_level:
 		RTS
 break_wrapper:
 		JSL break
+		BCS +
 		LDA.L !save_state_exists
 		BEQ .forever
 		JSL activate_load_state
-		RTI
+	+	RTI
 	.forever:
 		BRA .forever
 ; tick the timer and co. for one frame after exiting the level with wings
@@ -334,20 +351,20 @@ check_option_bounds_hijack:
 		RTS
 
 ; on goal tape trigger
-ORG $00FA89
+ORG !_F+$00FA89
 		JSL goal_tape_trigger
 		NOP #2
 
 ; ldadDolphin
-ORG $07F7C1
+ORG !_F+$07F7C1
 		JSL load_tweaker_1686
 
 ; level layer 1 load
-ORG $05D8C2
+ORG !_F+$05D8C2
 		JSL load_level_layer1_ptr
 		JMP $D8D1
 
 ; level sprite load
-ORG $05D8EB
+ORG !_F+$05D8EB
 		JSL load_level_sprite_ptr
 		JMP $D8F9

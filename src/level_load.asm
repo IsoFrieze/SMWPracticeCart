@@ -1,4 +1,4 @@
-ORG $128000
+ORG !_F+$128000
 
 ; this code is run once on level load (during the black screen)
 level_load:
@@ -8,6 +8,7 @@ level_load:
 		PLB
 		SEP #$20
 		
+		JSR check_lagless
 		JSR check_midway_entrance
 		
 		LDA !l_r_function
@@ -46,6 +47,14 @@ l_r_functions:
 		dw setup_room_reset
 		dw setup_level_reset
 		dw setup_room_advance
+		
+; if lag is disabled, disable saving a time
+check_lagless:
+		LDA.L !status_scorelag
+		BNE +
+		LDA #$01
+		STA.L !spliced_run
+	+	RTS
 
 ; check if we should advance to the midway entrance of the level
 check_midway_entrance:
@@ -797,6 +806,7 @@ init_statusbar_properties:
 		dw .movie_recording
 		dw .memory_7e
 		dw .memory_7f
+		dw .rtc
 		
 	.mario_speed:
 		LDA #$2C
@@ -894,6 +904,10 @@ init_statusbar_properties:
 		TAX
 		LDA.L name_colors,X
 		JMP .store_4
+	
+	.rtc:
+		LDA #$2C
+		JMP .store_8
 		
 	.store_8:
 		STA [$00]
@@ -1098,7 +1112,7 @@ init_statusbar_properties:
 name_colors:
 		db $28,$38,$3C
 
-ORG $12F000
+ORG !_F+$12F000
 
 j_levels:
 		incbin "bin/j_levels.bin"

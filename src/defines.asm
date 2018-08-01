@@ -222,7 +222,6 @@
 !save_overworld_animation    = $700008
 ; flag = #$BD if a save state exists and to allow load state
 !save_state_exists           = $700006
-; flag if a save state or room reset/advance or slowdown was used in this run
+; flag if a save state or room reset/advance or slowdown or lagless was used in this run
 ; used to detect when to not save the record (no cheating!)
 !spliced_run                 = $700007
-

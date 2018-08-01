@@ -1,5 +1,5 @@
 ; status bar default tiles and properties for each tile
-ORG $008C59
+ORG !_F+$008C59
 	
 ; DMA 4 lines of status bar tile properties+default tiles
 DMA_Status_Bar:		
@@ -56,33 +56,33 @@ default_status_bar:
 		RTS
 
 ; number of scanlines used by layer 3 in normal level mode
-ORG $008293
+ORG !_F+$008293
 		db $26
 
 ; relocate calls to above routines
-ORG $00985A
+ORG !_F+$00985A
 		JSR DMA_Status_Bar
-ORG $00A5A8
+ORG !_F+$00A5A8
 		JSR DMA_Status_Bar
-ORG $0081F4
+ORG !_F+$0081F4
 		JSR DMA_Status_Bar_Tiles
-ORG $0082E8
+ORG !_F+$0082E8
 		JSR DMA_Status_Bar_Tiles
 	
 ; disable all the old status bar counters
 ; lives, coins, score, bonus stars, dragon coins
 ; also draw the bowser timer
-ORG $008E81
+ORG !_F+$008E81
 		JSL draw_bowser_timer
 		JMP $8F1D
-ORG $008F3B
+ORG !_F+$008F3B
 		JSR $9079 ; draw item in itembox
 		RTS
 
 ; draw the time to the status bar
 ; in a hijack to preserve the one-frame latency
-ORG $008E6F
+ORG !_F+$008E6F
 	;	JSL display_time ; TODO fix latency
 		JMP $8E81
-ORG $008E8C
+ORG !_F+$008E8C
 		STA $1F4E,X

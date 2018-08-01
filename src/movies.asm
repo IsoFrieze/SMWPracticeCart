@@ -1,6 +1,6 @@
 !movie_none = $0000
 
-ORG $1B8000
+ORG !_F+$1B8000
 
 reset bytes
 
@@ -193,7 +193,7 @@ movie_SP8_A:
 
 print "inserted ", bytes, "/32768 bytes into bank $1B"
 
-ORG $1C8000
+ORG !_F+$1C8000
 
 reset bytes
 		

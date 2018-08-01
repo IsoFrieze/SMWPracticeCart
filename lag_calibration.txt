@@ -1,0 +1,17 @@
+SMW:
+
+SGS Falling room with yoshi cape and no itembox item, 0 pts, no movement
+240 240 231 231 | 236.5
+SGS Falling room with yoshi cape and no itembox item, 9999990 pts, no movement
+517 523 525 512 | 519.25
+difference ~282.75
+
+
+
+Practice cart
+
+SGS Falling room with yoshi cape and no itembox item, scorelag 0, no movement
+73 70 73 74 | 72.5
+SGS Falling room with yoshi cape and no itembox item, scorelag 54, no movement
+332 338 340 336 | 336.5
+difference ~264

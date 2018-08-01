@@ -1,4 +1,4 @@
-ORG $178000
+ORG !_F+$178000
 
 ; this code is run on every single frame of execution
 every_frame:

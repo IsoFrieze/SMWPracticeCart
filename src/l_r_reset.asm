@@ -1,4 +1,4 @@
-ORG $1A8000
+ORG !_F+$1A8000
 
 ; this code is run when the player presses L + R in a level to reset the current room
 activate_room_reset:
@@ -202,9 +202,6 @@ room_advance_table:
 		
 ; this code is run when the player presses R + select to make a save state
 activate_save_state:
-		LDA !in_record_mode
-		ORA !in_playback_mode
-		BNE .cancel
 		LDA #$0E ; swim sound
 		STA $1DF9 ; apu i/o
 		STZ $4200 ; nmi disable
@@ -373,18 +370,14 @@ go_save_state:
 
 ; this code is run when the player presses L + select to load a save state
 activate_load_state:
-		LDA !in_record_mode
-		ORA !in_playback_mode
-		BEQ +
-		JMP .exit
-	
-	+	STZ $4200 ; nmi disable
-		
-	-	LDA $4212
+		STZ $4200 ; nmi disable
+	-	LDA $4212 ; wait until vblank
 		BPL -
 		
 		LDA #$80
 		STA $2100 ; force blank
+		
+		STZ $420C ; disable all HDMA to fix S-CPU ver. 1 bug
 		
 		JSR go_load_state
 	.done:
@@ -426,16 +419,7 @@ activate_load_state:
 		RTL
 		
 go_load_state:
-		PHP
-		
-		LDA !in_record_mode
-		BNE .sorry
-		LDA !in_playback_mode
-		BEQ .letsgo
-	.sorry:
-		JMP .done
-	.letsgo:
-		
+		PHP		
 		REP #$10
 		
 		; load wram $705000-$706FFF to wram $0000-$1FFF
@@ -707,6 +691,175 @@ load_a_graphics:
 		PLP
 		RTL
 
+; rebuild the background from level setting to wram
+build_background:
+		PHP
+		
+		LDA $1925 ; level mode
+		BEQ .has_bg
+		CMP #$1E
+		BEQ .has_bg
+		CMP #$0F
+		BEQ .no_bg
+		CMP #$09
+		BCC .no_bg
+		CMP #$12
+		BCS .no_bg
+		BRA .has_bg
+		
+	.no_bg:
+		JMP .done
+	
+	.has_bg:		
+		REP #$10
+		LDX $68
+		STX $00
+		LDA #$8C
+		STA $02
+		
+		LDA #$25
+		XBA
+		LDY #$0000
+		CPX #$E8FE
+		BCC +
+		INY
+	+	LDX #$00FF
+		TYA
+	-	STA $7EBD00,X
+		STA $7EBE00,X
+		STA $7EBF00,X
+		STA $7EC000,X
+		XBA
+		STA $7EB900,X
+		STA $7EBA00,X
+		STA $7EBB00,X
+		STA $7EBC00,X
+		XBA
+		DEX
+		BPL -
+		
+		REP #$20
+		LDX #$0000 ; x = ptr into wram table
+		
+	.loop:
+		LDA [$00]
+		CMP #$FFFF
+		BEQ .upload
+		XBA
+		CMP #$0000
+		BMI .rle
+		XBA
+		AND #$007F
+		TAY
+		INC $00
+		SEP #$20
+	-	LDA [$00]
+		INC $00
+		BNE +
+		INC $01
+	+	STA $7EB900,X
+		INX
+		DEY
+		BPL -
+		REP #$20
+		BRA .loop
+	.rle:
+		XBA
+		AND #$007F
+		TAY
+		INC $00
+		SEP #$20
+		LDA [$00]
+	-	STA $7EB900,X
+		INX
+		DEY
+		BPL -
+		REP #$20
+		INC $00
+		BRA .loop
+		
+	.upload:
+		LDA #$7E7E
+		STA $0C
+		STA $0E
+		LDA #$B900
+		STA $0A
+		LDA #$BD00
+		STA $0D
+		LDA #$9100
+		STA $00
+		LDA #$8D8D
+		STA $02
+		STZ $03
+		LDA #$0030
+		STA $08
+		
+	.strip:
+		LDY $03
+		LDA [$0A],Y
+		STA $05
+		LDA [$0D],Y
+		STA $06
+		LDA $05
+		ASL #3
+		TAY
+		LDA $03
+		LSR #2
+		AND #$FFFC
+		TAX
+		LDA [$00],Y
+		STA $1CE8,X
+		INY #2
+		LDA [$00],Y
+		STA $1CEA,X
+		INY #2
+		LDA [$00],Y
+		STA $1D68,X
+		INY #2
+		LDA [$00],Y
+		STA $1D6A,X
+		LDA $03
+		CLC
+		ADC #$0010
+		STA $03
+		CMP #$01B0
+		BCC .strip
+		
+		LDA $08
+		STA $1CE6
+		SEP #$30
+		JSL $8088F3 ; dma
+		REP #$30
+		LDA $08
+		XBA
+		CLC
+		ADC #$0002
+		XBA
+		STA $08
+		
+		LDA $03
+		AND #$000F
+		INC A
+		STA $03
+		CMP #$0010
+		BNE .strip
+		LDA #$0034
+		STA $08
+		LDA $0D
+		CLC
+		ADC #$01B0
+		STA $0D
+		LDA $0A
+		CLC
+		ADC #$01B0
+		STA $0A
+		CMP #$BAB0
+		BEQ .strip
+		
+	.done:
+		PLP
+		RTL
+
 ; restore all tilemaps from respective data
 restore_all_tilemaps:
 		PHP
@@ -715,10 +868,11 @@ restore_all_tilemaps:
 		; mode 7 graphics/tilemap! TODO
 		
 		PHB
-		LDA #$00
+		LDA #$80
 		PHA
 		PLB
-		JSL $05809E ; layer 1 & 2
+		JSL !_F+$05809E ; layer 1 & 2
+		JSL build_background
 		PLB
 		
 		REP #$10

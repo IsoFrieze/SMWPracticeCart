@@ -1,4 +1,4 @@
-ORG $118000
+ORG !_F+$118000
 
 ; this code is run once on overworld load
 overworld_load:
@@ -54,7 +54,7 @@ overworld_load:
 		STZ !l_r_function
 		STZ.W !slowdown_speed
 		STZ !in_overworld_menu
-		JSL $04DAAD ; layer 2 tilemap upload routine
+		JSL !_F+$04DAAD ; layer 2 tilemap upload routine
 		JSR setup_shadow
 		
 		LDA !in_record_mode
@@ -316,9 +316,10 @@ set_defaults:
 		STA.L !status_slowdown
 		STA.L !status_help
 		STA.L !status_lrreset
-		STA.L !status_scorelag
 		STA.L !status_moviesave
 		STA.L !status_movieload
+		LDA #$01
+		STA.L !status_scorelag
 		STA.L !status_region
 		LDA #$17
 		STA.L !status_playername

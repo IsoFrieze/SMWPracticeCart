@@ -1,4 +1,4 @@
-ORG $158000
+ORG !_F+$158000
 
 ; this code is run on every frame during fades to and from the level game mode (game modes #$0F & #$13)
 ; TODO actually call this routine in a hijack
@@ -67,15 +67,35 @@ fade_and_in_level_common:
 emulate_score_lag:
 		PHP
 		LDA.L !status_scorelag
+		BEQ .done
+		
+		; calibrate linear
+		DEC A
 		TAX
 	-	DEX
 		BMI +
+if !_F == $800000
+		LDY #$0C
+else
+		LDY #$03
+endif
+	--	DEY
+		BNE --
+		BRA -
+		
+if !_F == $800000
+		; calibrate dc
+	+	LDX #$24
+	-	DEX
+		BMI .done
 		LDY #$10
 	--	DEY
 		BNE --
 		BRA -
+endif
 	
-	+	PLP
+	.done:
+		PLP
 		RTS
 
 ; sad wrapper is sad
@@ -145,31 +165,25 @@ display_meters:
 		dw meter_movie_recording
 		dw meter_memory_7e
 		dw meter_memory_7f
+		dw meter_rtc
 
 ; draw the item box meter (fixed position)
 meter_item_box:
-		PHD
-		PEA !status_bar
-		PLD
-		
-		; change the direct page just so I can say I've done it
 		LDA #$3A
-		STA $2E
-		STA $31
-		STA $8E
-		STA $91
+		STA.L !status_bar+$2E
+		STA.L !status_bar+$31
+		STA.L !status_bar+$8E
+		STA.L !status_bar+$91
 		LDA #$3B
-		STA $2F
-		STA $30
-		STA $8F
-		STA $90
+		STA.L !status_bar+$2F
+		STA.L !status_bar+$30
+		STA.L !status_bar+$8F
+		STA.L !status_bar+$90
 		LDA #$4A
-		STA $4E
-		STA $51
-		STA $6E
-		STA $71
-		
-		PLD
+		STA.L !status_bar+$4E
+		STA.L !status_bar+$51
+		STA.L !status_bar+$6E
+		STA.L !status_bar+$71
 		RTS
 
 ; draw the mario speed meter
@@ -178,7 +192,7 @@ meter_mario_speed:
 		BPL +
 		EOR #$FF
 		INC A
-	+	JSL $00974C ; hex2dec
+	+	JSL !_F+$00974C ; hex2dec
 		PHA
 		TXA
 		STA [$00]
@@ -191,7 +205,7 @@ meter_mario_speed:
 ; draw the mario takeoff meter
 meter_mario_takeoff:
 		LDA $7E149F ; takeoff meter
-		JSL $00974C ; hex2dec
+		JSL !_F+$00974C ; hex2dec
 		PHA
 		TXA
 		STA [$00]
@@ -473,7 +487,7 @@ meter_timer_all:
 		DEC $03
 		TAX
 		LDA.L fractional_seconds,X
-		JSL $00974C ; hex2dec
+		JSL !_F+$00974C ; hex2dec
 		STA [$00]
 		DEC $00
 		TXA
@@ -489,7 +503,7 @@ meter_timer_all:
 		STA $00
 		LDA [$03]
 		DEC $03
-		JSL $00974C ; hex2dec
+		JSL !_F+$00974C ; hex2dec
 		STA [$00]
 		DEC $00
 		TXA
@@ -501,7 +515,7 @@ meter_timer_all:
 		
 		LDA [$03]
 		DEC $03
-		JSL $00974C ; hex2dec
+		JSL !_F+$00974C ; hex2dec
 		STA [$00]
 		DEC $00
 		TXA
@@ -593,7 +607,7 @@ meter_coin_count:
 		
 	.normal:
 		LDA $7E0DBF ; coins
-		JSL $00974C ; hex2dec
+		JSL !_F+$00974C ; hex2dec
 		PHA
 		TXA
 		BNE +
@@ -633,7 +647,7 @@ meter_in_game_time: ; TODO - fix latency
 		
 	.decimal:
 		LDA $7E0F30 ; igt fraction
-		JSL $00974C ; hex2dec
+		JSL !_F+$00974C ; hex2dec
 		PHA
 		TXA
 		STA [$00]
@@ -892,6 +906,10 @@ meter_memory_all:
 		AND #$0F
 		STA [$00]
 		RTS
+
+; draw the real time clock meter
+meter_rtc:
+		RTS
 		
 ; slow down the game depending on how large the slowdown number is
 wait_slowdown:
@@ -951,7 +969,7 @@ display_dynmeter:
 		INC $08
 		INC $09
 	.positive_speed:
-		JSL $00974C ; hex2dec
+		JSL !_F+$00974C ; hex2dec
 		STX $00 ; tens
 		STA $01 ; ones
 		LDA #$FF
@@ -961,7 +979,7 @@ display_dynmeter:
 		
 	.mario_takeoff:
 		LDA $149F ; takeoff meter
-		JSL $00974C ; hex2dec
+		JSL !_F+$00974C ; hex2dec
 		STX $00 ; tens
 		STA $01 ; ones
 		LDA #$FF
@@ -1039,7 +1057,7 @@ display_dynmeter:
 		INC $08
 		INC $09
 	.item_positive_x_speed:
-		JSL $00974C ; hex2dec
+		JSL !_F+$00974C ; hex2dec
 		STX $00 ; tens
 		STA $01 ; ones
 		LDX.W !held_item_slot
@@ -1050,7 +1068,7 @@ display_dynmeter:
 		INC $0A
 		INC $0B
 	.item_positive_y_speed:
-		JSL $00974C ; hex2dec
+		JSL !_F+$00974C ; hex2dec
 		STX $02 ; tens
 		STA $03 ; ones
 		LDX.W !held_item_slot
@@ -1148,18 +1166,73 @@ tile_x_offsets:
 tile_y_offsets:
 		db $00,$00,$08,$08
 		
+; display a bounce sprite's slot number on it on the screen
+display_bounce_slot:
+		PHB
+		PHK
+		PLB
+		LDA.L !status_slots
+		CMP #$03
+		BNE .done
+		LDA $0100
+		CMP #$0B
+		BCC .done
+		
+		TXA
+		ASL #2
+		TAY
+		
+		LDA $1699,X
+		CMP #$07
+		BNE .erase_tile
+		JSR get_bounce_screen_y
+		XBA
+		CMP #$00
+		BNE .erase_tile
+		XBA
+		STA $02B1,Y ; oam y position
+		JSR get_bounce_screen_x
+		XBA
+		CMP #$00
+		BNE .erase_tile
+		XBA
+		INC #2
+		STA $02B0,Y ; oam x position
+		LDA sprite_numbers,X
+		STA $02B2,Y ; oam tile
+		TXA
+		INC A
+		AND #$03
+		CMP $18CD
+		BNE ++
+		LDA #$38
+		BRA +
+	++	LDA #$32
+	+	STA $02B3,Y ; oam properties
+		STZ $044C,X ; oam size
+		BRA .done
+	.erase_tile:
+		LDA #$F0
+		STA $02B1,Y ; oam y position
+		
+	.done:
+		PLB
+		RTL
+		
 ; display a sprite's slot number next to it on the screen
 ; X = slot number
 display_slot:
 		PHB
 		PHK
 		PLB
+		LDA.L !status_slots
+		BEQ .done
+		CMP #$03 ; this is for bounce sprites
+		BEQ .done
 		; don't display slots on title screen
 		LDA $0100
 		CMP #$0B
 		BCC .done
-		LDA.L !status_slots
-		BEQ .done
 		
 		TXA
 		ASL A
@@ -1171,13 +1244,13 @@ display_slot:
 		CMP #$01
 		BEQ .erase_tile
 	.not_dead:
-		JSR get_screen_y
+		JSR get_sprite_screen_y
 		XBA
 		CMP #$00
 		BNE .erase_tile
 		XBA
 		STA $02B1,Y ; oam y position
-		JSR get_screen_x
+		JSR get_sprite_screen_x
 		XBA
 		CMP #$00
 		BNE .erase_tile
@@ -1203,7 +1276,7 @@ sprite_numbers:
 		db $68,$69,$6A,$6B
 		db $78,$79,$7A,$7B
 
-get_screen_x:
+get_sprite_screen_x:
 		LDA $E4,X ; sprite x position, low byte
 		XBA
 		LDA $14E0,X ; sprite x position, high byte
@@ -1214,10 +1287,32 @@ get_screen_x:
 		SEP #$20
 		RTS
 
-get_screen_y:
+get_sprite_screen_y:
 		LDA $D8,X ; sprite y position, low byte
 		XBA
 		LDA $14D4,X ; sprite y position, high byte
+		XBA
+		REP #$20
+		SEC
+		SBC $1C ; layer 1 y position
+		SEP #$20
+		RTS
+
+get_bounce_screen_x:
+		LDA $16A5,X ; bounce sprite x position, low byte
+		XBA
+		LDA $16AD,X ; bounce sprite x position, high byte
+		XBA
+		REP #$20
+		SEC
+		SBC $1A ; layer 1 x position
+		SEP #$20
+		RTS
+
+get_bounce_screen_y:
+		LDA $16A1,X ; bounce sprite y position, low byte
+		XBA
+		LDA $16A9,X ; bounce sprite y position, high byte
 		XBA
 		REP #$20
 		SEC
@@ -1444,17 +1539,21 @@ test_savestate:
 		AND #%00100000
 		BEQ .no_load
 		
+		LDA $705000+!in_record_mode ; save state was in movie
+		CMP !in_record_mode
+		BNE .make_sound
+		
 		LDA $705000+$13BF ; save state translevel
 		CMP $13BF
 		BEQ .go
 		
+	.make_sound:
 		LDA !load_state_timer
 		AND #$07
-		BNE .no_sound
+		BNE +
 		LDA #$1A ; grinder sound
 		STA $1DF9 ; apu i/o	
-	.no_sound:
-		LDA !load_state_timer
+	+	LDA !load_state_timer
 		BEQ .actuate
 		CMP #$01
 		BEQ .go
@@ -1990,7 +2089,7 @@ timer_x:
 
 ; convert a hex number to decimal, then get tile numbers
 hex_to_bowser:
-		JSL $00974C ; hex2dec
+		JSL !_F+$00974C ; hex2dec
 dec_to_bowser:
 		PHX
 		TAX

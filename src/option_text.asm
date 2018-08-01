@@ -13,7 +13,7 @@ option_title:
 		db "     DELETE SAVE DATA           "
 		db "     SPRITE SLOT NUMBERS        "
 		db "     SECOND CONTROLLER          "
-		db "     PAUSE BUFFER               "
+		db "     FRAME ADVANCE              "
 		db "     TIME UP DEATH              "
 		db "     MUSIC                      "
 		db "     HOTKEY INTERFERENCE        "
@@ -106,11 +106,11 @@ option_description:
 		db "  CONTROL ANYTHING              "
 		db "                                "
 		db "                                "
-		db "  TOGGLE THE BUFFER TIME        "
-		db "  IN BETWEEN SUCCESSIVE         "
-		db "  PAUSING                       "
-		db "                                "
-		db "                                "
+		db "  USE R WHILE PAUSED TO         "
+		db "  ADVANCE A SINGLE FRAME        "
+		db "  REMOVES PAUSE COOLDOWN        "
+		db "  AND ALLOWS BUFFERING OF       "
+		db "  INPUTS UPON UNPAUSE ALSO      "
 		db "                                "
 		db "  TOGGLE THE HURRY UP SOUND     "
 		db "  AND TIME UP DEATH             "
@@ -166,10 +166,10 @@ option_description:
 		db "  X-Y-L-R TO ADVANCE ONE ROOM   "
 		db "                                "
 		db "                                "
-		db "  EMULATE SCORE LAG BY          "
-		db "  SELECTING THE SUM OF THE      "
-		db "  DIGITS OF THE SCORE HERE      "
-		db "                                "
+		db "  OPTIONALLY EMULATE            "
+		db "  SCORE LAG BY SELECTING        "
+		db "  THE SUM OF THE DIGITS OF      "
+		db "  THE SCORE HERE                "
 		db "                                "
 		db "                                "
 		db "  OOF                           "
@@ -241,6 +241,7 @@ meter_names:
 		db " RECORD LIMIT "
 		db " MEMORY VIEWER"
 		db " MEMORY VIEWER"
+		db "REALTIME CLOCK"
 
 meter_options:
 		dw meter_text_none
@@ -262,6 +263,7 @@ meter_options:
 		dw meter_text_record
 		dw meter_text_none
 		dw meter_text_none
+		dw meter_text_rtc
 		
 meter_text_none:
 		db "        "
@@ -296,4 +298,7 @@ meter_text_name:
 meter_text_record:
 		db " VISUAL "
 		db " NUMERIC"
-		
+meter_text_rtc:
+		db " UPTIME "
+		db " 12HOUR "
+		db " 24HOUR "

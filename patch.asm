@@ -4,14 +4,19 @@
 ; Created by Dotsarecool
 ;========================
 
+; set to $000000 to compile for SlowROM
+; set to $800000 to compile for FastROM
+; must patch to a FastROM version of SMW
+!_F = $800000
+
 cleartable
 
 ; internal rom name
-ORG $00FFC0
+ORG !_F+$00FFC0
 		db "SMW PRACTICE CART    "
 
 ; nintendo presents sound
-ORG $0093C1
+ORG !_F+$0093C1
 		db $15
 
 ; include everything because I want to be organized this time
@@ -36,5 +41,5 @@ incsrc "src/movies.asm"             ; $1B8000 - $1C8000
 ; incbin "bin/spc_engine.bin"       ; $1F8000 (see relocations.asm)
 
 ; make sure the ROM is expanded to the full 1MBit
-ORG $1FFFFF
+ORG !_F+$1FFFFF
 		db $EA

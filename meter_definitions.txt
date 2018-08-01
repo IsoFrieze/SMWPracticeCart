@@ -54,3 +54,7 @@
 		SS - byte
 12 - memory viewer (7F) (2)
 		SS - byte
+13 - real time clock (8)
+		00 - 24 hour
+		01 - 12 hour
+		02 - uptime

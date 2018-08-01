@@ -1,4 +1,4 @@
-ORG $168000
+ORG !_F+$168000
 
 ; this code is run on every NMI; therefore, it is guaranteed to run 60 times per second, even if the game is lagging
 nmi_expand:
@@ -364,6 +364,7 @@ break:
 		PLX
 		PLA
 		PLP
+		CLC
 		RTL
 
 break_tiles:

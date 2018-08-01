@@ -1,6 +1,6 @@
 ; this code is run once on overworld menu load
 ; GAME MODE #$1D
-ORG $188000
+ORG !_F+$188000
 overworld_menu_load:
 		PHP
 		PHB
@@ -84,7 +84,7 @@ overworld_menu_load:
 		DEX
 		BPL .loop_item
 		
-		JSL $0084C8
+		JSL !_F+$0084C8
 		JSL $7F8000
 		
 		LDX #$07
@@ -265,10 +265,11 @@ draw_menu_selection:
 		PLX
 		RTL
 
+;		db $00,$01,$02,$03,$04,$05,$06,$07,$08,$09,$0A,$0B,$0C,$0D,$0E,$0F,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$1A,$1B,$1C,$1D,$1E
 option_x_position:
 		db $06,$06,$06,$06,$06,$09,$09,$09,$09,$18,$0C,$15,$12,$12,$15,$0C,$0F,$0F,$0C,$0F,$18,$0F,$12,$15,$12,$15,$0E,$10,$12,$14,$0C
 option_y_position:
-		db $03,$06,$09,$0C,$0F,$06,$09,$0C,$03,$0F,$09,$06,$06,$09,$09,$0F,$06,$09,$06,$0C,$03,$0F,$0C,$0C,$0F,$0F,$02,$02,$02,$02,$0C
+		db $03,$06,$09,$0C,$0F,$06,$09,$0C,$03,$0F,$09,$06,$0C,$09,$09,$0F,$06,$09,$06,$0C,$03,$0F,$06,$0C,$0F,$0F,$02,$02,$02,$02,$0C
 option_width:
 		db $10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$08,$08,$08,$08,$10
 option_height:
@@ -276,10 +277,10 @@ option_height:
 option_type:
 		db $01,$01,$01,$01,$01,$01,$01,$01,$02,$03,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$02,$01,$01,$01,$03,$03,$01,$01,$01,$01,$01
 option_index:
-		dw $0000,$0002,$0004,$0006,$0008,$000A,$010A,$020A
-		dw $030A,$030B,$0315,$0318,$031B,$031D,$031F,$0321
-		dw $0323,$0325,$0330,$0338,$033A,$033B,$033D,$0000
-		dw $03A1,$03A3,$03A9,$03A9,$03A9,$03A9,$03A7
+		dw $0001,$0003,$0005,$0007,$0009,$000B,$010B,$020B
+		dw $030B,$030C,$0316,$031A,$031D,$031F,$0321,$0323
+		dw $0325,$0327,$0332,$033A,$033C,$033D,$033F,$0000
+		dw $03A4,$03A6,$03AC,$03AC,$03AC,$03AC,$03AA
 menu_option_tiles:
 		incbin "bin/menu_option_tiles.bin"
 menu_object_tiles:
@@ -288,7 +289,7 @@ menu_object_tiles:
 ; the text for option titles and descriptions
 		incsrc "option_text.asm"
 
-ORG $198000
+ORG !_F+$198000
 
 ; the layer 1 tilemap for the overworld menu
 menu_layer1_tilemap:
@@ -313,21 +314,21 @@ menu_palette:
 ; which selection to go to when a direction is pressed
 ;		db $00,$01,$02,$03,$04,$05,$06,$07,$08,$09,$0A,$0B,$0C,$0D,$0E,$0F,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$1A,$1B,$1C,$1D,$1E
 selection_press_up:
-		db $04,$00,$01,$02,$03,$08,$05,$06,$07,$14,$12,$1D,$1C,$0C,$0B,$1E,$1B,$10,$1A,$11,$09,$13,$0D,$0E,$16,$17,$0F,$15,$18,$19,$0A
-selection_press_down:
-		db $01,$02,$03,$04,$00,$06,$07,$08,$05,$14,$1E,$0E,$0D,$16,$17,$1A,$11,$13,$0A,$15,$09,$1B,$18,$19,$1C,$1D,$12,$10,$0C,$0B,$0F
-selection_press_left:
-		db $14,$0B,$0E,$17,$09,$01,$02,$03,$00,$19,$06,$0C,$10,$11,$0D,$04,$12,$0A,$05,$1E,$1D,$0F,$13,$16,$15,$18,$08,$1A,$1B,$1C,$07
-selection_press_right:
-		db $08,$05,$06,$07,$0F,$12,$0A,$1E,$1A,$04,$11,$01,$0B,$0E,$02,$15,$0C,$0D,$10,$16,$00,$18,$17,$03,$19,$09,$1B,$1C,$1D,$14,$13
+		db $04,$00,$01,$02,$03,$08,$05,$06,$07,$14,$12,$1D,$0D,$16,$0B,$1E,$1B,$10,$1A,$11,$09,$13,$1C,$0E,$0C,$17,$0F,$15,$18,$19,$0A
+selection_press_down:                                                                           
+		db $01,$02,$03,$04,$00,$06,$07,$08,$05,$14,$1E,$0E,$18,$0C,$17,$1A,$11,$13,$0A,$15,$09,$1B,$0D,$19,$1C,$1D,$12,$10,$16,$0B,$0F
+selection_press_left:                                                                           
+		db $14,$0B,$0E,$17,$09,$01,$02,$03,$00,$19,$06,$16,$13,$11,$0D,$04,$12,$0A,$05,$1E,$1D,$0F,$10,$0C,$15,$18,$08,$1A,$1B,$1C,$07
+selection_press_right:                                                                          
+		db $08,$05,$06,$07,$0F,$12,$0A,$1E,$1A,$04,$11,$01,$17,$0E,$02,$15,$16,$0D,$10,$0C,$00,$18,$0B,$03,$19,$09,$1B,$1C,$1D,$14,$13
 
 ; the number of options to allow when holding x or y
 minimum_selection_extended:
-		db $01,$01,$01,$01,$01,$FF,$FF,$FF,$00,$09,$02,$02,$01,$01,$01,$01,$01,$0A,$07,$01,$00,$01,$63,$FF,$01,$03,$28,$28,$28,$28,$01
+		db $01,$01,$01,$01,$01,$FF,$FF,$FF,$00,$09,$03,$02,$01,$01,$01,$01,$01,$0A,$07,$01,$00,$01,$64,$00,$01,$03,$28,$28,$28,$28,$01
 
 ; the number of options to allow when not holding x or y
 minimum_selection_normal:
-		db $01,$01,$01,$01,$01,$03,$04,$04,$00,$09,$02,$02,$01,$01,$01,$01,$01,$0A,$07,$01,$00,$01,$36,$FF,$01,$03,$28,$28,$28,$28,$01
+		db $01,$01,$01,$01,$01,$03,$04,$04,$00,$09,$03,$02,$01,$01,$01,$01,$01,$0A,$07,$01,$00,$01,$37,$00,$01,$03,$28,$28,$28,$28,$01
 
 ; this code is run on every frame during the overworld menu game mode (after fade in completes)
 ; GAME MODE #$1F
@@ -502,8 +503,8 @@ option_selection_mode:
 		dw .select_slowdown
 		dw .select_help
 		dw .select_lrreset
-		dw .select_memoryhi
-		dw .select_memorylow
+		dw .select_scorelag
+		dw .select_placeholder
 		dw .select_moviesave
 		dw .select_movieload
 		dw .select_name
@@ -531,8 +532,8 @@ option_selection_mode:
 	.select_statedelay:
 	.select_slowdown:
 	.select_lrreset:
-	.select_memoryhi:
-	.select_memorylow:
+	.select_scorelag:
+	.select_placeholder:
 	.select_region:
 	.select_name:
 		JMP .finish_no_sound
@@ -834,7 +835,7 @@ yoshi_color_mapping_input:
 yoshi_color_mapping_output:
 		db $00,$04,$06,$08,$0A,$01,$02,$03,$05,$07,$09
 
-; update the background offset and color
+; update the background offset and colorg
 update_background:
 		SEP #$20
 		INC $1A ; layer 1 x position
