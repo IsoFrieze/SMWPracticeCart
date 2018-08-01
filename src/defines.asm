@@ -1,7 +1,7 @@
 ; the version of this patch Va.b.c
 !version_a                   = $03
 !version_b                   = $27
-!version_c                   = $01
+!version_c                   = $02
 
 ; controller regs
 !mario_byetudlr_hold         = $15
