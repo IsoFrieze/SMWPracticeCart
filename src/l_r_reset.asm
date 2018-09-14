@@ -364,6 +364,7 @@ activate_load_state:
         STZ $420C ; disable all HDMA to fix S-CPU ver. 1 bug
         
         JSR go_load_state
+    .done:
         JSR restore_hardware_regs
         
         JSR restore_all_graphics

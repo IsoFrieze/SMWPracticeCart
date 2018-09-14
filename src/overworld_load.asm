@@ -302,7 +302,7 @@ set_defaults:
         STA.L !status_statedelay
         STA.L !status_dynmeter
         STA.L !status_slowdown
-        STA.L !status_help
+        STA.L !status_layout
         STA.L !status_lrreset
         STA.L !status_moviesave
         STA.L !status_movieload

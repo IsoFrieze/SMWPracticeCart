@@ -94,7 +94,7 @@
 !status_statedelay           = $700331 ; count...
 !status_dynmeter             = $700332 ; none | speed | takeout | pmeter | spx | yoshispx | itemspx | itemspeed
 !status_slowdown             = $700333 ; enable | disable
-!status_help                 = $700334 ;
+!status_layout               = $700334 ; default | lagcalibrated | empty | custom
 !status_lrreset              = $700335 ; enable | disable
 !status_scorelag             = $700336 ; none | count...
 !status_memorylo             = $700337 ; x

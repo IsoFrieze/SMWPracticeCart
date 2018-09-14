@@ -81,43 +81,8 @@ overworld_menu_load:
         DEX
         BPL -
         
-        JSL !_F+$0084C8
-        JSL $7F8000
+        JSL draw_meter_names
         
-        LDA #$98 ; bank of text
-        STA $02
-        REP #$30
-        LDX #$0017
-      - TXA
-        ASL #5
-        CLC
-        ADC #$5462
-        CPX #$000C
-        BCC +
-        SEC
-        SBC #$0171
-      + XBA
-        TAY
-        LDA #meter_names
-        STA $00
-        PHX
-        TXA
-        ASL #2
-        TAX
-        LDA !statusbar_meters,X
-        AND #$00FF
-        ASL #4
-        CLC
-        ADC $00
-        STA $00
-        LDX #$000E
-        LDA #$3838
-        JSL draw_text_string
-        PLX
-        DEX
-        BPL -
-        
-        SEP #$30
         JSL !_F+$0084C8
         JSL $7F8000
         
@@ -313,12 +278,12 @@ option_width:
 option_height:
         db $10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10
 option_type:
-        db $01,$01,$01,$01,$01,$01,$01,$01,$02,$03,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$02,$01,$01,$01,$03,$03,$01,$01,$01,$01,$01
+        db $01,$01,$01,$01,$01,$01,$01,$01,$02,$03,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$03,$01,$01,$01,$03,$03,$01,$01,$01,$01,$01
 option_index:
         dw $0001,$0003,$0005,$0007,$0009,$000B,$010B,$020B
         dw $030B,$030C,$0316,$031B,$031E,$0320,$0322,$0324
-        dw $0326,$0328,$0333,$033B,$033D,$033E,$0340,$0000
-        dw $03A5,$03A7,$03AD,$03AD,$03AD,$03AD,$03AB
+        dw $0326,$0328,$0333,$033B,$033D,$0341,$0343,$0000
+        dw $03A8,$03AA,$03B0,$03B0,$03B0,$03B0,$03AE
 menu_option_tiles:
         incbin "bin/menu_option_tiles.bin"
 menu_object_tiles:
@@ -362,11 +327,11 @@ selection_press_right:
 
 ; the number of options to allow when holding x or y
 minimum_selection_extended:
-        db $01,$01,$01,$01,$01,$FF,$FF,$FF,$00,$09,$04,$02,$01,$01,$01,$01,$01,$0A,$07,$01,$00,$01,$64,$00,$01,$03,$28,$28,$28,$28,$01
+        db $01,$01,$01,$01,$01,$FF,$FF,$FF,$00,$09,$04,$02,$01,$01,$01,$01,$01,$0A,$07,$01,$03,$01,$64,$00,$01,$03,$28,$28,$28,$28,$01
 
 ; the number of options to allow when not holding x or y
 minimum_selection_normal:
-        db $01,$01,$01,$01,$01,$03,$04,$04,$00,$09,$04,$02,$01,$01,$01,$01,$01,$0A,$07,$01,$00,$01,$37,$00,$01,$03,$28,$28,$28,$28,$01
+        db $01,$01,$01,$01,$01,$03,$04,$04,$00,$09,$04,$02,$01,$01,$01,$01,$01,$0A,$07,$01,$03,$01,$37,$00,$01,$03,$28,$28,$28,$28,$01
 
 ; this code is run on every frame during the overworld menu game mode (after fade in completes)
 ; GAME MODE #$1F
@@ -577,8 +542,15 @@ option_selection_mode:
     .select_name:
         JMP .finish_no_sound
     .select_meters:
-        LDA #$0B ; on/off sound
+        LDA.L !status_layout
+        CMP #$03
+        BEQ +
+        LDA #$2A ; wrong sound
+        STA $1DFC ; apu i/o
+        JMP .finish_no_sound
+      + LDA #$0B ; on/off sound
         STA $1DF9 ; apu i/o
+        JSL draw_meter_names
         JSR draw_edited_status_bar
         LDA #$01
         STA !in_meter_editor
@@ -626,8 +598,11 @@ option_selection_mode:
         STA $0100 ; game mode
         
         JSL restore_basic_settings
-        
-        BRA .finish_no_sound
+        LDA.L !status_layout
+        CMP #$03
+        BEQ +
+        JSR load_meterset
+      + BRA .finish_no_sound
     
     .finish_sound:
         LDA #$06 ; fireball sound
@@ -963,42 +938,71 @@ delete_all_data:
         DEX
         BPL -
         
-        LDX #$005E
-      - LDA default_meters,X
-        STA.L !statusbar_meters,X
-        DEX #2
-        BPL -
+        LDA #$0000
+        JSR load_meterset
         
         PLB
         PLP
         RTL
 
-; the default set of statusbar meters
-default_meters:
-        db $01,$00,$00,$21
-        db $02,$00,$00,$21
-        db $03,$00,$00,$41
-        db $04,$00,$00,$61
-        db $05,$00,$00,$24
-        db $06,$00,$00,$44
-        db $08,$00,$00,$26
-        db $09,$00,$00,$47
-        db $0A,$00,$00,$67
-        db $07,$00,$00,$89
-        db $0B,$00,$00,$32
-        db $11,$14,$8D,$52
-        db $11,$14,$8E,$54
-        db $0C,$01,$00,$72
-        db $0D,$00,$00,$36
-        db $0E,$00,$00,$37
-        db $0F,$00,$00,$81
-        db $10,$00,$00,$98
-        db $00,$00,$00,$00
-        db $00,$00,$00,$00
-        db $00,$00,$00,$00
-        db $00,$00,$00,$00
-        db $00,$00,$00,$00
-        db $00,$00,$00,$00
+; load a meterset into sram
+; A = index of meterset
+load_meterset:
+        PHP
+        REP #$30
+        PHX
+        PHY
+        PHB
+        PHK
+        PLB
+        
+        AND #$00FF
+        ASL A
+        TAX
+        LDA metersets,X
+        STA $00
+        
+        LDX #$005E
+        LDY #$005E
+      - LDA ($00),Y
+        STA.L !statusbar_meters,X
+        DEX #2
+        DEY #2
+        BPL -
+        
+        PLB
+        PLY
+        PLX
+        PLP
+        RTS
+        
+
+; the default sets of statusbar meters
+metersets:
+        dw meterset_default
+        dw meterset_lagcalibrated
+        dw meterset_empty
+meterset_default:
+        db $01,$00,$00,$21,$02,$00,$00,$21,$03,$00,$00,$41,$04,$00,$00,$61
+        db $05,$00,$00,$24,$06,$00,$00,$44,$08,$00,$00,$26,$09,$00,$00,$47
+        db $0A,$00,$00,$67,$07,$00,$00,$89,$0B,$00,$00,$32,$11,$14,$8D,$52
+        db $11,$14,$8E,$54,$0C,$01,$00,$72,$0D,$00,$00,$36,$0E,$00,$00,$37
+        db $0F,$00,$00,$81,$10,$00,$00,$98,$00,$00,$00,$00,$00,$00,$00,$00
+        db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+meterset_lagcalibrated:
+        db $01,$00,$00,$21,$02,$00,$00,$41,$04,$00,$00,$43,$01,$00,$00,$24
+        db $08,$00,$00,$46,$09,$00,$00,$67,$07,$00,$00,$72,$0C,$01,$00,$52
+        db $0E,$02,$00,$59,$0F,$00,$00,$61,$00,$00,$00,$98,$00,$00,$00,$00
+        db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+        db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+        db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+meterset_empty:
+        db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+        db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+        db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+        db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+        db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+        db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
 
 ; clear all records from one level
 ; A = translevel to delete
@@ -2045,6 +2049,44 @@ meter_heights:
         db $01,$FF,$FF,$FF,$FF,$FF,$FF,$FF
         db $01,$FF,$FF,$FF,$FF,$FF,$FF,$FF
         db $01,$01,$01,$FF,$FF,$FF,$FF,$FF
+
+draw_meter_names:
+        PHP
+        LDA #$98 ; bank of text
+        STA $02
+        REP #$30
+        LDX #$0017
+      - TXA
+        ASL #5
+        CLC
+        ADC #$5462
+        CPX #$000C
+        BCC +
+        SEC
+        SBC #$0171
+      + XBA
+        TAY
+        LDA #meter_names
+        STA $00
+        PHX
+        TXA
+        ASL #2
+        TAX
+        LDA !statusbar_meters,X
+        AND #$00FF
+        ASL #4
+        CLC
+        ADC $00
+        STA $00
+        LDX #$000E
+        LDA #$3838
+        JSL draw_text_string
+        PLX
+        DEX
+        BPL -
+        
+        PLP
+        RTL
       
 ; draw meter description
 draw_meter_text: 

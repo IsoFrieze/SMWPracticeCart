@@ -269,6 +269,7 @@ save_room_properties:
         STA !restore_room_xpos
         LDA $D2 ; mario x position high byte
         STA !restore_room_xpos+1
+    .but_not_xpos:
         LDA $19 ; powerup
         STA !restore_room_powerup
         LDA $0DC2 ; item box
