@@ -1,7 +1,7 @@
 ; the version of this patch Va.b.c
 !version_a                   = $03
 !version_b                   = $27
-!version_c                   = $02
+!version_c                   = $03
 
 ; controller regs
 !mario_byetudlr_hold         = $15
@@ -69,37 +69,39 @@
 
 ; flag that is set if we are in the overworld menu
 !in_overworld_menu           = $0EFC
+!in_meter_editor             = $0EFD
+!current_meter_selection     = $0EFE
 
 ; status flags for each of the overworld menu options
 !status_table                = $700320 ; $20 bytes
-!status_yellow               = $700320
-!status_green                = $700321
-!status_red                  = $700322
-!status_blue                 = $700323
-!status_special              = $700324
-!status_powerup              = $700325
-!status_itembox              = $700326
-!status_yoshi                = $700327
-!status_enemy                = $700328
-!status_erase                = $700329
-!status_slots                = $70032A
-!status_controller           = $70032B
-!status_pause                = $70032C
-!status_timedeath            = $70032D
-!status_music                = $70032E
-!status_drop                 = $70032F
-!status_states               = $700330
-!status_statedelay           = $700331
-!status_dynmeter             = $700332
-!status_slowdown             = $700333
-!status_help                 = $700334
-!status_lrreset              = $700335
-!status_scorelag             = $700336
+!status_yellow               = $700320 ; off | on
+!status_green                = $700321 ; off | on
+!status_red                  = $700322 ; off | on
+!status_blue                 = $700323 ; off | on
+!status_special              = $700324 ; disable | enable
+!status_powerup              = $700325 ; small | big | cape | fire | ...
+!status_itembox              = $700326 ; empty | mush | fire | star | cape | ...
+!status_yoshi                = $700327 ; none | yellow | blue | red | green | ...
+!status_enemy                = $700328 ;
+!status_erase                = $700329 ; all | level | slots...
+!status_slots                = $70032A ; none | onscreen | offscreen | all | bounce
+!status_controller           = $70032B ; 1P | 1/2 P | 2P
+!status_pause                = $70032C ; disable | enable
+!status_timedeath            = $70032D ; death | life
+!status_music                = $70032E ; music | mute
+!status_drop                 = $70032F ; disable | normal
+!status_states               = $700330 ; enable | disable
+!status_statedelay           = $700331 ; count...
+!status_dynmeter             = $700332 ; none | speed | takeout | pmeter | spx | yoshispx | itemspx | itemspeed
+!status_slowdown             = $700333 ; enable | disable
+!status_help                 = $700334 ;
+!status_lrreset              = $700335 ; enable | disable
+!status_scorelag             = $700336 ; none | count...
 !status_memorylo             = $700337 ; x
-!status_moviesave            = $700338
-!status_movieload            = $700339
+!status_moviesave            = $700338 ; sram1 | sram2
+!status_movieload            = $700339 ; sram1 | sram2 | demo1 | demo2
 !status_playername           = $70033A ; 4 bytes
-!status_region               = $70033E
+!status_region               = $70033E ; U | J
 ; $7003FF reserved for future expansion
 !backup_status_table         = $7006C0 ; $20 bytes
 
@@ -171,24 +173,6 @@
 ; the entire revamped status bar
 !status_bar                  = $1F30 ; 160 bytes
 
-; status bar meters
-!sb_mariox                   = $1F2F ; 2 bytes
-!sb_takeoff                  = $1F4D ; 2 bytes
-!sb_pmeter                   = $1F6B ; 2 bytes
-!sb_name                     = $1F89 ; 4 bytes
-!sb_yoshisp                  = $1F32 ; 2 bytes
-!sb_itemsp                   = $1F50 ; 2 bytes
-!sb_leveltimer               = $1F35 ; 7 bytes
-!sb_roomtimer                = $1F53 ; 7 bytes
-!sb_pausetimer               = $1F71 ; 7 bytes
-!sb_lag                      = $1F90 ; 6 bytes
-!sb_coins                    = $1F40 ; 3 bytes
-!sb_memory                   = $1F5E ; 4 bytes
-!sb_igt                      = $1F7C ; 5 bytes
-!sb_movie                    = $1F9A ; 13 bytes
-!sb_slowdown                 = $1F44 ; 1 byte
-!sb_input                    = $1F45 ; 8x3 bytes
-
 !sbbowser_leveltimer         = $0258 ; 7x4 bytes
 !sbbowser_leveltimer_2       = $0436 ; 7 bytes
 !sbbowser_roomtimer          = $03A0 ; 7x4 bytes
@@ -225,3 +209,5 @@
 ; flag if a save state or room reset/advance or slowdown or lagless was used in this run
 ; used to detect when to not save the record (no cheating!)
 !spliced_run                 = $700007
+; flag = #$BD if the RTC is available on this system
+!clock_available             = $700009

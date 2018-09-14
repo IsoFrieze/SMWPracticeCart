@@ -1,6 +1,6 @@
 ;========================
 ; SMW Practice Cart
-; Version 3.-.2
+; Version 3.-.3
 ; Created by Dotsarecool
 ;========================
 
@@ -13,11 +13,17 @@ cleartable
 
 ; internal rom name
 ORG !_F+$00FFC0
-		db "SMW PRACTICE CART    "
+        db "SMW PRACTICE CART    "
+; uses S-RTC chip
+ORG !_F+$00FFD6
+        db $55
+; give the cartridge more SRAM
+ORG !_F+$00FFD8
+        db $05
 
 ; nintendo presents sound
 ORG !_F+$0093C1
-		db $15
+        db $15
 
 ; include everything because I want to be organized this time
 
@@ -42,4 +48,4 @@ incsrc "src/movies.asm"             ; $1B8000 - $1C8000
 
 ; make sure the ROM is expanded to the full 1MBit
 ORG !_F+$1FFFFF
-		db $EA
+        db $EA
