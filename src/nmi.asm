@@ -1,5 +1,7 @@
 ORG !_F+$168000
 
+reset bytes
+
 ; this code is run on every NMI; therefore, it is guaranteed to run 60 times per second, even if the game is lagging
 nmi_expand:
         INC !counter_sixty_hz
@@ -361,3 +363,5 @@ break_bg1_tilemap:
         incbin "bin/break_bg1_tilemap.bin"
 break_bg2_tilemap:
         incbin "bin/break_bg2_tilemap.bin"
+
+print "inserted ", bytes, "/32768 bytes into bank $16"

@@ -29,6 +29,10 @@ ORG !_F+$00F610
 ORG !_F+$00D0D8
         NOP #3
 
+; fix sprite loading table
+ORG !_F+$02ABF3
+		db $7F
+
 ; disable midway points
 ORG !_F+$00CA2C
         db $00

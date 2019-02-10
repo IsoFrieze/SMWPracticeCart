@@ -1,5 +1,7 @@
 ORG !_F+$128000
 
+reset bytes
+
 ; this code is run once on level load (during the black screen)
 level_load:
         PHP
@@ -9,6 +11,7 @@ level_load:
         SEP #$20
         
         JSR check_lagless
+        JSR check_pal
         JSR check_midway_entrance
         
         LDA !l_r_function
@@ -49,6 +52,15 @@ l_r_functions:
 ; if lag is disabled, disable saving a time
 check_lagless:
         LDA.L !status_scorelag
+        BNE +
+        LDA #$01
+        STA.L !spliced_run
+    +   RTS
+        
+; if current version is pal, disable saving a time
+check_pal:
+        LDA.L !status_region
+        CMP #$02
         BNE +
         LDA #$01
         STA.L !spliced_run
@@ -423,7 +435,7 @@ level_load_exit_table:
 ; also check for lemmy's castle region difference
 level_load_timer:
         LDA.L !status_region
-        BEQ +
+        BNE +
         LDA $13BF ; translevel
         CMP #$40 ; lemmy's castle
         BNE +
@@ -641,7 +653,7 @@ load_level_sprite_ptr:
         LDA #$07
         STA $D0
         LDA.L !status_region
-        BEQ +
+        BNE +
         CPY #$01EE ; ghost ship
         BNE +
         LDA #$3F
@@ -655,7 +667,7 @@ load_level_sprite_ptr:
 ; load a different layer 1 pointer depending on region
 load_level_layer1_ptr:
         LDA.L !status_region
-        BNE .j
+        BEQ .j
         LDA $E000,Y
         STA $65
         LDA $E001,Y
@@ -693,24 +705,23 @@ init_statusbar_properties:
         LDA #$09
         STA $01
         
-        LDA #$70
-        PHA
-        PLB
+        LDY #$5F
         
-        LDY #$5C
-        
-      - LDA.W !statusbar_meters+3,Y
+      - LDA [!statusbar_layout_ptr],Y
+        DEY #3
         CLC
         ADC #$05 ; 7E0905 - temporary mirror for statusbar properties (shared with fade palette)
         STA $00
         
-        LDA.W !statusbar_meters,Y
-        CMP #$13
+        LDA [!statusbar_layout_ptr],Y
+        CMP #$14
         BCS +
         ASL A
         TAX
+        INY
         JSR (.meter,X)
-      + DEY #4
+        DEY
+      + DEY
         BPL -
         
         PHK
@@ -794,11 +805,11 @@ init_statusbar_properties:
         LDA #$38
         JMP .store_2
         
-    .mario_pmeter:
     .yoshi_subpixel:
         LDA #$28
         JMP .store_2
         
+    .mario_pmeter:
     .memory_7f:
     .held_subpixel:
         LDA #$3C
@@ -809,7 +820,7 @@ init_statusbar_properties:
         JMP .store_5
         
     .timer_level:
-        LDA.W !statusbar_meters+1,Y
+        LDA [!statusbar_layout_ptr],Y
         CMP #$02
         PHP
         LDA #$3C
@@ -818,7 +829,7 @@ init_statusbar_properties:
         JMP .store_8
         
     .timer_room:
-        LDA.W !statusbar_meters+1,Y
+        LDA [!statusbar_layout_ptr],Y
         CMP #$02
         PHP
         LDA #$38
@@ -827,7 +838,7 @@ init_statusbar_properties:
         JMP .store_7
         
     .timer_stopwatch:
-        LDA.W !statusbar_meters+1,Y
+        LDA [!statusbar_layout_ptr],Y
         CMP #$02
         PHP
         LDA #$28
@@ -839,7 +850,7 @@ init_statusbar_properties:
         LDA #$3C
         STA [$00]
         INC $00
-        LDA.W !statusbar_meters+1,Y
+        LDA [!statusbar_layout_ptr],Y
         PHP
         LDA #$38
         PLP
@@ -854,7 +865,7 @@ init_statusbar_properties:
         INC $00
         STA [$00]
         INC $00
-        LDA.W !statusbar_meters+1,Y
+        LDA [!statusbar_layout_ptr],Y
         CMP #$01
         PHP
         LDA #$38
@@ -877,7 +888,7 @@ init_statusbar_properties:
         LDA #$2C
         JMP .store_4
       + PLB
-        LDA.W !statusbar_meters+1,Y
+        LDA [!statusbar_layout_ptr],Y
         TAX
         LDA.L name_colors,X
         JMP .store_4
@@ -912,7 +923,7 @@ init_statusbar_properties:
         RTS
         
     .movie_recording:
-        LDA.W !statusbar_meters+1,Y
+        LDA [!statusbar_layout_ptr],Y
         BEQ +
         LDA #$2C
         JMP .store_4
@@ -929,12 +940,12 @@ init_statusbar_properties:
         INC $00
         STA [$00]
         INC $00
-        LDA #$48
+        LDA #$68
         STA [$00]
         RTS
     
     .input_display:
-        LDA.W !statusbar_meters+1,Y
+        LDA [!statusbar_layout_ptr],Y
         ASL A
         TAX
         JMP (.input_properties,X)
@@ -1060,29 +1071,24 @@ init_statusbar_properties:
         STA [$00]
         RTS
     
-    .item_box:
-        PHD
-        PEA $0905
-        PLD
-        
+    .item_box:        
         LDA #$38
-        STA $2E
-        STA $2F
-        STA $30
-        STA $4E
-        STA $6E
+        STA $0905+$2E
+        STA $0905+$2F
+        STA $0905+$30
+        STA $0905+$4E
+        STA $0905+$6E
         LDA #$78
-        STA $31
-        STA $51
-        STA $71
+        STA $0905+$31
+        STA $0905+$51
+        STA $0905+$71
         LDA #$B8
-        STA $8E
-        STA $8F
-        STA $90
+        STA $0905+$8E
+        STA $0905+$8F
+        STA $0905+$90
         LDA #$F8
-        STA $91
+        STA $0905+$91
         
-        PLD
     .nothing:
         RTS
 
@@ -1095,3 +1101,5 @@ j_levels:
         incbin "bin/j_levels.bin"
 j_level_layer1_ptrs:
         incbin "bin/j_level_layer1_ptrs.bin"
+
+print "inserted ", bytes, "/32768 bytes into bank $12"

@@ -94,20 +94,20 @@
 !status_statedelay           = $700331 ; count...
 !status_dynmeter             = $700332 ; none | speed | takeout | pmeter | spx | yoshispx | itemspx | itemspeed
 !status_slowdown             = $700333 ; enable | disable
-!status_layout               = $700334 ; default | lagcalibrated | empty | custom
+!status_layout               = $700334 ; default | lagcalibrated | empty | custom1 | custom2 | custom3
 !status_lrreset              = $700335 ; enable | disable
 !status_scorelag             = $700336 ; none | count...
 !status_memorylo             = $700337 ; x
 !status_moviesave            = $700338 ; sram1 | sram2
 !status_movieload            = $700339 ; sram1 | sram2 | demo1 | demo2
 !status_playername           = $70033A ; 4 bytes
-!status_region               = $70033E ; U | J
+!status_region               = $70033E ; J | U | E
 ; $7003FF reserved for future expansion
 !backup_status_table         = $7006C0 ; $20 bytes
 
 ; table for status bar meters
-!statusbar_meters            = $704D50 ; $60 bytes (4x24)
-
+!statusbar_meters            = $704D50 ; $120 bytes (4x24)x3
+!statusbar_layout_ptr        = $F8 ; 3 bytes
 
 ; location of cape interaction table at $1FE2
 !new_cape_interaction        = $0F5E

@@ -1,6 +1,9 @@
 ; this code is run once on overworld menu load
 ; GAME MODE #$1D
 ORG !_F+$188000
+
+reset bytes
+
 overworld_menu_load:
         PHP
         PHB
@@ -72,7 +75,7 @@ overworld_menu_load:
         AND #$EF
         STA $0701
         LDA $14
-        AND #$7D
+        AND #$3D
         STA $0702 ; back area color
         SEP #$10
         
@@ -282,8 +285,8 @@ option_type:
 option_index:
         dw $0001,$0003,$0005,$0007,$0009,$000B,$010B,$020B
         dw $030B,$030C,$0316,$031B,$031E,$0320,$0322,$0324
-        dw $0326,$0328,$0333,$033B,$033D,$0341,$0343,$0000
-        dw $03A8,$03AA,$03B0,$03B0,$03B0,$03B0,$03AE
+        dw $0326,$0328,$0333,$033B,$033D,$0343,$0345,$0000
+        dw $03AA,$03AC,$03B3,$03B3,$03B3,$03B3,$03B0
 menu_option_tiles:
         incbin "bin/menu_option_tiles.bin"
 menu_object_tiles:
@@ -292,7 +295,11 @@ menu_object_tiles:
 ; the text for option titles and descriptions
         incsrc "option_text.asm"
 
+print "inserted ", bytes, "/32768 bytes into bank $18"
+
 ORG !_F+$198000
+
+reset bytes
 
 ; the layer 1 tilemap for the overworld menu
 menu_layer1_tilemap:
@@ -327,11 +334,11 @@ selection_press_right:
 
 ; the number of options to allow when holding x or y
 minimum_selection_extended:
-        db $01,$01,$01,$01,$01,$FF,$FF,$FF,$00,$09,$04,$02,$01,$01,$01,$01,$01,$0A,$07,$01,$03,$01,$64,$00,$01,$03,$28,$28,$28,$28,$01
+        db $01,$01,$01,$01,$01,$FF,$FF,$FF,$00,$09,$04,$02,$01,$01,$01,$01,$01,$0A,$07,$01,$05,$01,$64,$00,$01,$03,$28,$28,$28,$28,$02
 
 ; the number of options to allow when not holding x or y
 minimum_selection_normal:
-        db $01,$01,$01,$01,$01,$03,$04,$04,$00,$09,$04,$02,$01,$01,$01,$01,$01,$0A,$07,$01,$03,$01,$37,$00,$01,$03,$28,$28,$28,$28,$01
+        db $01,$01,$01,$01,$01,$03,$04,$04,$00,$09,$04,$02,$01,$01,$01,$01,$01,$0A,$07,$01,$05,$01,$37,$00,$01,$03,$28,$28,$28,$28,$02
 
 ; this code is run on every frame during the overworld menu game mode (after fade in completes)
 ; GAME MODE #$1F
@@ -544,12 +551,13 @@ option_selection_mode:
     .select_meters:
         LDA.L !status_layout
         CMP #$03
-        BEQ +
+        BCS +
         LDA #$2A ; wrong sound
         STA $1DFC ; apu i/o
         JMP .finish_no_sound
       + LDA #$0B ; on/off sound
         STA $1DF9 ; apu i/o
+        JSL update_meterset_pointer
         JSL draw_meter_names
         JSR draw_edited_status_bar
         LDA #$01
@@ -598,11 +606,7 @@ option_selection_mode:
         STA $0100 ; game mode
         
         JSL restore_basic_settings
-        LDA.L !status_layout
-        CMP #$03
-        BEQ +
-        JSR load_meterset
-      + BRA .finish_no_sound
+        BRA .finish_no_sound
     
     .finish_sound:
         LDA #$06 ; fireball sound
@@ -938,55 +942,38 @@ delete_all_data:
         DEX
         BPL -
         
-        LDA #$0000
-        JSR load_meterset
-        
         PLB
         PLP
         RTL
 
-; load a meterset into sram
-; A = index of meterset
-load_meterset:
+; when the layout is changed, update the pointer to the data
+update_meterset_pointer:
         PHP
         REP #$30
-        PHX
-        PHY
-        PHB
-        PHK
-        PLB
-        
-        AND #$00FF
-        ASL A
+        LDA.L !status_layout
+        ASL #2
         TAX
-        LDA metersets,X
-        STA $00
-        
-        LDX #$005E
-        LDY #$005E
-      - LDA ($00),Y
-        STA.L !statusbar_meters,X
-        DEX #2
-        DEY #2
-        BPL -
-        
-        PLB
-        PLY
-        PLX
+        LDA.L metersets+1,X
+        STA !statusbar_layout_ptr+1
+        LDA.L metersets,X
+        STA !statusbar_layout_ptr
         PLP
-        RTS
+        RTL
         
 
 ; the default sets of statusbar meters
 metersets:
-        dw meterset_default
-        dw meterset_lagcalibrated
-        dw meterset_empty
+        dd meterset_default
+        dd meterset_lagcalibrated
+        dd meterset_empty
+        dd !statusbar_meters
+        dd !statusbar_meters+$60
+        dd !statusbar_meters+$C0
 meterset_default:
         db $01,$00,$00,$21,$02,$00,$00,$21,$03,$00,$00,$41,$04,$00,$00,$61
         db $05,$00,$00,$24,$06,$00,$00,$44,$08,$00,$00,$26,$09,$00,$00,$47
-        db $0A,$00,$00,$67,$07,$00,$00,$89,$0B,$00,$00,$32,$11,$14,$8D,$52
-        db $11,$14,$8E,$54,$0C,$01,$00,$72,$0D,$00,$00,$36,$0E,$00,$00,$37
+        db $0A,$00,$00,$67,$07,$00,$00,$89,$0B,$00,$00,$32,$11,$8D,$14,$52
+        db $11,$8E,$14,$54,$0C,$01,$00,$72,$0D,$00,$00,$36,$0E,$00,$00,$37
         db $0F,$00,$00,$81,$10,$00,$00,$98,$00,$00,$00,$00,$00,$00,$00,$00
         db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
 meterset_lagcalibrated:
@@ -1240,7 +1227,7 @@ draw_option_text:
         TAX
         LDA #$A052
         STA.L $7F837D,X
-        LDA #$7F41
+        LDA #$BF41
         STA.L $7F837F,X
         LDA #$38FC
         STA.L $7F8381,X
@@ -1569,36 +1556,37 @@ meter_editor_mode: ; w$5460
         BEQ .left_no_hold
         LDA !current_meter_selection
         ASL #2
-        TAX
-        LDA.L !statusbar_meters,X
+        TAY
+        LDA [!statusbar_layout_ptr],Y
         CMP #$11 ; memory viewer $7E
         BEQ +
         CMP #$12 ; memory viewer $7F
         BEQ +
-      - LDA.L !statusbar_meters+1,X
+      - INY
+        LDA [!statusbar_layout_ptr],Y
         DEC A
-        STA.L !statusbar_meters+1,X
+        STA [!statusbar_layout_ptr],Y
         JSR check_meter_valid
         JMP .done_update_sub
       + LDA !util_byetudlr_hold
         AND #%01000000
         BEQ -
-        LDA.L !statusbar_meters+2,X
-        DEC A
-        STA.L !statusbar_meters+2,X
-        JMP .done_update_sub
+        INY 
+        BRA -
     .left_no_hold:
         LDA !current_meter_selection
         ASL #2
-        TAX
-        LDA.L !statusbar_meters,X
+        TAY
+        LDA [!statusbar_layout_ptr],Y
         DEC A
         BPL +
         LDA #$13 ; number of meters
-      + STA.L !statusbar_meters,X
+      + STA [!statusbar_layout_ptr],Y
         LDA #$00
-        STA.L !statusbar_meters+1,X
-        STA.L !statusbar_meters+2,X
+        INY
+        STA [!statusbar_layout_ptr],Y
+        INY
+        STA [!statusbar_layout_ptr],Y
         JSR check_meter_valid
         JMP .done_update_text
         
@@ -1619,37 +1607,38 @@ meter_editor_mode: ; w$5460
         BEQ .right_no_hold
         LDA !current_meter_selection
         ASL #2
-        TAX
-        LDA.L !statusbar_meters,X
+        TAY
+        LDA [!statusbar_layout_ptr],Y
         CMP #$11 ; memory viewer $7E
         BEQ +
         CMP #$12 ; memory viewer $7F
         BEQ +
-      - LDA.L !statusbar_meters+1,X
+      - INY
+        LDA [!statusbar_layout_ptr],Y
         INC A
-        STA.L !statusbar_meters+1,X
+        STA [!statusbar_layout_ptr],Y
         JSR check_meter_valid
         JMP .done_update_sub
       + LDA !util_byetudlr_hold
         AND #%01000000
         BEQ -
-        LDA.L !statusbar_meters+2,X
-        INC A
-        STA.L !statusbar_meters+2,X
-        JMP .done_update_sub
+        INY
+        BRA -
     .right_no_hold:
         LDA !current_meter_selection
         ASL #2
-        TAX
-        LDA.L !statusbar_meters,X
+        TAY
+        LDA [!statusbar_layout_ptr],Y
         INC A
         CMP #$14 ; number of meters + 1
         BNE +
         LDA #$00
-      + STA.L !statusbar_meters,X
+      + STA [!statusbar_layout_ptr],Y
         LDA #$00
-        STA.L !statusbar_meters+1,X
-        STA.L !statusbar_meters+2,X
+        INY
+        STA [!statusbar_layout_ptr],Y
+        INY
+        STA [!statusbar_layout_ptr],Y
         JSR check_meter_valid
         JMP .done_update_text
         
@@ -1668,11 +1657,12 @@ meter_editor_mode: ; w$5460
         STA $01
         LDA !current_meter_selection
         ASL #2
-        TAX
-        LDA !statusbar_meters+3,X
+        ORA #$03
+        TAY
+        LDA [!statusbar_layout_ptr],Y
         AND #$E0
         STA $00
-        LDA !statusbar_meters+3,X
+        LDA [!statusbar_layout_ptr],Y
         AND #$1F
         CLC
         ADC $01
@@ -1680,7 +1670,7 @@ meter_editor_mode: ; w$5460
         CMP #$20
         BEQ +
         ORA $00
-        STA !statusbar_meters+3,X
+        STA [!statusbar_layout_ptr],Y
         JSR check_meter_valid
       + JMP .done_update_meter
     .side_no_hold:
@@ -1704,17 +1694,18 @@ meter_editor_mode: ; w$5460
         BEQ .dup_no_hold
         LDA !current_meter_selection
         ASL #2
-        TAX
-        LDA !statusbar_meters+3,X
+        ORA #$03
+        TAY
+        LDA [!statusbar_layout_ptr],Y
         AND #$1F
         STA $00
-        LDA !statusbar_meters+3,X
+        LDA [!statusbar_layout_ptr],Y
         AND #$E0
         BEQ +
         SEC
         SBC #$20
         ORA $00
-        STA !statusbar_meters+3,X
+        STA [!statusbar_layout_ptr],Y
         JSR check_meter_valid
       + JMP .done_update_meter
     .dup_no_hold:
@@ -1735,18 +1726,19 @@ meter_editor_mode: ; w$5460
         BEQ .ddown_no_hold
         LDA !current_meter_selection
         ASL #2
-        TAX
-        LDA !statusbar_meters+3,X
+        ORA #$03
+        TAY
+        LDA [!statusbar_layout_ptr],Y
         AND #$1F
         STA $00
-        LDA !statusbar_meters+3,X
+        LDA [!statusbar_layout_ptr],Y
         AND #$E0
         CLC
         ADC #$20
         CMP #$A0
         BEQ +
         ORA $00
-        STA !statusbar_meters+3,X
+        STA [!statusbar_layout_ptr],Y
         JSR check_meter_valid
       + JMP .done_update_meter
     .ddown_no_hold:
@@ -1773,8 +1765,8 @@ meter_editor_mode: ; w$5460
         STA $02
         LDA !current_meter_selection
         ASL #2
-        TAX
-        LDA !statusbar_meters,X
+        TAY
+        LDA [!statusbar_layout_ptr],Y
         REP #$30
         AND #$00FF
         ASL #4
@@ -1819,10 +1811,12 @@ meter_editor_mode: ; w$5460
       + RTS
       
 ; make sure meter position and subtype are valid
-; X = meter index * 4
+; Y = meter index * 4 somewhere
 check_meter_valid:
-        PHX
-        LDA.L !statusbar_meters,X
+        TYA
+        AND #$FC
+        TAY
+        LDA [!statusbar_layout_ptr],Y
         CMP #$11
         BEQ .check_pos
         CMP #$12
@@ -1830,39 +1824,39 @@ check_meter_valid:
         TAX
         LDA meter_subtype_counts,X
         STA $00
-        PLX
-        PHX
-        LDA.L !statusbar_meters+1,X
+        INY
+        LDA [!statusbar_layout_ptr],Y
         CMP #$FF
         BNE +
         LDA $00
         DEC A
-        STA.L !statusbar_meters+1,X
+        STA [!statusbar_layout_ptr],Y
         BRA .check_pos
       + CMP $00
         BCC .check_pos
         LDA #$00
-        STA.L !statusbar_meters+1,X
+        STA [!statusbar_layout_ptr],Y
         
     .check_pos:
-        PLX
-        PHX
-        LDA.L !statusbar_meters,X
+        DEY
+        LDA [!statusbar_layout_ptr],Y
         ASL #3
         CMP #$88 ; memory viewer $7E
         BEQ +
         CMP #$90 ; memory viewer $7F
         BEQ +
-        ORA.L !statusbar_meters+1,X
+        INY
+        ORA [!statusbar_layout_ptr],Y
+        DEY
       + TAX
         LDA meter_widths,X
         STA $00
         LDA meter_heights,X
         STA $01
-        PLX
         
     .check_xpos:
-        LDA.L !statusbar_meters+3,X
+        INY #3
+        LDA [!statusbar_layout_ptr],Y
         AND #$1F
         CLC
         ADC $00
@@ -1873,13 +1867,13 @@ check_meter_valid:
         SEC
         SBC $00
         STA $00
-        LDA.L !statusbar_meters+3,X
+        LDA [!statusbar_layout_ptr],Y
         AND #$E0
         ORA $00
-        STA.L !statusbar_meters+3,X
+        STA [!statusbar_layout_ptr],Y
         
     .check_ypos:
-        LDA.L !statusbar_meters+3,X
+        LDA [!statusbar_layout_ptr],Y
         AND #$E0
         LSR #5
         CLC
@@ -1892,10 +1886,10 @@ check_meter_valid:
         SBC $01
         ASL #5
         STA $01
-        LDA.L !statusbar_meters+3,X
+        LDA [!statusbar_layout_ptr],Y
         AND #$1F
         ORA $01
-        STA.L !statusbar_meters+3,X
+        STA [!statusbar_layout_ptr],Y
         
     .done:
         RTS
@@ -1943,16 +1937,17 @@ draw_meter_cursors:
     .draw_status_cursor:
         LDA !current_meter_selection
         ASL #2
-        TAX
-        LDA.L !statusbar_meters,X
+        TAY
+        LDA [!statusbar_layout_ptr],Y
         BEQ .done
-        PHX
         ASL #3
         CMP #$88 ; $7E memory viewer
         BEQ +
         CMP #$90 ; $7F memory viewer
         BEQ +
-        ORA.L !statusbar_meters+1,X
+        INY
+        ORA [!statusbar_layout_ptr],Y
+        DEY
       + TAX
         LDA meter_widths,X
         ASL #3
@@ -1971,13 +1966,14 @@ draw_meter_cursors:
         INC $04
       + LDA #$10
         STA $0A
-        PLX
-        LDA.L !statusbar_meters,X
+        LDA [!statusbar_layout_ptr],Y
         CMP #$01 ; item box
         BNE +
         LDA #$08
         BRA ++
-      + LDA.L !statusbar_meters+3,X
+      + INY #3
+        LDA [!statusbar_layout_ptr],Y
+        DEY #3
         AND #$E0
         LSR #2
      ++ CLC
@@ -1989,17 +1985,19 @@ draw_meter_cursors:
         CMP #$00E0
         SEP #$20
         BCS .done
-        TAY
-        LDA.L !statusbar_meters,X
+        PHA
+        LDA [!statusbar_layout_ptr],Y
         CMP #$01 ; item box
         BNE +
         LDA #$68
         BRA ++
-      + LDA.L !statusbar_meters+3,X
+      + INY #3
+        LDA [!statusbar_layout_ptr],Y
         AND #$1F
         DEC A
         ASL #3
      ++ TAX
+        PLY
         JSR draw_generic_cursor
         
     .done:
@@ -2055,6 +2053,7 @@ draw_meter_names:
         LDA #$98 ; bank of text
         STA $02
         REP #$30
+        
         LDX #$0017
       - TXA
         ASL #5
@@ -2065,19 +2064,20 @@ draw_meter_names:
         SEC
         SBC #$0171
       + XBA
-        TAY
+        PHA
         LDA #meter_names
         STA $00
-        PHX
         TXA
         ASL #2
-        TAX
-        LDA !statusbar_meters,X
+        TAY
+        LDA [!statusbar_layout_ptr],Y
         AND #$00FF
         ASL #4
         CLC
         ADC $00
         STA $00
+        PLY
+        PHX
         LDX #$000E
         LDA #$3838
         JSL draw_text_string
@@ -2102,8 +2102,8 @@ draw_meter_text:
         LDA !current_meter_selection
         AND #$00FF
         ASL #2
-        TAX
-        LDA.L !statusbar_meters,X
+        TAY
+        LDA [!statusbar_layout_ptr],Y
         AND #$00FF
         ASL #7
         CLC
@@ -2153,8 +2153,8 @@ draw_meter_text:
         LDA !current_meter_selection
         AND #$00FF
         ASL #2
-        TAX
-        LDA.L !statusbar_meters,X
+        TAY
+        LDA [!statusbar_layout_ptr],Y
         AND #$00FF
         ASL #4
         CLC
@@ -2171,9 +2171,8 @@ draw_meter_text:
         LDA !current_meter_selection
         AND #$00FF
         ASL #2
-        TAX
-        PHX
-        LDA.L !statusbar_meters,X
+        TAY
+        LDA [!statusbar_layout_ptr],Y
         AND #$00FF
         CMP #$0011 ; $7E memory viewer
         BEQ .break
@@ -2183,8 +2182,8 @@ draw_meter_text:
         TAX
         LDA.L meter_types,X
         STA $00
-        PLX
-        LDA.L !statusbar_meters+1,X
+        INY
+        LDA [!statusbar_layout_ptr],Y
         AND #$00FF
         ASL #4
         CLC
@@ -2203,7 +2202,8 @@ draw_meter_text:
         ORA #$070E
         XBA
         STA $00B6
-        LDA.L !statusbar_meters+1,X
+        INY
+        LDA [!statusbar_layout_ptr],Y
         PHA
         XBA
         LSR #4
@@ -2231,7 +2231,6 @@ draw_meter_text:
         LDA #$3434
         JSL draw_text_string
         
-        PLX
     .done:
         SEP #$30
         RTL
@@ -2272,27 +2271,24 @@ draw_edited_status_bar:
         LDA #$7F
         STA $02
         
-        PHB
-        LDA #$70
-        PHA
-        PLB
-        
         LDY #$005C
         
         REP #$20
-      - LDA.W !statusbar_meters,Y
+      - LDA [!statusbar_layout_ptr],Y
         AND #$00FF
         BEQ +
         CMP #$0014
         BCS +
-        LDA.W !statusbar_meters+3,Y
+        INY #3
+        LDA [!statusbar_layout_ptr],Y
+        DEY #3
         AND #$00FF
         ASL A
         CLC
         ADC $03
         STA $00
         
-        LDA.W !statusbar_meters,Y
+        LDA [!statusbar_layout_ptr],Y
         AND #$00FF
         ASL A
         TAX
@@ -2303,7 +2299,6 @@ draw_edited_status_bar:
       + DEY #4
         BPL -
         
-        PLB
         PLP
     .nothing:
         RTS
@@ -2399,7 +2394,8 @@ draw_edited_status_bar:
         PHY
         LDA $05,S
         TAY
-        LDA.W !statusbar_meters+1,Y
+        INY
+        LDA [!statusbar_layout_ptr],Y
         AND #$00FF
         PLY
         ASL A
@@ -2409,17 +2405,17 @@ draw_edited_status_bar:
         dw .pmeter_type_Px
         dw .pmeter_type_xx
     .pmeter_type_Px:
-        LDA #$2819
+        LDA #$3C19
         STA [$00],Y
         INY #2
-        LDA #$2807
+        LDA #$3C07
         STA [$00],Y
         RTS
     .pmeter_type_xx:
-        LDA #$2807
+        LDA #$3C07
         STA [$00],Y
         INY #2
-        LDA #$2800
+        LDA #$3C00
         STA [$00],Y
         RTS
         
@@ -2427,7 +2423,8 @@ draw_edited_status_bar:
         PHY
         LDA $05,S
         TAY
-        LDA.W !statusbar_meters+1,Y
+        INY
+        LDA [!statusbar_layout_ptr],Y
         AND #$00FF
         PLY
         ASL A
@@ -2463,7 +2460,8 @@ draw_edited_status_bar:
         PHY
         LDA $05,S
         TAY
-        LDA.W !statusbar_meters+1,Y
+        INY
+        LDA [!statusbar_layout_ptr],Y
         AND #$00FF
         PLY
         ASL A
@@ -2534,7 +2532,8 @@ draw_edited_status_bar:
         PHY
         LDA $05,S
         TAY
-        LDA.W !statusbar_meters+1,Y
+        INY
+        LDA [!statusbar_layout_ptr],Y
         AND #$00FF
         PLY
         ASL A
@@ -2631,7 +2630,8 @@ draw_edited_status_bar:
         PHY
         LDA $05,S
         TAY
-        LDA.W !statusbar_meters+1,Y
+        INY
+        LDA [!statusbar_layout_ptr],Y
         AND #$00FF
         PLY
         ASL A
@@ -2664,7 +2664,8 @@ draw_edited_status_bar:
         PHY
         LDA $05,S
         TAY
-        LDA.W !statusbar_meters+1,Y
+        INY
+        LDA [!statusbar_layout_ptr],Y
         AND #$00FF
         PLY
         ASL A
@@ -2697,7 +2698,8 @@ draw_edited_status_bar:
         PHY
         LDA $05,S
         TAY
-        LDA.W !statusbar_meters+1,Y
+        INY
+        LDA [!statusbar_layout_ptr],Y
         PLY
         AND #$00FF
         STA $05
@@ -2745,7 +2747,8 @@ draw_edited_status_bar:
         PHY
         LDA $05,S
         TAY
-        LDA.W !statusbar_meters+1,Y
+        INY
+        LDA [!statusbar_layout_ptr],Y
         AND #$00FF
         PLY
         TAX
@@ -2778,7 +2781,8 @@ draw_edited_status_bar:
         PHY
         LDA $05,S
         TAY
-        LDA.W !statusbar_meters+1,Y
+        INY
+        LDA [!statusbar_layout_ptr],Y
         AND #$00FF
         PLY
         ASL A
@@ -2861,3 +2865,5 @@ draw_edited_status_bar:
         LDA #$3806
         STA [$00],Y
         RTS
+
+print "inserted ", bytes, "/32768 bytes into bank $19"

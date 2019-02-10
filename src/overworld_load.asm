@@ -1,5 +1,7 @@
 ORG !_F+$118000
 
+reset bytes
+
 ; this code is run once on overworld load
 overworld_load:
         LDA !spliced_run
@@ -53,6 +55,7 @@ overworld_load:
         STZ !in_overworld_menu
         JSL !_F+$04DAAD ; layer 2 tilemap upload routine
         JSR setup_shadow
+        JSL update_meterset_pointer
         
         LDA !in_record_mode
         ORA !in_playback_mode
@@ -281,6 +284,7 @@ set_overworld_position:
 
 ; set default settings for all the overworld menu options
 set_defaults:
+        PHP
         LDA #$00
         STA.L !status_yellow
         STA.L !status_green
@@ -306,9 +310,9 @@ set_defaults:
         STA.L !status_lrreset
         STA.L !status_moviesave
         STA.L !status_movieload
+        STA.L !status_region
         LDA #$01
         STA.L !status_scorelag
-        STA.L !status_region
         LDA #$17
         STA.L !status_playername
         LDA #$0A
@@ -317,6 +321,15 @@ set_defaults:
         STA.L !status_playername+2
         LDA #$0E
         STA.L !status_playername+3
+        
+        REP #$30
+        LDX #$011E
+      - LDA.L meterset_default,X
+        STA.L !statusbar_meters,X
+        DEX #2
+        BPL -
+        
+        PLP
         RTS
 
 ; set marios position on the overworld to yoshi's house
@@ -499,3 +512,5 @@ shadow_palette_hdma:
         db $01
         dw $0F0F,$25AF
         db $00
+
+print "inserted ", bytes, "/32768 bytes into bank $11"

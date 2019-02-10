@@ -1,5 +1,7 @@
 ORG !_F+$1A8000
 
+reset bytes
+
 ; this code is run when the player presses L + R in a level to reset the current room
 activate_room_reset:
         ; if we are in first room of level, just level reset
@@ -895,3 +897,5 @@ restore_all_palettes:
         
         PLP
         RTS
+
+print "inserted ", bytes, "/32768 bytes into bank $1A"

@@ -1,5 +1,7 @@
 ORG !_F+$148000
 
+reset bytes
+
 ; this code is run on every frame during the overworld game mode (after fade in completes)
 overworld_tick:
         PHP
@@ -14,9 +16,9 @@ overworld_tick:
         JSR test_for_swap
         JSR test_for_menu
         JSR test_for_time_toggle
-        JSR try_draw_times
+        JSR draw_times
         JSR save_marios_position
-        JSR test_for_enter_level
+        ;JSR test_for_enter_level
         JSR draw_movie_slots
         
         LDA #$40
@@ -64,8 +66,8 @@ update_potential_translevel:
         PLP
         RTS
         
-; check if entering level, and do stuff
-test_for_enter_level:
+; hijack for testing if level is entered
+test_main_enter_level:
         LDA !potential_translevel
         BNE +
         JMP .done
@@ -86,87 +88,89 @@ test_for_enter_level:
       + INC !in_record_mode
         
         LDA #$FF
-        STA !movie_location
-        STA !movie_location+1
+        STA.L !movie_location
+        STA.L !movie_location+1
         LDA #!movie_version
-        STA !movie_location+$03
+        STA.L !movie_location+$03
         LDA !potential_translevel
-        STA !movie_location+$04
+        STA.L !movie_location+$04
         LDA.L !status_playername
-        STA !movie_location+$07
+        STA.L !movie_location+$07
         LDA.L !status_playername+1
-        STA !movie_location+$08
+        STA.L !movie_location+$08
         LDA.L !status_playername+2
-        STA !movie_location+$09
+        STA.L !movie_location+$09
         LDA.L !status_playername+3
-        STA !movie_location+$0A
+        STA.L !movie_location+$0A
         LDA #$00
-        STA !movie_location+$0E
+        STA.L !movie_location+$0E
         LDA.L !status_yellow
-        STA !movie_location+$13
+        STA.L !movie_location+$13
         LDA.L !status_green
-        STA !movie_location+$14
+        STA.L !movie_location+$14
         LDA.L !status_red
-        STA !movie_location+$15
+        STA.L !movie_location+$15
         LDA.L !status_blue
-        STA !movie_location+$16
+        STA.L !movie_location+$16
         LDA.L !status_special
-        STA !movie_location+$17
+        STA.L !movie_location+$17
         LDA $0DB8
-        STA !movie_location+$18
+        STA.L !movie_location+$18
         LDA $0DBC
-        STA !movie_location+$19
+        STA.L !movie_location+$19
         LDA $0DBA
-        STA !movie_location+$1A
+        STA.L !movie_location+$1A
         LDA $0FAE
-        STA !movie_location+$23
+        STA.L !movie_location+$23
         LDA $0FAF
-        STA !movie_location+$24
+        STA.L !movie_location+$24
         LDA $0FB0
-        STA !movie_location+$25
+        STA.L !movie_location+$25
         LDA $0FB1
-        STA !movie_location+$26
+        STA.L !movie_location+$26
         LDA $13
-        STA !movie_location+$27
+        STA.L !movie_location+$27
         LDA $14
-        STA !movie_location+$28
+        STA.L !movie_location+$28
         LDA.L !status_drop
-        STA !movie_location+$33
+        STA.L !movie_location+$33
         LDA.L !status_lrreset
-        STA !movie_location+$34
+        STA.L !movie_location+$34
         LDA.L !status_slowdown
-        STA !movie_location+$35
+        STA.L !movie_location+$35
         LDA.L !status_timedeath
-        STA !movie_location+$36
+        STA.L !movie_location+$36
         LDA.L !status_pause
-        STA !movie_location+$37
+        STA.L !movie_location+$37
         LDA.L !status_region
-        STA !movie_location+$38
+        STA.L !movie_location+$38
         JMP .finish
+        
     .no_record:
         LDA !util_byetudlr_frame
         AND #$40
         BNE +
     .exit:
         JMP .finish
-      + LDA !movie_location+$04
+        
+      + LDA.L !movie_location+$04
         CMP !potential_translevel
         BNE .exit
         
         ; integrity check
         REP #$30
-        LDA !movie_location+$05
+        LDA.L !movie_location+$05
         TAX
         DEX
         SEP #$20
         LDA #$00
       - CLC
-        ADC !movie_location+$43,X
+        ADC.L !movie_location+$43,X
         DEX
         BPL -
-        CMP !movie_location+$0C
+        CMP.L !movie_location+$0C
         BNE .exit
-        LDA !movie_location+$0D
+        LDA.L !movie_location+$0D
         CMP #$BD
         BNE .exit
         
@@ -179,65 +183,67 @@ test_for_enter_level:
         DEX
         BPL -
         
-        INC !in_playback_mode    
+        INC !in_playback_mode
         LDA #$01
         STA.L !spliced_run
         
         LDA #$00
-        STA !movie_location
-        STA !movie_location+1
-        STA !movie_location+2
+        STA.L !movie_location
+        STA.L !movie_location+1
+        STA.L !movie_location+2
         
-        LDA !movie_location+$0E
+        LDA.L !movie_location+$0E
         EOR #$01
         STA.L !status_states
-        LDA !movie_location+$13
+        LDA.L !movie_location+$13
         STA $1F28
-        LDA !movie_location+$14
+        LDA.L !movie_location+$14
         STA $1F27
-        LDA !movie_location+$15
+        LDA.L !movie_location+$15
         STA $1F2A
-        LDA !movie_location+$16
+        LDA.L !movie_location+$16
         STA $1F29
-        LDA !movie_location+$17
+        LDA.L !movie_location+$17
         STA.L !status_special
-        LDA !movie_location+$18
+        LDA.L !movie_location+$18
         STA $0DB8
-        LDA !movie_location+$19
+        LDA.L !movie_location+$19
         STA $0DBC
-        LDA !movie_location+$1A
+        LDA.L !movie_location+$1A
         STA $0DBA
         STA $13C7
         LDA #$01
         STA $0DC1
-        LDA !movie_location+$23
+        LDA.L !movie_location+$23
         STA $0FAE
-        LDA !movie_location+$24
+        LDA.L !movie_location+$24
         STA $0FAF
-        LDA !movie_location+$25
+        LDA.L !movie_location+$25
         STA $0FB0
-        LDA !movie_location+$26
+        LDA.L !movie_location+$26
         STA $0FB1
-        LDA !movie_location+$27
+        LDA.L !movie_location+$27
         STA $13
-        LDA !movie_location+$28
+        LDA.L !movie_location+$28
         STA $14
-        LDA !movie_location+$33
+        LDA.L !movie_location+$33
         STA.L !status_drop
-        LDA !movie_location+$34
+        LDA.L !movie_location+$34
         STA.L !status_lrreset
-        LDA !movie_location+$35
+        LDA.L !movie_location+$35
         STA.L !status_slowdown
-        LDA !movie_location+$36
+        LDA.L !movie_location+$36
         STA.L !status_timedeath
-        LDA !movie_location+$37
+        LDA.L !movie_location+$37
         STA.L !status_pause
-        LDA !movie_location+$38
+        LDA.L !movie_location+$38
         STA.L !status_region
         
     .finish:
     .done:
-        RTS
+        LDA $0DD6
+        LSR A
+        RTL
 
 ; if R is pressed, cycle through powerup
 test_for_powerup:
@@ -420,6 +426,20 @@ draw_times:
         LDA times_ptrs+2,X
         STA $02
         
+        ; find first level timer meter and copy its subtype into text_timer
+        STZ !text_timer
+        LDY #$00
+      - LDA [!statusbar_layout_ptr],Y
+        CMP #$08 ; level timer
+        BNE +
+        INY
+        LDA [!statusbar_layout_ptr],Y
+        STA !text_timer
+        LDY #$60
+      + INY #4
+        CPY #$60
+        BCC -
+        
         LDY #$07
     .loop:
         JSR load_unran_time
@@ -437,7 +457,7 @@ draw_times:
         JMP .draw_unran
         
       + PHX
-        LDA #$00;.L !status_fractions
+        LDA !text_timer ; level timer subtype
         CMP #$02
         BEQ .in_framecount
         LDA [$00],Y
@@ -568,7 +588,7 @@ times_ptrs:
         
 get_fractions_of_time:
         PHA
-        LDA #$00;.L !status_fractions
+        LDA !text_timer ; level timer subtype
         BNE +
         PLA
         TAX
@@ -581,7 +601,7 @@ get_fractions_of_time:
 load_unran_time:
         PHY
         LDY #$12
-      - LDA #$00;.L !status_fractions
+      - LDA !text_timer ; level timer subtype
         CMP #$02
         BEQ +
         LDA default_time_stripe,Y
@@ -604,7 +624,7 @@ load_unran_time:
         LDA times_position,Y
     .merge:
         STA !dynamic_stripe_image+1
-        LDA #$00;.L !status_fractions
+        LDA !text_timer ; level timer subtype
         CMP #$01
         BNE +
         LDA #$5D
@@ -1053,3 +1073,5 @@ translevel_locations:
         dw $1131,$1331,$1631,$1931,$1C31,$1133,$1333,$1633
         dw $1933,$1C33,$1736,$1238,$1538,$1738,$1938,$1C38
         dw $143A,$1A3A,$173B,$123D,$1C3D
+
+print "inserted ", bytes, "/32768 bytes into bank $14"

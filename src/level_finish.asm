@@ -1,5 +1,7 @@
 ORG !_F+$138000
 
+reset bytes
+
 ; this code is run once on the frame that the level is completed
 ; X = 1 if the secret exit was activated, 0 otherwise
 level_finish:
@@ -111,3 +113,5 @@ vertical_level_modes:
         db $01,$00,$01,$00,$00,$01,$00,$00
         db $00,$00,$00,$00,$00,$00,$00,$00
         db $00,$00,$00,$00,$00,$00,$00,$00
+
+print "inserted ", bytes, "/32768 bytes into bank $13"

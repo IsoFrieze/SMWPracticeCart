@@ -1,5 +1,7 @@
 ORG !_F+$108000
 
+reset bytes
+
 ; this code is run once on the frame that Mario appears (a frame after the mosaic effect finishes)
 level_mario_appear:
         JSL upload_bowser_timer_graphics
@@ -25,3 +27,5 @@ try_midway_advance:
         BEQ +
         JSL activate_midway_entrance
       + RTS
+
+print "inserted ", bytes, "/32768 bytes into bank $10"

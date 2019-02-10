@@ -254,6 +254,10 @@ upload_all_graphics:
         PLB
         RTL
 
+; prevent entering level on first 2 frames of overworld
+ORG !_F+$04919F
+        JSL test_main_enter_level
+
 ; faster overworld movement
 ORG !_F+$048244
         JSL iterate_overworld_movement

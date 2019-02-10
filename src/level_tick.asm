@@ -1,5 +1,7 @@
 ORG !_F+$158000
 
+reset bytes
+
 ; this code is run on every frame during fades to and from the level game mode (game modes #$0F & #$13)
 temp_fade_tick:
         PHP
@@ -108,7 +110,6 @@ display_meters_wrapper:
 ; display all the selected statusbar meters
 display_meters:
         PHP
-        PHB
         SEP #$30
         
         LDA #$7E
@@ -116,37 +117,37 @@ display_meters:
         LDA #$1F
         STA $01
         
-        LDA #$70
-        PHA
-        PLB
-        
         LDY #$5C
         
-      - LDA.W !statusbar_meters,Y
+      - LDA [!statusbar_layout_ptr],Y
         BEQ ++
         CMP #$14
         BCS ++
-        LDA.W !statusbar_meters+3,Y
+        INY #3
+        LDA [!statusbar_layout_ptr],Y
+        DEY #3
         CLC
         ADC.B #!status_bar
         STA $00
         
-        LDA.W !statusbar_meters,Y
+        LDA [!statusbar_layout_ptr],Y
         ASL A
         TAX
-        LDA.L $7E0100 ; game mode
+        INY
+        LDA.L $0100 ; game mode
         CMP #$14 ; level
         BEQ +
-        LDA.L $7E0DB0 ; mosaic
+        LDA.L $0DB0 ; mosaic
         CMP #$F0
         BEQ +
         JSR (.meter_fade,X)
+        DEY
         BRA ++
       + JSR (.meter_level,X)
+        DEY
      ++ DEY #4
         BPL -
         
-        PLB
         PLP
     .nothing:
         RTS
@@ -198,20 +199,20 @@ display_meters:
 ; draw the item box meter (fixed position)
 meter_item_box:
         LDA #$3A
-        STA.L !status_bar+$2E
-        STA.L !status_bar+$31
-        STA.L !status_bar+$8E
-        STA.L !status_bar+$91
+        STA !status_bar+$2E
+        STA !status_bar+$31
+        STA !status_bar+$8E
+        STA !status_bar+$91
         LDA #$3B
-        STA.L !status_bar+$2F
-        STA.L !status_bar+$30
-        STA.L !status_bar+$8F
-        STA.L !status_bar+$90
+        STA !status_bar+$2F
+        STA !status_bar+$30
+        STA !status_bar+$8F
+        STA !status_bar+$90
         LDA #$4A
-        STA.L !status_bar+$4E
-        STA.L !status_bar+$51
-        STA.L !status_bar+$6E
-        STA.L !status_bar+$71
+        STA !status_bar+$4E
+        STA !status_bar+$51
+        STA !status_bar+$6E
+        STA !status_bar+$71
         RTS
 
 ; draw the mario speed meter
@@ -232,7 +233,7 @@ meter_mario_speed:
 
 ; draw the mario takeoff meter
 meter_mario_takeoff:
-        LDA $7E149F ; takeoff meter
+        LDA $149F ; takeoff meter
         JSL !_F+$00974C ; hex2dec
         PHA
         TXA
@@ -245,7 +246,7 @@ meter_mario_takeoff:
 
 ; draw the mario p meter
 meter_mario_pmeter:
-        LDA.W !statusbar_meters+1,Y
+        LDA [!statusbar_layout_ptr],Y
         ASL A
         TAX
         JMP (.pmeter_type,X)
@@ -258,13 +259,13 @@ meter_mario_pmeter:
         LDA #$19
         STA [$00]
         INC $00
-        LDA $7E13E4 ; p meter
+        LDA $13E4 ; p meter
         LSR #4
         STA [$00]
         RTS
         
     .xx:
-        LDA $7E13E4 ; p meter
+        LDA $13E4 ; p meter
         PHA
         LSR #4
         STA [$00]
@@ -276,10 +277,10 @@ meter_mario_pmeter:
 
 ; draw the yoshi subpixel meter
 meter_yoshi_subpixel:
-        LDA $7E18DF ; yoshi slot
+        LDA $18DF ; yoshi slot
         BNE +
         JMP .erase
-      + LDA.W !statusbar_meters+1,Y
+      + LDA [!statusbar_layout_ptr],Y
         ASL A
         TAX
         JMP (.yoshi_subpixel_type,X)
@@ -290,30 +291,30 @@ meter_yoshi_subpixel:
         dw .Yy
         
     .XY:
-        LDA $7E18DF ; yoshi slot
+        LDA $18DF ; yoshi slot
         DEC A
         TAX
-        LDA $7E14F8,X ; sprite x subpixel
+        LDA $14F8,X ; sprite x subpixel
         LSR #4
         STA [$00]
         INC $00
-        LDA $7E14EC,X ; sprite y subpixel
+        LDA $14EC,X ; sprite y subpixel
         LSR #4
         STA [$00]
         RTS
         
     .Xx:
-        LDA $7E18DF ; yoshi slot
+        LDA $18DF ; yoshi slot
         DEC A
         TAX
-        LDA $7E14F8,X ; sprite x subpixel
+        LDA $14F8,X ; sprite x subpixel
         JMP +
         
     .Yy:
-        LDA $7E18DF ; yoshi slot
+        LDA $18DF ; yoshi slot
         DEC A
         TAX
-        LDA $7E14EC,X ; sprite y subpixel
+        LDA $14EC,X ; sprite y subpixel
       + PHA
         LSR #4
         STA [$00]
@@ -332,35 +333,35 @@ meter_yoshi_subpixel:
 
 ; draw the held item subpixel meter
 meter_held_subpixel:
-        LDA.L !held_item_slot
+        LDA !held_item_slot
         BMI +
         ; check if item has despawned, and if so, erase the meter
         TAX
-        LDA $7E14C8,X ; sprite status
+        LDA $14C8,X ; sprite status
         CMP #$07
         BCS +
         LDA #$FF
-        STA.L !held_item_slot
+        STA !held_item_slot
         
-      + LDA $7E148F ; held item flag
+      + LDA $148F ; held item flag
         BEQ .done_check_hold
         
         LDX #$0B
-      - LDA $7E14C8,X ; sprite status
+      - LDA $14C8,X ; sprite status
         CMP #$0B
         BEQ +
         DEX
         BPL -
         BRA .done_check_hold
       + TXA
-        STA.L !held_item_slot
+        STA !held_item_slot
         
     .done_check_hold:
-        LDA.L !held_item_slot
+        LDA !held_item_slot
         BPL +
         JMP .erase
     
-      + LDA.W !statusbar_meters+1,Y
+      + LDA [!statusbar_layout_ptr],Y
         ASL A
         TAX
         JMP (.held_subpixel_type,X)
@@ -371,27 +372,27 @@ meter_held_subpixel:
         dw .Yy
         
     .XY:
-        LDA.L !held_item_slot
+        LDA !held_item_slot
         TAX
-        LDA $7E14F8,X ; sprite x subpixel
+        LDA $14F8,X ; sprite x subpixel
         LSR #4
         STA [$00]
         INC $00
-        LDA $7E14EC,X ; sprite y subpixel
+        LDA $14EC,X ; sprite y subpixel
         LSR #4
         STA [$00]
         RTS
         
     .Xx:
-        LDA.L !held_item_slot
+        LDA !held_item_slot
         TAX
-        LDA $7E14F8,X ; sprite x subpixel
+        LDA $14F8,X ; sprite x subpixel
         JMP +
         
     .Yy:
-        LDA.L !held_item_slot
+        LDA !held_item_slot
         TAX
-        LDA $7E14EC,X ; sprite y subpixel
+        LDA $14EC,X ; sprite y subpixel
       + PHA
         LSR #4
         STA [$00]
@@ -451,7 +452,7 @@ meter_lag_frames:
 
 ; draw the level timer meter
 meter_timer_level:
-        LDA.L !spliced_run
+        LDA !spliced_run
         BNE +
         LDA $13 ; true frame
         AND #%00100000
@@ -495,7 +496,7 @@ meter_timer_stopwatch:
 
 ; draw a generic timer, where timer frame address is in $03
 meter_timer_all:
-        LDA.W !statusbar_meters+1,Y
+        LDA [!statusbar_layout_ptr],Y
         ASL A
         TAX
         JMP (.timer_type,X)
@@ -571,10 +572,10 @@ meter_timer_all:
         STA $06
         STZ $07
         LDA #$3C ; frames in a second
-        STA $004202 ; mult A
+        STA $4202 ; mult A
         LDA [$03] ; seconds
         DEC $03
-        STA $004203 ; mult B
+        STA $4203 ; mult B
         REP #$20
         LDA [$03]
         TAX
@@ -586,7 +587,7 @@ meter_timer_all:
         DEX
         BRA -
       + CLC
-        ADC $004216 ; mult result
+        ADC $4216 ; mult result
         CLC
         ADC $06
         SEP #$20
@@ -623,7 +624,7 @@ meter_coin_count:
         STA [$00]
         INC $00
         
-        LDA.W !statusbar_meters+1,Y
+        LDA [!statusbar_layout_ptr],Y
         ASL A
         TAX
         JMP (.coin_types,X)
@@ -633,7 +634,7 @@ meter_coin_count:
         dw .dragon
         
     .normal:
-        LDA $7E0DBF ; coins
+        LDA $0DBF ; coins
         JSL !_F+$00974C ; hex2dec
         PHA
         TXA
@@ -646,23 +647,23 @@ meter_coin_count:
         RTS
         
     .dragon:
-        LDA $7E1420 ; dragon coins
+        LDA $1420 ; dragon coins
         STA [$00]
         RTS
 
 ; draw the in game timer meter
 meter_in_game_time: ; TODO - fix latency
-        LDA $7E0F31 ; hundreds
+        LDA $0F31 ; hundreds
         STA [$00]
         INC $00
-        LDA $7E0F32 ; tens
+        LDA $0F32 ; tens
         STA [$00]
         INC $00
-        LDA $7E0F33 ; ones
+        LDA $0F33 ; ones
         STA [$00]
         INC $00
         
-        LDA.W !statusbar_meters+1,Y
+        LDA [!statusbar_layout_ptr],Y
         ASL A
         TAX
         JMP (.igt_types,X)
@@ -673,7 +674,7 @@ meter_in_game_time: ; TODO - fix latency
         dw .symbolic
         
     .decimal:
-        LDA $7E0F30 ; igt fraction
+        LDA $0F30 ; igt fraction
         JSL !_F+$00974C ; hex2dec
         PHA
         TXA
@@ -684,7 +685,7 @@ meter_in_game_time: ; TODO - fix latency
         RTS
         
     .symbolic:
-        LDA $7E0F30 ; igt fraction
+        LDA $0F30 ; igt fraction
         CMP #$26
         BCC +
         CLC
@@ -696,7 +697,7 @@ meter_in_game_time: ; TODO - fix latency
 
 ; draw the slowdown meter
 meter_slowdown:
-        LDA.L !slowdown_speed
+        LDA !slowdown_speed
         BNE +
         LDA #$FB
       + INC A
@@ -707,7 +708,7 @@ meter_slowdown:
 meter_input_display:
         PHP
         REP #$20
-        LDA.W !statusbar_meters+1,Y
+        LDA [!statusbar_layout_ptr],Y
         AND #$00FF
         STA $03
         ASL A
@@ -779,7 +780,7 @@ layout_locations:
 
 ; display the name meter
 meter_name:
-        LDA.L !in_playback_mode
+        LDA !in_playback_mode
         BNE +
         
         LDA.L !status_playername
@@ -810,7 +811,7 @@ meter_name:
 
 ; display the movie recording meter
 meter_movie_recording:
-        LDA.W !statusbar_meters+1,Y
+        LDA [!statusbar_layout_ptr],Y
         ASL A
         TAX
         JMP (.recording_types,X)
@@ -827,6 +828,8 @@ meter_movie_recording:
         BEQ .erase
         
         LDA.L !movie_location+1
+		CMP #$FF
+		BEQ .erase
         CMP #$07
         BNE +
         LDA $13 ; true frame
@@ -923,10 +926,12 @@ meter_memory_7f:
 
 ; draw a generic memory viewer where the bank is in $05
 meter_memory_all:
-        LDA.W !statusbar_meters+2,Y
-        STA $03
-        LDA.W !statusbar_meters+1,Y
+        INY
+        LDA [!statusbar_layout_ptr],Y
+        DEY
         STA $04
+        LDA [!statusbar_layout_ptr],Y
+        STA $03
         LDA [$03]
         PHA
         LSR #4
@@ -939,7 +944,7 @@ meter_memory_all:
 
 ; draw the real time clock meter
 meter_rtc:
-        LDA.W !statusbar_meters+1,Y
+        LDA [!statusbar_layout_ptr],Y
         BNE +
         JMP .uptime
         
@@ -985,7 +990,7 @@ meter_rtc:
         STA $05
         STA $08
         
-        LDA.W !statusbar_meters+1,Y
+        LDA [!statusbar_layout_ptr],Y
         CMP #$01
         BEQ .draw
         
@@ -2235,18 +2240,18 @@ boss_sprite_background:
         LDA.L $0281CF,X
         RTL
 
-; only disable generators on U version
+; don't disable generators on J version
 goal_tape_trigger:
         STZ $18DD
         LDA.L !status_region
-        BNE +
+        BEQ +
         STZ $18B9
       + RTL
         
 ; load from a different table for edible dolphins on J
 load_tweaker_1686:
         LDA.L !status_region
-        BNE +
+        BEQ +
         LDA.L $07F590,X
         RTL
         
@@ -2435,9 +2440,11 @@ play_input:
         LDA !in_playback_mode
         BNE +
         JMP .done
-      + LDA $4219
-        AND #$30
-        CMP #$30
+      + LDA $4219 ; byetudlr hardware
+        AND #%00110000
+        CMP #%00110000
+        BNE +
+        LDA $0DB0 ; mosaic size
         BNE +
         
         LDA #$0B
@@ -2484,3 +2491,5 @@ play_input:
     .done:
         PLP
         RTL
+
+print "inserted ", bytes, "/32768 bytes into bank $15"

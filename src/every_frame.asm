@@ -1,5 +1,7 @@
 ORG !_F+$178000
 
+reset bytes
+
 ; this code is run on every single frame of execution
 every_frame:
         PHP
@@ -52,3 +54,5 @@ check_kill:
         BNE +
         BRK #$C8
       + RTS
+
+print "inserted ", bytes, "/32768 bytes into bank $17"

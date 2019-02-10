@@ -80,9 +80,9 @@ $704D40-$704D4A ($0B bytes)
 	: 8 bytes graphics files, 2 bytes stack point, 1 byte music track
 $704D4B-$704D4F ($05 bytes)
 		: UNUSED
-$704D50-$704DAF ($60 bytes)
-	: 24 status bar meters, 4 bytes each
-$704DB0-$704FFF ($250 bytes)
+$704D50-$704E6F ($120 bytes)
+	: 24 status bar meters, 4 bytes each, 3 layouts
+$704E70-$704FFF ($190 bytes)
 		: UNUSED
 $705000-$706FFF ($2000 bytes)
 	; save state wram 7E0000-7E1FFF (mirror ram)

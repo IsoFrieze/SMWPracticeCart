@@ -300,8 +300,8 @@ meter_text_record:
         db "   NUMERIC      "
 meter_text_rtc:
         db "   UP-TIME      "
-        db "   12-HOUR      "
         db "   24-HOUR      "
+        db "   12-HOUR      "
 
 meter_description:
         db "                                "
