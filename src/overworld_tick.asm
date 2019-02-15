@@ -18,7 +18,7 @@ overworld_tick:
         JSR test_for_time_toggle
         JSR draw_times
         JSR save_marios_position
-        ;JSR test_for_enter_level
+;       JSR test_for_enter_level
         JSR draw_movie_slots
         
         LDA #$40
@@ -193,7 +193,6 @@ test_main_enter_level:
         STA.L !movie_location+2
         
         LDA.L !movie_location+$0E
-        EOR #$01
         STA.L !status_states
         LDA.L !movie_location+$13
         STA $1F28
@@ -366,7 +365,7 @@ test_for_time_toggle:
         BNE +
         LDA #$00
       + STA !ow_display_times
-        JSR draw_times
+        JSR draw_times_start
     .done:
         RTS
 
@@ -393,17 +392,19 @@ test_movement:
         JML $04945D ; movement routine
     .done:
         RTS
-        
-; try to draw the times onto the overworld border
-try_draw_times:
-        LDA $144E ; overworld forward timer
-        CMP #$0E
-        BNE +
-        JSR draw_times
-      + RTS
 
 ; draw record times onto the overworld border
 draw_times:
+        LDA $13D9 ; ow process
+        CMP #$03 ; stand still
+        BEQ +
+        RTS
+      + LDA $144E ; walking timer
+        CMP #$0F
+        BEQ .start
+        RTS
+        
+    .start:
         PHB
         PHK
         PLB
@@ -588,7 +589,7 @@ times_ptrs:
         
 get_fractions_of_time:
         PHA
-        LDA !text_timer ; level timer subtype
+        JSR get_topmost_leveltimer_subtype
         BNE +
         PLA
         TAX
@@ -601,7 +602,7 @@ get_fractions_of_time:
 load_unran_time:
         PHY
         LDY #$12
-      - LDA !text_timer ; level timer subtype
+      - JSR get_topmost_leveltimer_subtype
         CMP #$02
         BEQ +
         LDA default_time_stripe,Y
@@ -624,7 +625,7 @@ load_unran_time:
         LDA times_position,Y
     .merge:
         STA !dynamic_stripe_image+1
-        LDA !text_timer ; level timer subtype
+        JSR get_topmost_leveltimer_subtype
         CMP #$01
         BNE +
         LDA #$5D
@@ -842,34 +843,63 @@ check_if_used_orb:
         PLX
         PLB
         RTS
+        
+; look for top-most level timer in status bar and report its subtype
+get_topmost_leveltimer_subtype:
+        PHY
+        PHX
+        LDY #$00
+      - LDA [!statusbar_layout_ptr],Y
+        CMP #$08 ; level timer
+        BEQ +
+        INY #4
+        CPY #$60
+        BNE -
+        LDA #$00
+        JMP .done
+        
+      + INY
+        LDA [!statusbar_layout_ptr],Y
+    .done:
+        PLX
+        PLY
+        RTS
 
 ; draw the little icons for each time type
+; make this stripe 18 bytes because that's what the buffer transfer routine wants (puke)
 draw_icons:
         LDA #$50
         STA !dynamic_stripe_image
+        STA !dynamic_stripe_image+6
         LDA #$2D
         STA !dynamic_stripe_image+1
+        STA !dynamic_stripe_image+7
         LDA #$80
         STA !dynamic_stripe_image+2
-        LDA #$07
+        STA !dynamic_stripe_image+8
+        LDA #$01
         STA !dynamic_stripe_image+3
+        LDA #$07
+        STA !dynamic_stripe_image+9
         LDA #$A6
         STA !dynamic_stripe_image+4
-        LDA #$A7
-        STA !dynamic_stripe_image+6
-        LDA #$A8
-        STA !dynamic_stripe_image+8
-        LDA #$A9
         STA !dynamic_stripe_image+10
+        LDA #$A7
+        STA !dynamic_stripe_image+12
+        LDA #$A8
+        STA !dynamic_stripe_image+14
+        LDA #$A9
+        STA !dynamic_stripe_image+16
         LDA !ow_display_times
         TAX
         LDA icon_properties,X
         STA !dynamic_stripe_image+5
-        STA !dynamic_stripe_image+7
-        STA !dynamic_stripe_image+9
         STA !dynamic_stripe_image+11
+        STA !dynamic_stripe_image+13
+        STA !dynamic_stripe_image+15
+        STA !dynamic_stripe_image+17
         LDA #$FF
-        STA !dynamic_stripe_image+12
+        STA !dynamic_stripe_image+18
         JSR load_stripe_from_buffer
         RTS
 
@@ -885,9 +915,9 @@ tile_numbers:
 ; flags to tell which times to show by default for each level
 translevel_types:
         db $00,$0F,$0F,$00
-        db $77,$0F,$0F,$07
+        db $74,$0F,$0F,$07
         db $07,$7F,$FF,$07
-        db $0F,$0F,$07,$FF
+        db $0F,$0F,$07,$EF
         db $0F,$0F,$00,$77
         db $07,$FF,$00,$00
         db $0F,$00,$07,$07
@@ -896,7 +926,7 @@ translevel_types:
         db $7F,$07,$0F,$0F
         db $00,$0F,$0F,$0F
         db $00,$FF,$0F,$0F
-        db $00,$07,$07,$77
+        db $00,$07,$07,$67
         db $0F,$07,$0F,$0F
         db $FF,$7F,$0F,$07
         db $FF,$0F,$FF,$07

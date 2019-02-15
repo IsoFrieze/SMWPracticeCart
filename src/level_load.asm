@@ -1094,6 +1094,338 @@ init_statusbar_properties:
 
 name_colors:
         db $28,$38,$3C
+        
+title_screen_load:
+        PHB
+        PHK
+        PLB
+        
+        JSR titlescreen_total_time_count
+        LDA #$03
+        STA $12
+        JSL !_F+$0084C8
+        JSR draw_title_screen_extras
+        
+        PLB
+        RTL
+
+titlescreen_total_time_count:
+        PHP        
+        REP #$30
+        
+        STZ $00
+        LDY #$02B8
+      - LDA intended_exit_type_indicies,Y
+        ASL #2
+        TAX
+        SEP #$20
+        LDA $700000,X
+        BMI +
+        LDA $700001,X
+        BMI +
+        LDA $700002,X
+        BMI +
+        LDA $700003,X
+        AND #%00100000
+        BNE +
+        REP #$20
+        INC $00
+      + DEY #2
+        REP #$20
+        BPL -
+        
+        LDA $00
+        STA !exit_type_count
+        CMP #$015D
+        BEQ +
+        JMP .done
+        
+        ; calculate frames 12563651
+      + STZ $00
+        LDY #$02B8
+      - LDA intended_exit_type_indicies,Y
+        ASL #2
+        TAX
+        LDA $700002,X
+        AND #$00FF
+        CLC
+        ADC $00
+        STA $00
+        DEY #2
+        BPL -
+        
+        LDA $00
+        STA $4204 ; div C
+        LDA #$003C
+        STA $4206 ; div B
+        NOP #10
+        LDA $4216 ; div remainder
+        AND #$00FF
+        STA !total_frames
+        LDA $4214 ; div result
+        AND #$00FF
+        
+        ; calculate seconds
+        STA $00
+        LDY #$02B8
+      - LDA intended_exit_type_indicies,Y
+        ASL #2
+        TAX
+        LDA $700001,X
+        AND #$00FF
+        CLC
+        ADC $00
+        STA $00
+        DEY #2
+        BPL -
+        
+        LDA $00
+        STA $4204 ; div C
+        LDA #$003C
+        STA $4206 ; div B
+        NOP #10
+        LDA $4216 ; div remainder
+        AND #$00FF
+        STA !total_seconds
+        LDA $4214 ; div result
+        AND #$00FF
+        
+        ; calculate minutes & hours
+        STA $00
+        LDY #$02B8
+      - LDA intended_exit_type_indicies,Y
+        ASL #2
+        TAX
+        LDA $700000,X
+        AND #$00FF
+        CLC
+        ADC $00
+        STA $00
+        DEY #2
+        BPL -
+        
+        LDA $00
+        STA $4204 ; div C
+        LDA #$003C
+        STA $4206 ; div B
+        NOP #10
+        LDA $4216 ; div remainder
+        AND #$00FF
+        STA !total_minutes
+        LDA $4214 ; div result
+        AND #$00FF
+        STA !total_hours
+        
+    .done:
+        PLP
+        RTS
+
+intended_exit_type_indicies:
+        dw $0008,$0009,$000A,$000B,$0010,$0011,$0012,$0013
+        dw $0022,$0024,$0025,$0026,$0028,$0029,$002A,$002B
+        dw $0030,$0031,$0032,$0033,$0038,$0039,$003A,$0040
+        dw $0041,$0042,$0048,$0049,$004A,$004B,$004C,$004D
+        dw $004E,$0050,$0051,$0052,$0053,$0054,$0055,$0056
+        dw $0057,$0058,$0059,$005A,$0060,$0061,$0062,$0063
+        dw $0068,$0069,$006A,$006B,$0070,$0071,$0072,$0078
+        dw $0079,$007A,$007B,$007D,$007E,$007F,$0080,$0081
+        dw $0082,$0083,$0088,$0089,$008A,$008B,$0098,$0099
+        dw $009A,$009C,$009D,$009E,$00A0,$00A1,$00A2,$00A8
+        dw $00A9,$00AA,$00AB,$00AC,$00AD,$00AE,$00AF,$00C0
+        dw $00C1,$00C2,$00C3,$00D0,$00D1,$00D2,$00D8,$00D9
+        dw $00DA,$00E0,$00E1,$00E2,$00E3,$00E8,$00E9,$00EA
+        dw $00EB,$00F8,$00F9,$00FA,$0100,$0101,$0102,$0103
+        dw $0108,$0109,$010A,$0110,$0111,$0112,$0113,$0118
+        dw $0119,$011A,$011B,$011C,$011D,$011E,$011F,$0120
+        dw $0121,$0122,$0123,$0124,$0125,$0126,$0128,$0129
+        dw $012A,$0130,$0131,$0132,$0133,$0138,$0139,$013A
+        dw $013B,$0148,$0149,$014A,$014B,$0150,$0151,$0152
+        dw $0153,$0158,$0159,$015A,$015B,$0168,$0169,$016A
+        dw $016B,$016C,$016D,$016E,$016F,$0170,$0171,$0172
+        dw $0173,$0178,$0179,$017A,$017B,$0188,$0189,$018A
+        dw $0190,$0191,$0192,$0198,$0199,$019A,$019D,$019E
+        dw $01A0,$01A1,$01A2,$01A3,$01A8,$01A9,$01AA,$01B8
+        dw $01B9,$01BA,$01BB,$01C0,$01C1,$01C2,$01C3,$01C4
+        dw $01C5,$01C6,$01C7,$01C8,$01C9,$01CA,$01CB,$01CC
+        dw $01CD,$01CE,$01D0,$01D1,$01D2,$01D3,$01D8,$01D9
+        dw $01DA,$01E0,$01E1,$01E2,$01E3,$01E4,$01E5,$01E6
+        dw $01E7,$01E8,$01E9,$01EA,$01EB,$01F0,$01F1,$01F2
+        dw $01F3,$01F4,$01F5,$01F6,$01F7,$01F8,$01F9,$01FA
+        dw $0200,$0201,$0202,$0208,$0209,$020A,$020B,$020C
+        dw $020D,$020E,$0210,$0211,$0212,$0214,$0215,$0216
+        dw $0218,$0219,$021A,$021B,$021C,$021D,$021E,$021F
+        dw $0220,$0221,$0222,$0223,$0224,$0225,$0226,$0227
+        dw $0228,$0229,$022A,$0230,$0231,$0232,$0233,$0238
+        dw $0239,$023A,$023B,$023C,$023D,$023E,$023F,$0248
+        dw $0249,$024A,$024B,$0250,$0251,$0252,$0253,$0258
+        dw $0259,$025A,$025B,$0260,$0261,$0262,$0263,$0270
+        dw $0271,$0272,$0273,$0278,$0279,$027A,$027B,$0280
+        dw $0281,$0282,$0283,$0288,$0289,$028A,$028B,$02A0
+        dw $02A1,$02A2,$02A4,$02A5,$02A6,$02B0,$02B1,$02B2
+        dw $02B4,$02B5,$02B6,$02C1,$02C2,$02C3,$02C5,$02C6
+        dw $02C7,$02C8,$02C9,$02CA,$02CC,$02CD,$02CE,$02D0
+        dw $02D1,$02D2,$02D4,$02D5,$02D6
+        
+; draw "Practice Cart", "Dotsarecool", version, & exit type count + total time
+draw_title_screen_extras:
+        PHP
+        REP #$30
+        
+        ; static things
+        LDA.L $7F837B
+        TAX
+        LDY #$0000
+      - LDA stripe_practicecart,Y
+        STA.L $7F837D,X
+        INX #2
+        INY #2
+        CMP #$FFFF
+        BNE -
+        
+        DEX #2
+        
+        ; exit type count
+        LDY #$0000
+        LDA !exit_type_count
+      - CMP #$000A
+        BCC +
+        SEC
+        SBC #$000A
+        INY
+        BRA -
+        
+      + ORA #$2800
+        STA.L $7F837D+8,X
+        TYA
+        LDY #$0000
+      - CMP #$000A
+        BCC +
+        SEC
+        SBC #$000A
+        INY
+        BRA -
+       
+      + ORA #$2800
+        STA.L $7F837D+6,X
+        TYA
+        AND #$00FF
+        ORA #$2800
+        STA.L $7F837D+4,X
+        
+        LDA #$2C52
+        STA.L $7F837D,X
+        LDA #$0500
+        STA.L $7F837D+2,X
+        LDA #$FFFF
+        STA.L $7F837D+10,X
+        
+        TXA
+        CLC
+        ADC #$000A
+        STA.L $7F837B
+        TAX
+        
+        LDA !exit_type_count
+        CMP #$015D
+        BEQ +
+        JMP .done
+        
+        ; if all exit times are filled out, display total time too
+      + LDA #$4B52
+        STA.L $7F837D+0,X
+        LDA #$1500
+        STA.L $7F837D+2,X
+        LDA #$3C00
+        STA.L $7F837D+4,X
+        STA.L $7F837D+6,X
+        STA.L $7F837D+10,X
+        STA.L $7F837D+12,X
+        STA.L $7F837D+16,X
+        STA.L $7F837D+18,X
+        STA.L $7F837D+22,X
+        STA.L $7F837D+24,X
+        LDA #$3C85
+        STA.L $7F837D+8,X
+        STA.L $7F837D+14,X
+        LDA #$3C86
+        STA.L $7F837D+20,X
+        LDA #$FFFF
+        STA.L $7F837D+26,X
+        SEP #$20
+        
+        LDA !total_hours
+        PHX
+        SEP #$10
+        JSL !_F+$00974C ; hex2dec
+        TXY
+        REP #$10
+        PLX
+        STA.L $7F837D+6,X
+        TYA
+        STA.L $7F837D+4,X
+        
+        LDA !total_minutes
+        PHX
+        SEP #$10
+        JSL !_F+$00974C ; hex2dec
+        TXY
+        REP #$10
+        PLX
+        STA.L $7F837D+12,X
+        TYA
+        STA.L $7F837D+10,X
+        
+        LDA !total_seconds
+        PHX
+        SEP #$10
+        JSL !_F+$00974C ; hex2dec
+        TXY
+        REP #$10
+        PLX
+        STA.L $7F837D+18,X
+        TYA
+        STA.L $7F837D+16,X
+        
+        LDA !total_frames
+        PHX
+        SEP #$10
+        JSL !_F+$00974C ; hex2dec
+        TXY
+        REP #$10
+        PLX
+        STA.L $7F837D+24,X
+        TYA
+        STA.L $7F837D+22,X
+        
+        REP #$20
+        TXA
+        CLC
+        ADC #$001A
+        STA.L $7F837B
+        
+    .done:
+        PLP
+        RTS
+
+stripe_practicecart:
+        db $51,$EA,$00,$19,$19,$38,$1B,$38
+        db $0A,$38,$0C,$38,$1D,$38,$12,$38
+        db $0C,$38,$0E,$38,$FC,$38,$0C,$38
+        db $0A,$38,$1B,$38,$1D,$38
+stripe_dotsarecool:
+        db $53,$07,$00,$25,$FC,$28,$FC,$28
+        db $FC,$28,$FC,$28,$0D,$28,$18,$28
+        db $1D,$28,$1C,$28,$0A,$28,$1B,$28
+        db $0E,$28,$0C,$28,$18,$28,$18,$28
+        db $15,$28,$FC,$28,$FC,$28,$FC,$28
+        db $FC,$28
+stripe_version:
+        db $53,$38,$00,$0B,$1F,$3C,!version_a,$3C
+        db $24,$3C,!version_b,$3C,$24,$3C,!version_c,$3C
+stripe_exittypecount:
+        db $52,$30,$00,$09,$78,$28,$FC,$28
+        db $03,$28,$04,$28,$09,$28
+        db $FF,$FF
 
 ORG !_F+$12F000
 

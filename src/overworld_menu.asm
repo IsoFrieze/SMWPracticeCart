@@ -284,9 +284,9 @@ option_type:
         db $01,$01,$01,$01,$01,$01,$01,$01,$02,$03,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$03,$01,$01,$01,$03,$03,$01,$01,$01,$01,$01
 option_index:
         dw $0001,$0003,$0005,$0007,$0009,$000B,$010B,$020B
-        dw $030B,$030C,$0316,$031B,$031E,$0320,$0322,$0324
-        dw $0326,$0328,$0333,$033B,$033D,$0343,$0345,$0000
-        dw $03AA,$03AC,$03B3,$03B3,$03B3,$03B3,$03B0
+        dw $030B,$030C,$0319,$031E,$0321,$0323,$0325,$0327
+        dw $0329,$032C,$0337,$033F,$0341,$0347,$0349,$0000
+        dw $03AE,$03B0,$03B7,$03B7,$03B7,$03B7,$03B4
 menu_option_tiles:
         incbin "bin/menu_option_tiles.bin"
 menu_object_tiles:
@@ -334,11 +334,11 @@ selection_press_right:
 
 ; the number of options to allow when holding x or y
 minimum_selection_extended:
-        db $01,$01,$01,$01,$01,$FF,$FF,$FF,$00,$09,$04,$02,$01,$01,$01,$01,$01,$0A,$07,$01,$05,$01,$64,$00,$01,$03,$28,$28,$28,$28,$02
+        db $01,$01,$01,$01,$01,$FF,$FF,$FF,$00,$0C,$04,$02,$01,$01,$01,$01,$02,$0A,$07,$01,$05,$01,$64,$00,$01,$03,$28,$28,$28,$28,$02
 
 ; the number of options to allow when not holding x or y
 minimum_selection_normal:
-        db $01,$01,$01,$01,$01,$03,$04,$04,$00,$09,$04,$02,$01,$01,$01,$01,$01,$0A,$07,$01,$05,$01,$37,$00,$01,$03,$28,$28,$28,$28,$02
+        db $01,$01,$01,$01,$01,$03,$04,$04,$00,$0C,$04,$02,$01,$01,$01,$01,$02,$0A,$07,$01,$05,$01,$37,$00,$01,$03,$28,$28,$28,$28,$02
 
 ; this code is run on every frame during the overworld menu game mode (after fade in completes)
 ; GAME MODE #$1F
@@ -960,6 +960,24 @@ update_meterset_pointer:
         PLP
         RTL
         
+; delete one custom status bar (A = which custom slot)
+delete_custom_statusbar:
+        ASL #5
+        STA $00
+        ASL A
+        CLC
+        ADC $00
+        TAX
+        LDY #$5F
+        
+      - LDA.L meterset_default,X
+        STA.L !statusbar_meters,X
+        INX
+        DEY
+        BPL -
+        
+        RTL
+        
 
 ; the default sets of statusbar meters
 metersets:
@@ -1060,6 +1078,9 @@ delete_data:
         dw .delete_secret_nocape
         dw .delete_secret_cape
         dw .delete_secret_lunardragon
+        dw .delete_statusbar_1
+        dw .delete_statusbar_2
+        dw .delete_statusbar_3
         
     .delete_all:
         JSL delete_all_data
@@ -1077,12 +1098,18 @@ delete_data:
     .delete_secret_cape:
     .delete_secret_lunardragon:
         LDA !erase_records_flag
-        DEC A
-        DEC A
-        DEC A
+        DEC #3
         TAX
         LDA !potential_translevel
         JSL delete_one_record
+        JMP .done
+    .delete_statusbar_1:
+    .delete_statusbar_2:
+    .delete_statusbar_3:
+        LDA !erase_records_flag
+        SEC
+        SBC #$0B
+        JSL delete_custom_statusbar
         
     .done:
         STZ !erase_records_flag

@@ -302,7 +302,6 @@ set_defaults:
         STA.L !status_timedeath
         STA.L !status_music
         STA.L !status_drop
-        STA.L !status_states
         STA.L !status_statedelay
         STA.L !status_dynmeter
         STA.L !status_slowdown
@@ -313,6 +312,7 @@ set_defaults:
         STA.L !status_region
         LDA #$01
         STA.L !status_scorelag
+        STA.L !status_states
         LDA #$17
         STA.L !status_playername
         LDA #$0A

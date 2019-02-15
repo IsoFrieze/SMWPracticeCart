@@ -85,7 +85,7 @@ endif
         
 if !_F == $800000
         ; calibrate dc
-    +   LDX #$24
+    +   LDX #$2F
     -   DEX
         BMI .done
         LDY #$10
@@ -652,14 +652,45 @@ meter_coin_count:
         RTS
 
 ; draw the in game timer meter
-meter_in_game_time: ; TODO - fix latency
+meter_in_game_time:
         LDA $0F31 ; hundreds
-        STA [$00]
-        INC $00
+        STA $03
         LDA $0F32 ; tens
+        STA $04
+        LDA $0F33 ; ones
+        STA $05
+        LDA $0F30 ; frames
+        STA $06
+        
+        LDA $1493 ; end level timer
+        ORA $9D ; sprite lock
+        BNE .no_latency
+        
+        ; subtract one frame because this used to be done before the status bar was uploaded to VRAM!
+        DEC $06
+        BPL +
+        LDA #$28
+        STA $06
+        DEC $05
+        BPL +
+        LDA #$09
+        STA $05
+        DEC $04
+        BPL +
+        LDA #$09
+        STA $04
+        DEC $03
+        BPL +
+        STZ $03
+        
+    .no_latency:
+      + LDA $03 ; hundreds
         STA [$00]
         INC $00
-        LDA $0F33 ; ones
+        LDA $04 ; tens
+        STA [$00]
+        INC $00
+        LDA $05 ; ones
         STA [$00]
         INC $00
         
@@ -674,7 +705,7 @@ meter_in_game_time: ; TODO - fix latency
         dw .symbolic
         
     .decimal:
-        LDA $0F30 ; igt fraction
+        LDA $06 ; igt fraction
         JSL !_F+$00974C ; hex2dec
         PHA
         TXA
@@ -685,7 +716,7 @@ meter_in_game_time: ; TODO - fix latency
         RTS
         
     .symbolic:
-        LDA $0F30 ; igt fraction
+        LDA $06 ; igt fraction
         CMP #$26
         BCC +
         CLC
@@ -1260,6 +1291,7 @@ display_dynmeter:
     .done:
         SEP #$20
         PLB
+        JSR display_replay_star
         LDA $18DF
         STA $18E2
         RTL
@@ -1639,7 +1671,7 @@ test_reset:
 ; test if a savestate was activated, if so, call the appropriate routine
 test_savestate:
         LDA.L !status_states
-        BNE .done
+        BEQ .done
         
         LDA $0D9B ; overworld flag
         CMP #$02
@@ -1884,6 +1916,29 @@ check_score_sprites:
         
       + LDA #$01
         RTL
+
+; draw a green star on the screen if playing a movie
+display_replay_star:
+        LDA #$F0
+        STA $0201 ; ypos
+        LDA !in_playback_mode
+        BEQ +
+        LDA $13 ; true frame
+        AND #%00100000
+        BEQ +
+        
+        LDA #$48 ; star
+        STA $0202 ; tile
+        LDA #$08
+        STA $0200 ; xpos
+        LDA #$C8
+        STA $0201 ; ypos
+        LDA #$3A
+        STA $0203 ; prop
+        LDA #$02
+        STA $0420 ; size
+        
+      + RTS
 
 ; draw the level and room timers, but on the sprite layer instead if in the bowser fight
 draw_bowser_timer:
@@ -2438,6 +2493,10 @@ prepare_input:
 play_input:
         PHP
         LDA !in_playback_mode
+        BNE +
+        JMP .done
+      + LDA $0103
+        CMP #$0F ; overworld gfx
         BNE +
         JMP .done
       + LDA $4219 ; byetudlr hardware

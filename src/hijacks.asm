@@ -3,9 +3,9 @@
 ; $00F9F5 - 35 / 36 bytes
 ; $00C578 - 10 / 13 bytes
 ; $00CC86 - 53 / 53 bytes
-; $009510 - 18 / 25 bytes
+; $009510 - 22 / 25 bytes
 ; $00D27C -  8 / 11 bytes
-; $00CDCE -  8 / 14 bytes
+; $00CDD0 - 12 / 12 bytes
 ; $00FC23 - 17 / 80 bytes
 ; $01C062 - 17 / 19 bytes
 ; $01CD1E - 11 / 12 bytes
@@ -28,6 +28,9 @@ every_frame_hijack:
 temp_fade_hijack:
         JSL temp_fade_tick
         RTS
+m7_boss_hijack:
+        JSR $995B
+        RTL
 
 ; run on every frame
 ORG !_F+$008072
@@ -75,6 +78,9 @@ upload_3bpp_to_vram:
         RTL
 update_layer3_tilemap:
         JSR $A01F
+        RTL
+gfx27_hijack:
+        JSR $AB42
         RTL
 
 ; run on temporary fade game modes
@@ -134,6 +140,10 @@ test_last_frame:
         JSL level_finish
         LDA #$01
         RTL
+       
+; hijack drawing titlescreen
+ORG !_F+$009A97
+        JSL title_screen_load
 
 ; hijack temp fade exit level
 ORG !_F+$00933F
@@ -221,7 +231,7 @@ score_sprites:
         RTS
       + NOP #5
         
-; draw dynmeter
+; draw dynmeter & replay star
 ORG !_F+$01809E
         JSL display_dynmeter
         NOP #2

@@ -610,6 +610,9 @@ restore_all_graphics:
         DEX
         BPL -    
         PLB
+        
+        JSL load_slots_graphics
+        
         PLP
         RTS
 
@@ -662,6 +665,15 @@ load_a_graphics:
 
         PLP
         RTL
+        
+load_gfx27:
+        PHP
+        SEP #$30
+        LDA #$80
+        STA $2115
+        JSL gfx27_hijack
+        PLP
+        RTS
 
 ; rebuild the background from level setting to wram
 build_background:
@@ -843,8 +855,6 @@ restore_all_tilemaps:
         JSL build_background
         PLB
         
-        ; mode 7 stuff
-        
         REP #$10
 
         ; clear layer 3 tilemap
@@ -871,6 +881,158 @@ restore_all_tilemaps:
         ADC $1931
         STA $00
         JSL update_layer3_tilemap
+        
+        ; mode 7 stuff
+        LDA $1925 ; level mode
+        CMP #$0B
+        BNE +
+        JMP .iggylarry
+      + CMP #$09
+        BNE +
+        JMP .mortonludwigroyreznor
+      + CMP #$10
+        BNE +
+        JMP .bowser
+      + JMP .no_mode7
+        
+    .iggylarry: ; m7 graphics
+        STZ $2115
+        STZ $2116
+        STZ $2117
+        REP #$10
+        LDX #$4000
+        LDA #$FF
+      - STA $2118
+        DEX
+        BNE -
+        SEP #$10
+        
+        JSL !_F+$03D958 ; tilemap
+        JSR load_gfx27
+        JMP .no_mode7
+        
+    .mortonludwigroyreznor:
+        STZ $2115
+        STZ $2116
+        STZ $2117
+        REP #$10
+        LDX #$4000
+        LDA #$FF
+      - STA $2118
+        DEX
+        BNE -
+        SEP #$10
+        
+        LDX #$07
+        LDA $A5 ; sprite slot 7
+        CMP #$A9 ; reznor
+        BEQ +
+        LDX #$09
+      + JSL !_F+$03DD7D
+        
+        JSL m7_boss_hijack ; prepare ceiling, bridge, lava
+        LDA #$18
+        STA.L $7F837B
+        LDA #$03
+        STA.L $7F837C
+        LDA #$5A
+        STA.L $7F837D
+        
+        LDA $13FC ; current boss
+        CMP #$02
+        BEQ .ludwig
+        CMP #$04
+        BEQ .reznor
+        JMP .finish_thisboss
+        
+    .ludwig:
+        LDA #$40
+        STA.L $7F8486
+        STA.L $7F8612
+        JMP .finish_thisboss
+    
+    .reznor:
+        JSR load_gfx27
+        
+        LDA #$5F
+        STA.L $7F8485
+        STA.L $7F8611
+        LDA #$C0
+        STA.L $7F8486
+        STA.L $7F8612
+        
+        LDY $1B9F ; number of broken bridge segments
+      - BEQ .finish_thisboss
+      
+        ; delete bridge
+        TYA
+        CLC
+        ADC #$0B
+        REP #$30
+        AND #$00FF
+        PHA
+        CMP #$0010
+        BCC +
+        CLC
+        ADC #$01B0
+      + TAX
+        SEP #$20
+        LDA #$00
+        STA.L $7FC8B0,X ; collision
+        REP #$20
+        PLA
+        ASL #2
+        CMP #$0040
+        BCC +
+        CLC
+        ADC #$014C
+      + TAX
+        LDA #$38FC
+        STA.L $7F8381,X ; graphics
+        STA.L $7F8383,X
+        STA.L $7F83C1,X
+        STA.L $7F83C3,X
+        SEP #$30
+        STY $00
+        LDA #$0C
+        SEC
+        SBC $00
+        TAX
+        LDA #$00
+        STA.L $7FC8B0,X ; collision
+        TXA
+        ASL #2
+        TAX
+        LDA #$FC
+        STA.L $7F8381,X ; graphics
+        STA.L $7F8383,X
+        STA.L $7F83C1,X
+        STA.L $7F83C3,X
+        DEY
+        BRA -
+        
+    .finish_thisboss:
+        JSL !_F+$0084C8
+        JMP .no_mode7
+    
+    .bowser:
+        STZ $2115
+        STZ $2116
+        STZ $2117
+        REP #$10
+        LDX #$4000
+        LDA #$FF
+      - STA $2118
+        DEX
+        BNE -
+        SEP #$10
+        
+        LDX #$09
+        JSL !_F+$03DD7D
+        JSL upload_bowser_timer_graphics
+        JMP .no_mode7
+        
+    .no_mode7:
         
         PLP
         RTS

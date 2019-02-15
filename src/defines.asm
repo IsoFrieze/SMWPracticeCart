@@ -1,7 +1,7 @@
 ; the version of this patch Va.b.c
 !version_a                   = $03
 !version_b                   = $27
-!version_c                   = $03
+!version_c                   = $04
 
 ; controller regs
 !mario_byetudlr_hold         = $15
@@ -83,14 +83,14 @@
 !status_itembox              = $700326 ; empty | mush | fire | star | cape | ...
 !status_yoshi                = $700327 ; none | yellow | blue | red | green | ...
 !status_enemy                = $700328 ;
-!status_erase                = $700329 ; all | level | slots...
+!status_erase                = $700329 ; all | level | slots... | statusbars...
 !status_slots                = $70032A ; none | onscreen | offscreen | all | bounce
 !status_controller           = $70032B ; 1P | 1/2 P | 2P
 !status_pause                = $70032C ; disable | enable
 !status_timedeath            = $70032D ; death | life
 !status_music                = $70032E ; music | mute
 !status_drop                 = $70032F ; disable | normal
-!status_states               = $700330 ; enable | disable
+!status_states               = $700330 ; disable | enable | exclude RNG/framerule
 !status_statedelay           = $700331 ; count...
 !status_dynmeter             = $700332 ; none | speed | takeout | pmeter | spx | yoshispx | itemspx | itemspeed
 !status_slowdown             = $700333 ; enable | disable
@@ -188,6 +188,14 @@
 ; translevels that have swapped exits
 !translevel_swap_exit_A      = $04 ; dgh
 !translevel_swap_exit_B      = $41 ; fgh
+
+; the number of intentional exit types completed upon system boot
+!exit_type_count             = $0E35
+; sum of all intentional exit type times (only valid if all exit types completed)
+!total_frames                = $0E37
+!total_seconds               = $0E38
+!total_minutes               = $0E39
+!total_hours                 = $0E3A
 
 ; the translevels of the current movies, 00 = no movie
 !level_movie_slots           = $0695 ; 3 bytes

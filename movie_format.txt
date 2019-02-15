@@ -22,7 +22,7 @@ if P set:
 			+0B    = UNUSED
 			+0C    = checksum of movie minus header
 			+0D    = $BD
-			+0E    = movie uses save states
+			+0E    = movie save state option
 			+13-16 = switches
 			+17    = special effects
 			+18    = mario's powerup
