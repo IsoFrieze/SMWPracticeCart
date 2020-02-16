@@ -93,11 +93,8 @@ ORG !_F+$008E81
 ORG !_F+$008F3B
         JSR $9079 ; draw item in itembox
         RTS
-
-; draw the time to the status bar
-; in a hijack to preserve the one-frame latency
 ORG !_F+$008E6F
-    ;    JSL display_time ; TODO fix latency
         JMP $8E81
 ORG !_F+$008E8C
         STA $1F4E,X
+        JMP $8E95

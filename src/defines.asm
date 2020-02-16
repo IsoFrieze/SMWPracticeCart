@@ -1,7 +1,7 @@
 ; the version of this patch Va.b.c
 !version_a                   = $03
 !version_b                   = $27
-!version_c                   = $04
+!version_c                   = $05
 
 ; controller regs
 !mario_byetudlr_hold         = $15
@@ -26,6 +26,9 @@
 ; the timer copied from the apu
 !apu_timer_latch             = $146C ; 2 bytes, 16-bit value
 !apu_timer_difference        = $146E
+
+; the scanline at which the gameplay loop ends
+!lagometer_line              = $0F2D
 
 ; stripe image buffer for the overworld record times on the border
 ; actually overwrites some sprite table, but that doesn't matter because this is only used on the overworld
@@ -53,6 +56,7 @@
 !restore_room_igt            = $19F0 ; 3 bytes
 !restore_room_xpos           = $19F3 ; 2 bytes, 16-bit value
 !restore_room_dragoncoins    = $19F5
+!restore_room_tide           = $19F6
 
 ; determines when to load state from different level
 !load_state_timer            = $0EF9
@@ -97,7 +101,7 @@
 !status_layout               = $700334 ; default | lagcalibrated | empty | custom1 | custom2 | custom3
 !status_lrreset              = $700335 ; enable | disable
 !status_scorelag             = $700336 ; none | count...
-!status_memorylo             = $700337 ; x
+!status_lagometer            = $700337 ; off | on
 !status_moviesave            = $700338 ; sram1 | sram2
 !status_movieload            = $700339 ; sram1 | sram2 | demo1 | demo2
 !status_playername           = $70033A ; 4 bytes

@@ -389,7 +389,7 @@ test_movement:
         PHK
         PEA .done-1
         PEA $8575-1
-        JML $04945D ; movement routine
+        JML !_F+$04945D ; movement routine
     .done:
         RTS
 

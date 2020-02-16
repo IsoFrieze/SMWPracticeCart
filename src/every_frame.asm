@@ -6,14 +6,40 @@ reset bytes
 every_frame:
         PHP
         SEP #$20
-        JSR stack_overflow
+;       JSR stack_overflow
         JSR update_dropped_frames
-        JSR check_kill
+;       JSR check_kill
         
         LDA !in_overworld_menu
         BEQ +
         JSL update_background
       + PLP
+        
+        LDA $2137 ; latch h/v counter
+        LDA $213D ; v counter
+        STA !lagometer_line
+        
+        RTL
+        
+update_lagometer:
+        LDA.L !status_lagometer
+        BEQ +
+        LDA $0100 ; game mode
+        CMP #$14
+        BNE +
+        
+        LDA #$04
+        STA $0200 ; xpos
+        LDA !lagometer_line
+        STA $0201 ; ypos
+        LDA #$3D
+        STA $0202 ; tile
+        LDA #$38
+        STA $0203 ; prop
+        STZ $0420 ; size
+        
+      + STZ $4300
+        REP #$20
         RTL
         
 ; get the number of frames dropped this execution frame, and update the total

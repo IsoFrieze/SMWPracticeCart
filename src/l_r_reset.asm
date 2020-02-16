@@ -224,6 +224,8 @@ activate_save_state:
       - LDA $4212
         BPL -
         
+        LDA $4210 ; clear nmi flag
+        
         LDA #$81
         STA $4200 ; nmi enable
         LDA #$0F
@@ -382,22 +384,34 @@ activate_load_state:
         ORA !status_slots
         BEQ +
         JSL load_slots_graphics
+       
+      + 
+      - LDX $2137
+        LDA $213D
+        LDX $213D
+        CMP #$30 ; wait until line 48 (past IRQ)
+        BNE -
         
-      + LDA #$81
+        LDA $4210 ; clear nmi flag
+        
+        LDA #$81
         STA $4200 ; nmi enable
 
         LDA.L !status_statedelay
         INC A
         ASL #3
         TAX
+        LDA #$80
       - DEX
         BEQ +
         WAI ; wait for NMI
-        STZ $2100
+        STA $2100
         WAI ; wait for IRQ
-        STZ $2100
+        STA $2100
         INC !previous_sixty_hz ; waiting here shouldn't count as lag
         BRA -
+    
+        STZ $2100
     
       + RTL
         

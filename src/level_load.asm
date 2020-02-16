@@ -123,6 +123,8 @@ setup_room_reset:
         STA $D1 ; mario x position low byte
         LDA !restore_room_xpos+1
         STA $D2 ; mario x position high byte
+        LDA !restore_room_tide
+        STA $1B9D ; layer 3 tide timer
         
         LDX #$03
       - LDA !restore_room_boo_ring,X
@@ -176,6 +178,7 @@ setup_level_reset:
         STA $D1 ; mario x position low byte
         LDA !restore_level_xpos+1
         STA $D2 ; mario x position high byte
+        STZ $1B9D ; layer 3 tide timer
         
         ; set msb so it's not 00, which is a special case for entering the level
         ; we'll turn this byte into fnnnnnnn, f = 0 if just entered level, n = sublevel count
@@ -250,8 +253,6 @@ restore_common_aspects:
         STA $1884 ; bowser HP
       + STZ $1496
         STZ $1497 ; mario animation timers
-        LDA #$FF
-        STA $1B9D ; layer 3 tide timer
         STZ $1B9A ; scrolling background
         STZ !room_timer_minutes
         STZ !room_timer_seconds
@@ -298,6 +299,8 @@ save_room_properties:
         STA !restore_room_coins
         LDA $1420 ; dragon coins
         STA !restore_room_dragoncoins
+        LDA $1B9D ; layer 3 tide timer
+        STA !restore_room_tide
         
         LDX #$0B
       - LDA $14C8,X ; sprite status
@@ -394,6 +397,8 @@ save_level_properties:
         STA !restore_level_xpos
         LDA $D2 ; mario x position high byte
         STA !restore_level_xpos+1
+        LDA $1B9D ; layer 3 tide timer
+        STA !restore_room_tide
         
         LDX #$03
       - LDA $0FAE,X ; boo ring angle

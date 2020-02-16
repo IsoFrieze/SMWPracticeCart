@@ -104,6 +104,11 @@ ORG !_F+$0081D5
 ; don't draw sprite BG when sprite slots enabled
 ORG !_F+$0282FA
         JSL boss_sprite_background
+
+; run before dmaing to oam
+ORG !_F+$008449
+        JSL update_lagometer
+        NOP
         
 ; test if level completed this frame
 ; X = 0 for normal exit, 1 for secret exit
@@ -207,7 +212,7 @@ ORG !_F+$00C56C
 item_box:
         JSL drop_item_box
         CMP #$00
-        db $D0,$1B ; BNE $C58F
+        BNE $1B ; BNE $C58F
         JMP $C585
         
 ; revamp how pausing works

@@ -31,6 +31,7 @@ level_tick:
         CMP #$14
         BNE .done
         
+        JSR setup_layer3_bg
         JSR prepare_input
         JSR record_input
         JSR emulate_score_lag
@@ -1928,15 +1929,15 @@ display_replay_star:
         BEQ +
         
         LDA #$48 ; star
-        STA $0202 ; tile
+        STA $0206 ; tile
         LDA #$08
-        STA $0200 ; xpos
+        STA $0204 ; xpos
         LDA #$C8
-        STA $0201 ; ypos
+        STA $0205 ; ypos
         LDA #$3A
-        STA $0203 ; prop
+        STA $0207 ; prop
         LDA #$02
-        STA $0420 ; size
+        STA $0421 ; size
         
       + RTS
 
@@ -2292,7 +2293,7 @@ boss_sprite_background:
         LDA #$F0
         RTL
     .draw:
-        LDA.L $0281CF,X
+        LDA.L !_F+$0281CF,X
         RTL
 
 ; don't disable generators on J version
@@ -2307,7 +2308,7 @@ goal_tape_trigger:
 load_tweaker_1686:
         LDA.L !status_region
         BEQ +
-        LDA.L $07F590,X
+        LDA.L !_F+$07F590,X
         RTL
         
       + LDA.L sprite_1686_J,X
@@ -2351,6 +2352,34 @@ layer_3_y:
         LDA $25
         STA $2112
         RTL
+        
+; prepare layer 3 background x position
+; this must be done before IRQ fires!
+setup_layer3_bg:
+        PHP
+        REP #$20
+        SEP #$10
+        LDX $13D5 ; layer 3 lock
+        BNE .done
+        LDX $1403 ; layer 3 tide setting
+        BNE .done
+        LDX $1BE3 ; layer 3 type
+        CPX #$03
+        BNE .done
+        
+        LDX $1931 ; tileset
+        CPX #$03
+        BEQ +
+        CPX #$01
+        BNE .done
+        
+      + LDA $1A ; layer 1 future x pos
+        LSR A
+        STA $22 ; layer 3 x pos
+        
+    .done:
+        PLP
+        RTS
 
 ; disable layer 3 priority if in overworld menu
 layer_3_priority:

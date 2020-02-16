@@ -285,8 +285,8 @@ option_type:
 option_index:
         dw $0001,$0003,$0005,$0007,$0009,$000B,$010B,$020B
         dw $030B,$030C,$0319,$031E,$0321,$0323,$0325,$0327
-        dw $0329,$032C,$0337,$033F,$0341,$0347,$0349,$0000
-        dw $03AE,$03B0,$03B7,$03B7,$03B7,$03B7,$03B4
+        dw $0329,$032C,$0337,$033F,$0341,$0347,$0349,$03AE
+        dw $03B0,$03B2,$03B9,$03B9,$03B9,$03B9,$03B6
 menu_option_tiles:
         incbin "bin/menu_option_tiles.bin"
 menu_object_tiles:
@@ -334,11 +334,11 @@ selection_press_right:
 
 ; the number of options to allow when holding x or y
 minimum_selection_extended:
-        db $01,$01,$01,$01,$01,$FF,$FF,$FF,$00,$0C,$04,$02,$01,$01,$01,$01,$02,$0A,$07,$01,$05,$01,$64,$00,$01,$03,$28,$28,$28,$28,$02
+        db $01,$01,$01,$01,$01,$FF,$FF,$FF,$00,$0C,$04,$02,$01,$01,$01,$01,$02,$0A,$07,$01,$05,$01,$64,$01,$01,$03,$28,$28,$28,$28,$02
 
 ; the number of options to allow when not holding x or y
 minimum_selection_normal:
-        db $01,$01,$01,$01,$01,$03,$04,$04,$00,$0C,$04,$02,$01,$01,$01,$01,$02,$0A,$07,$01,$05,$01,$37,$00,$01,$03,$28,$28,$28,$28,$02
+        db $01,$01,$01,$01,$01,$03,$04,$04,$00,$0C,$04,$02,$01,$01,$01,$01,$02,$0A,$07,$01,$05,$01,$37,$01,$01,$03,$28,$28,$28,$28,$02
 
 ; this code is run on every frame during the overworld menu game mode (after fade in completes)
 ; GAME MODE #$1F
