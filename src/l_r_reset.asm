@@ -20,7 +20,13 @@ activate_room_reset:
         JSL set_global_exit
         JSR trigger_screen_exit
         
-        LDA #$20 ; bow sound
+        LDA.L !status_states
+        CMP #$02
+        BNE +
+        
+;        JSR shuffle_rng_and_framerule ; not sure if this should be here??
+        
+      + LDA #$20 ; bow sound
         STA $1DF9 ; apu i/o
         
         RTL
@@ -52,10 +58,30 @@ activate_level_reset:
         JSL set_global_exit
         JSR trigger_screen_exit
         
-        LDA #$20 ; bow sound
+        LDA.L !status_states
+        CMP #$02
+        BNE +
+        
+;        JSR shuffle_rng_and_framerule ; not sure if this should be here??
+        
+      + LDA #$20 ; bow sound
         STA $1DF9 ; apu i/o
         
         RTL
+        
+; copy timer from apu and put it in the rng value and effective frame counter to shuffle them
+shuffle_rng_and_framerule:
+        PHP
+        REP #$20
+        
+      - LDA $2140 ; get apu timer and put it in room frame and rng
+        BEQ -
+        
+        STA $148B ; rng calc
+        SEP #$20
+        STA $14 ; effective frame
+        PLP
+        RTS
 
 ; this code is run when the player presses L + R + X + Y in a level to advance to the next room
 activate_room_advance:
@@ -384,6 +410,12 @@ activate_load_state:
         ORA !status_slots
         BEQ +
         JSL load_slots_graphics
+        
+      + LDA.L !status_states
+        CMP #$02
+        BNE +
+        
+        JSR shuffle_rng_and_framerule
        
       + 
       - LDX $2137

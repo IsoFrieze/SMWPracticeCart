@@ -973,6 +973,10 @@ meter_memory_all:
         AND #$0F
         STA [$00]
         RTS
+        
+; "UNSUPRTD"
+rtc_unsupported_string:
+        db $0D,$1D,$1B,$19,$1E,$1C,$17,$1E
 
 ; draw the real time clock meter
 meter_rtc:
@@ -984,9 +988,10 @@ meter_rtc:
         CMP #$BD
         BEQ .wait
         
-        LDA #$21
+    .uptime: ; temp label
         LDX #$07
-      - STA $03,X
+      - LDA rtc_unsupported_string,X
+        STA $03,X
         DEX
         BPL -
         BRA .draw
@@ -1052,7 +1057,6 @@ meter_rtc:
         BPL -
         BRA .done
         
-    .uptime:
     .done:
         RTS
         

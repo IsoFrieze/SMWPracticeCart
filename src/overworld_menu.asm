@@ -1845,9 +1845,9 @@ check_meter_valid:
         TAY
         LDA [!statusbar_layout_ptr],Y
         CMP #$11
-        BEQ .check_pos
+        BEQ .check_pos2
         CMP #$12
-        BEQ .check_pos
+        BEQ .check_pos2
         TAX
         LDA meter_subtype_counts,X
         STA $00
@@ -1866,6 +1866,7 @@ check_meter_valid:
         
     .check_pos:
         DEY
+    .check_pos2:
         LDA [!statusbar_layout_ptr],Y
         ASL #3
         CMP #$88 ; memory viewer $7E
