@@ -1,7 +1,7 @@
 ; the version of this patch Va.b.c
 !version_a                   = $03
 !version_b                   = $27
-!version_c                   = $05
+!version_c                   = $06
 
 ; controller regs
 !mario_byetudlr_hold         = $15
@@ -208,6 +208,9 @@
 !level_movie_y_pos           = $069B ; 3 bytes
 ; which times to display on the overworld
 !ow_display_times            = $069E
+
+; temporary table used by the break handler
+!break_value_table           = $0703
 
 ; flag = #$BD if save data exists
 !save_data_exists            = $700000

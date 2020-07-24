@@ -90,6 +90,8 @@ controller_update:
 ; runs on BRK
 break:
         PHP
+        PHB
+        PHD
         REP #$30
         PHA
         PHX
@@ -175,52 +177,148 @@ break:
         LDY #$0800
         JSL load_vram
         
-        ; layer 1 4bpp lower nybble
+        ; store K and PC
         LDX #$2098
-        STX $2116 ; vram address
-        LDA #$00
+        STX !break_value_table
+        INX
+        STX !break_value_table+3
+        INX
+        STX !break_value_table+6
+        LDX #$22B8
+        STX !break_value_table+9
+        LDX #$22BD
+        STX !break_value_table+12
+        INX
+        STX !break_value_table+15
+        LDA $11,S
+        STA !break_value_table+2
+        STA !break_value_table+11
+        LDA $10,S
         XBA
-        LDA $07,S
-        AND #$0F
-        ASL A
+        LDA $0F,S
         TAX
-        STX $2118 ; vram data
-        LDA $06,S
-        AND #$0F
-        ASL A
-        TAX
-        STX $2118 ; vram data
-        LDA $05,S
-        DEC #2
-        AND #$0F
-        ASL A
-        TAX
-        STX $2118 ; vram data
-        
-        ; layer 2 2bpp upper nybble
-        LDX #$2497
-        STX $2116 ; vram address
-        LDA #$00
+        DEX #2
+        TXA
+        STA !break_value_table+8
+        STA !break_value_table+17
         XBA
-        LDA $07,S
-        AND #$F0
-        LSR #2
-        TAX
-        STX $2118 ; vram data
-        LDA $06,S
-        AND #$F0
-        LSR #2
-        TAX
-        STX $2118 ; vram data
-        LDA $05,S
-        DEC #2
-        AND #$F0
-        LSR #2
-        TAX
-        STX $2118 ; vram data
+        STA !break_value_table+5
+        STA !break_value_table+14
         
-        ; layer 1 4bpp upper nybble
+        ; store B
+        LDX #$2298
+        STX !break_value_table+18
+        LDA $09,S
+        STA !break_value_table+20
+        
+        ; store D
+        LDX #$229D
+        STX !break_value_table+21
+        INX
+        STX !break_value_table+24
+        LDA $08,S
+        STA !break_value_table+23
+        LDA $07,S
+        STA !break_value_table+26
+        
+        ; store S
+        LDX #$22D7
+        STX !break_value_table+27
+        INX
+        STX !break_value_table+30
+        TSC
         REP #$20
+        CLC
+        ADC #$0011
+        SEP #$20
+        STA !break_value_table+32
+        XBA
+        STA !break_value_table+29
+        
+        ; store A
+        LDX #$22DD
+        STX !break_value_table+33
+        INX
+        STX !break_value_table+36
+        LDA $06,S
+        STA !break_value_table+35
+        LDA $05,S
+        STA !break_value_table+38
+        
+        ; store X
+        LDX #$22F7
+        STX !break_value_table+39
+        INX
+        STX !break_value_table+42
+        LDA $04,S
+        STA !break_value_table+41
+        LDA $03,S
+        STA !break_value_table+44
+        
+        ; store Y
+        LDX #$22FD
+        STX !break_value_table+45
+        INX
+        STX !break_value_table+48
+        LDA $02,S
+        STA !break_value_table+47
+        LDA $01,S
+        STA !break_value_table+50
+        
+        ; store P
+        LDX #$2318
+        STX !break_value_table+51
+        LDA $0A,S
+        STA !break_value_table+53
+        
+        LDA #$FF
+        STA !break_value_table+54
+        STA !break_value_table+55
+        
+        REP #$30
+        LDA $7F837B ; stripe image counter
+        TAX
+        
+        LDA #!break_value_table
+        STA $00
+      - LDA ($00)
+        BMI +
+        INC $00
+        INC $00
+        JSR stripe_store_word_be
+        TAY
+        LDA #$0001
+        JSR stripe_store_word_be
+        LDA ($00)
+        INC $00
+        AND #$00FF
+        PHA
+        AND #$000F
+        ASL A
+        JSR stripe_store_word_le
+        TYA
+        CLC
+        ADC #$03FF
+        JSR stripe_store_word_be
+        LDA #$0001
+        JSR stripe_store_word_be
+        PLA
+        AND #$00F0
+        LSR #2
+        JSR stripe_store_word_le
+        BRA -
+        
+      + LDA #$FFFF
+        STA $7F837D,X
+        TXA
+        STA $7F837B ; stripe image counter
+        
+        SEP #$30
+        JSL !_F+$0084C8 ; draw stripe
+        
+        ; store stack dump
+        ; layer 1 4bpp upper nybble
+        REP #$30
         LDA #$0100
         STA $00
         LDX #$2122
@@ -263,35 +361,71 @@ break:
         CPX #$2722
         BNE --
         
-        ; layer 1 4bpp lower nybble
-        LDX #$234E
-        STX $2116 ; vram address
-        TSX
-        TXA
-        XBA
+        ; highlight stack pointer in stack dump
+        TSC
+        CLC
+        ADC #$0011
+        CMP #$0100
+        BCC +
+        CMP #$0200
+        BCS +
+        AND #$00FF
+        TAX
         AND #$000F
+        STA $00
+        TXA
+        AND #$00F0
         ASL A
+        CLC
+        ADC $00
+        TAY
+        CLC
+        ADC #$2122
+        STA $2116 ; vram address
+        LDA $0100,X
+        AND #$00F0
+        LSR #3
+        CLC
+        ADC #$00E0
         STA $2118 ; vram data
-        TXA
+        TYA
+        CLC
+        ADC #$2522
+        STA $2116 ; vram address
+        LDA $0100,X
         AND #$000F
-        ASL A
+        ASL #2
+        CLC
+        ADC #$01C0
         STA $2118 ; vram data
         
-        ; layer 2 2bpp upper nybble
-        LDX #$274D
-        STX $2116 ; vram address
-        TSX
-        TXA
-        XBA
-        AND #$00F0
-        LSR #2
-        STA $2118 ; vram data
-        TXA
-        AND #$00F0
-        LSR #2
+        
+        ; store processor flags in nvmxdizce order
+        SEP #$20
+        LDA $0A,S
+        PHA
+        LDY #$0000
+      - PLA
+        ROL A
+        PHA
+        BCC +
+        REP #$20
+        TYA
+        ASL A
+        TAX
+        LDA.L nvmxdizce_addrs,X
+        STA $2116 ; vram address
+        TYX
+        LDA.L nvmxdizce_tiles,X
+        AND #$00FF
         STA $2118 ; vram data
         
         SEP #$20
+      + INY
+        CPY #$0008
+        BNE -
+        PLA
+        
         LDA #$0F
         STA $2100 ; exit force blank
         
@@ -353,9 +487,29 @@ break:
         PLY
         PLX
         PLA
+        PLD
+        PLB
         PLP
         CLC
         RTL
+        
+stripe_store_word:
+    .be:
+        XBA
+        STA $7F837D,X
+        XBA
+        BRA +
+    .le:
+        STA $7F837D,X
+      + INX
+        INX
+        RTS
+        
+nvmxdizce:
+    .tiles:
+        db $2E,$7C,$2C,$84,$1A,$48,$46,$30,$1C
+    .addrs:
+        dw $231A,$271A,$231B,$271B,$231C,$271C,$231D,$271D,$231E
 
 break_tiles:
         incbin "bin/break_bg_tiles.bin"
