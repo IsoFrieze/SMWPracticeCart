@@ -1813,6 +1813,75 @@ test_run_type:
 levels_with_moons:
         db $29,$06,$2E,$0F,$41,$22,$36,$3A
 
+; 'fix' powerup incrementation by adjust all the values that mess with the stack
+; the 5 values of interest should be shifted back 4 because the stack is 4 bytes higher here
+fix_powerup_incrementation:
+        PHP
+        CPY #$FF
+        BEQ .fixit
+        PLP
+        STA $00E4,Y
+        LDY $157C,X
+        RTL
+    .fixit:
+        PLP
+        STA $00E4-4,Y ; this is probably the only one that matters
+        PLA
+        PLA
+        PLA ; remove old return address
+        LDY $157C,X
+        LDA $14E0,X
+        ADC $F307,Y
+        PLY
+        STA $14E0,Y
+        LDA $D8,X
+        STA $00D8-4,Y
+        LDA $14D4,X
+        STA $14D4,Y
+        LDA #$00
+        STA $00C2-4,Y
+        STA $15D0,Y
+        STA $1626,Y
+        LDA $18DC
+        CMP #$01
+        LDA #$0A
+        BCC +
+        LDA #$09
+      + STA $14C8,Y
+        PHX
+        LDA $157C,X
+        STA $157C,Y
+        TAX
+        BCC +
+        INX
+        INX
+      + LDA $F301,X
+        STA $00B6-4,Y
+        LDA #$00
+        STA $00AA-4,Y
+        PLX
+        
+        ; skip the original routine and return to a later part
+        LDA #$81
+        PHA
+        PEA $F24F-1
+        RTL
+
+; fix item swap bug by reverting the program bank if item index is out of bounds
+; open bus behavior requires program bank to be $01, not $81
+fix_item_swap_bug:
+        CMP #$05
+        BCC .done
+        PHA
+        LDA $04,S
+        AND #$7F
+        STA $04,S
+        PLA
+    .done:
+        ASL #2
+        ORA $19
+        RTL
+
 ; activate orb flag if level beaten with orb that came out of the item box
 collect_orb:
         STZ $14C8,X ; sprite status

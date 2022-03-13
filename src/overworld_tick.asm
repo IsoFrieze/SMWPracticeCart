@@ -68,6 +68,7 @@ update_potential_translevel:
         
 ; hijack for testing if level is entered
 test_main_enter_level:
+        PHP
         LDA !potential_translevel
         BNE +
         JMP .done
@@ -240,6 +241,7 @@ test_main_enter_level:
         
     .finish:
     .done:
+        PLP
         LDA $0DD6
         LSR A
         RTL

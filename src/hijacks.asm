@@ -374,3 +374,12 @@ ORG !_F+$05D8C2
 ORG !_F+$05D8EB
         JSL load_level_sprite_ptr
         JMP $D8F9
+
+; 'fix' PI with this convoluted hijack
+ORG !_F+$01F203
+        JSL fix_powerup_incrementation
+        NOP #2
+        
+; 'fix' item swap
+ORG !_F+$01C53B
+        JSL fix_item_swap_bug

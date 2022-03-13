@@ -54,16 +54,16 @@ overworld_menu_load:
         JSR upload_overworld_menu_graphics
         
         REP #$10
-        LDA #$21
+        LDA #$20;$21
         STA $40 ; cgadsub mirror
         LDA #$20
         STA $2107 ; bg1 base address & size
         LDA #$33
         STA $2108 ; bg2 base address & size
         STZ $210B ; bg12 name base address
-        LDA #$01
+        LDA #$16;$01
         STA $212C ; through main
-        LDA #$16
+        LDA #$01;$16
         STA $212D ; through sub
         LDX #$0000
         STX $1E ; layer 2 x position
@@ -71,12 +71,13 @@ overworld_menu_load:
         LDX #$0003
         STX $20 ; layer 2 y position
         STX $24 ; layer 3 y position
+        STZ $2121 ; cgram address
         LDA $13
         AND #$EF
-        STA $0701
+        STA $2122
         LDA $14
         AND #$3D
-        STA $0702 ; back area color
+        STA $2122 ; cgram data
         SEP #$10
         
         LDX #!number_of_options-1
@@ -1612,7 +1613,7 @@ meter_editor_mode: ; w$5460
         LDA [!statusbar_layout_ptr],Y
         DEC A
         BPL +
-        LDA #$13 ; number of meters
+        LDA #$12 ; number of meters
       + STA [!statusbar_layout_ptr],Y
         LDA #$00
         INY
@@ -1662,7 +1663,7 @@ meter_editor_mode: ; w$5460
         TAY
         LDA [!statusbar_layout_ptr],Y
         INC A
-        CMP #$14 ; number of meters + 1
+        CMP #$13 ; number of meters + 1
         BNE +
         LDA #$00
       + STA [!statusbar_layout_ptr],Y

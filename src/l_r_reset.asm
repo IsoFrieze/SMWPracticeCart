@@ -20,7 +20,11 @@ activate_room_reset:
         JSL set_global_exit
         JSR trigger_screen_exit
         
-        LDA.L !status_states
+        LDA !restore_room_yoshi
+        BEQ +
+        INC $187A ; on yoshi flag
+        
+      + LDA.L !status_states
         CMP #$02
         BNE +
         
@@ -636,6 +640,7 @@ restore_all_graphics:
         PLB
         REP #$30
         LDX #$0007
+        SEP #$20
         
       - PHX
         TXA
@@ -644,11 +649,12 @@ restore_all_graphics:
         LDY vram_locations,X
         PLX
         PHX
-        SEP #$20
+        CPX #$0006
+        BCS ++
         LDA $704D40,X
         CMP $0101,X
         BEQ +
-        LDA $0101,X
+     ++ LDA $0101,X
         LDX #$1000
         JSL load_a_graphics
         
