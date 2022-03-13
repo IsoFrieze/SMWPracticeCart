@@ -951,6 +951,7 @@ update_meterset_pointer:
         PHP
         REP #$30
         LDA.L !status_layout
+        AND #$00FF
         ASL #2
         TAX
         LDA.L metersets+1,X
@@ -962,20 +963,24 @@ update_meterset_pointer:
         
 ; delete one custom status bar (A = which custom slot)
 delete_custom_statusbar:
+        PHP
+        REP #$30
+        AND #$00FF
         ASL #5
         STA $00
         ASL A
         CLC
         ADC $00
         TAX
-        LDY #$5F
+        LDY #$005E
         
       - LDA.L meterset_default,X
         STA.L !statusbar_meters,X
-        INX
-        DEY
+        INX #2
+        DEY #2
         BPL -
         
+        PLP
         RTL
         
 

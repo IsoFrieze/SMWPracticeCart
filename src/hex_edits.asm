@@ -259,3 +259,13 @@ ORG !_F+$05FF00
         db $08,$08,$00,$08,$08,$08,$08,$08,$08,$08,$08,$0A,$08,$08,$08,$08
         db $0F,$0A,$08,$08,$00,$08,$08,$08,$08,$00,$08,$08,$08,$8D,$00,$00
         db $0F,$00,$08,$00,$08,$08,$08,$00,$00
+
+; update IRQ wait times if using fastrom
+if !_F = $800000
+ORG !_F+$008390
+        db #$2A ;was #$1F, for setting layer 3 scroll
+ORG !_F+$0083C7
+        db #$1B ;was #$14, for setting layer 1 scroll
+ORG !_F+$00843A
+        db #$2B ;was #$20, for setting mode 7 bg position
+endif

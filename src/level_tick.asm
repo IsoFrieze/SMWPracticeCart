@@ -1924,10 +1924,10 @@ check_score_sprites:
 
 ; draw a green star on the screen if playing a movie
 display_replay_star:
-        LDA #$F0
-        STA $0201 ; ypos
         LDA !in_playback_mode
         BEQ +
+        LDA #$F0
+        STA $0205 ; ypos
         LDA $13 ; true frame
         AND #%00100000
         BEQ +

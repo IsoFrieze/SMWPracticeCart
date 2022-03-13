@@ -590,6 +590,7 @@ times_ptrs:
 get_fractions_of_time:
         PHA
         JSR get_topmost_leveltimer_subtype
+        CMP #$00
         BNE +
         PLA
         TAX
