@@ -638,12 +638,15 @@ restore_all_graphics:
         PHB
         PHK
         PLB
-        REP #$30
-        LDX #$0007
+        REP #$10
         SEP #$20
+        LDX #$0007
         
       - PHX
         TXA
+        XBA
+        LDA #$00
+        XBA
         ASL A
         TAX
         LDY vram_locations,X

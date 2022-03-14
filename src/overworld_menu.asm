@@ -54,16 +54,16 @@ overworld_menu_load:
         JSR upload_overworld_menu_graphics
         
         REP #$10
-        LDA #$20;$21
+        LDA #$20
         STA $40 ; cgadsub mirror
         LDA #$20
         STA $2107 ; bg1 base address & size
         LDA #$33
         STA $2108 ; bg2 base address & size
         STZ $210B ; bg12 name base address
-        LDA #$16;$01
+        LDA #$16
         STA $212C ; through main
-        LDA #$01;$16
+        LDA #$01
         STA $212D ; through sub
         LDX #$0000
         STX $1E ; layer 2 x position
