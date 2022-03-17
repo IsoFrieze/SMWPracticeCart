@@ -431,6 +431,15 @@ physics_hijack_5:
 mario_flutter_speeds:
         db $23,$23,$2C,$2C
         
+physics_hijack_6b:
+        LDA.L !status_region
+        CMP #$02
+        BCS +
+        JML !_F+$00D8CD
+      + PHB
+        PHK
+        PLB
+        JMP physics_hijack_6_d8cd
 physics_hijack_6:
         STX $1408 ; next flight phase
         
@@ -573,6 +582,7 @@ physics_hijack_6:
         STA $7D ; player y speed
         
         PLB
+    .jump:
         JML !_F+$00D94E
 
 physics_hijack_7:
@@ -582,6 +592,8 @@ physics_hijack_7:
         
         LDA $D5EB,Y
         CMP #$02
+        BNE +
+        CPX #$03
         BNE +
         LDA #$03
       + CLC

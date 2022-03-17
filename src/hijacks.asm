@@ -465,6 +465,12 @@ ORG !_F+$00D66A
 ORG !_F+$00D71C
         JSL physics_hijack_5
         NOP #5
+ORG !_F+$00D811
+        JMP physics_hijack_6_pre
+ORG !_F+$00963D
+        RTS
+physics_hijack_6_pre:
+        JML physics_hijack_6b
 ORG !_F+$00D87E
         JSL physics_hijack_6
         NOP #2
