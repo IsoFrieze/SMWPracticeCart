@@ -287,7 +287,7 @@ option_index:
         dw $0001,$0003,$0005,$0007,$0009,$000B,$010B,$020B
         dw $030B,$030C,$0319,$031E,$0321,$0323,$0325,$0327
         dw $0329,$032C,$0337,$033F,$0341,$0347,$0349,$03AE
-        dw $03B0,$03B2,$03B9,$03B9,$03B9,$03B9,$03B6
+        dw $03B0,$03B2,$03BA,$03BA,$03BA,$03BA,$03B6
 menu_option_tiles:
         incbin "bin/menu_option_tiles.bin"
 menu_object_tiles:
@@ -335,11 +335,11 @@ selection_press_right:
 
 ; the number of options to allow when holding x or y
 minimum_selection_extended:
-        db $01,$01,$01,$01,$01,$FF,$FF,$FF,$00,$0C,$04,$02,$01,$01,$01,$01,$02,$0A,$07,$01,$05,$01,$64,$01,$01,$03,$28,$28,$28,$28,$02
+        db $01,$01,$01,$01,$01,$FF,$FF,$FF,$00,$0C,$04,$02,$01,$01,$01,$01,$02,$0A,$07,$01,$05,$01,$64,$01,$01,$03,$28,$28,$28,$28,$03
 
 ; the number of options to allow when not holding x or y
 minimum_selection_normal:
-        db $01,$01,$01,$01,$01,$03,$04,$04,$00,$0C,$04,$02,$01,$01,$01,$01,$02,$0A,$07,$01,$05,$01,$37,$01,$01,$03,$28,$28,$28,$28,$02
+        db $01,$01,$01,$01,$01,$03,$04,$04,$00,$0C,$04,$02,$01,$01,$01,$01,$02,$0A,$07,$01,$05,$01,$37,$01,$01,$03,$28,$28,$28,$28,$03
 
 ; this code is run on every frame during the overworld menu game mode (after fade in completes)
 ; GAME MODE #$1F
@@ -400,7 +400,7 @@ option_selection_mode:
         AND #%00100000
         BEQ .test_dup
         JSR delete_data
-        JMP .finish_no_sound
+        JMP .finish_no_change
         
     .test_dup:
         LDA !util_byetudlr_frame
@@ -459,7 +459,10 @@ option_selection_mode:
         STA.L !status_table,X
         LDA #$00
         JSR check_bounds
+        JSR check_pal_switch
+        BCS +
         JMP .finish_sound
+      + JMP .finish_no_sound 
         
     .test_right:
         LDA !util_axlr_frame
@@ -478,7 +481,10 @@ option_selection_mode:
         STA.L !status_table,X
         LDA #$01
         JSR check_bounds
+        JSR check_pal_switch
+        BCS +
         JMP .finish_sound
+      + JMP .finish_no_sound 
         
     .test_selection:
         LDA !util_axlr_frame
@@ -548,14 +554,14 @@ option_selection_mode:
     .select_placeholder:
     .select_region:
     .select_name:
-        JMP .finish_no_sound
+        JMP .finish_no_change
     .select_meters:
         LDA.L !status_layout
         CMP #$03
         BCS +
         LDA #$2A ; wrong sound
         STA $1DFC ; apu i/o
-        JMP .finish_no_sound
+        JMP .finish_no_change
       + LDA #$0B ; on/off sound
         STA $1DF9 ; apu i/o
         JSL update_meterset_pointer
@@ -568,7 +574,7 @@ option_selection_mode:
     .select_yoshi:
         LDA #$1F ; yoshi sound
         STA $1DFC ; apu i/o
-        JMP .finish_no_sound
+        JMP .finish_no_change
     .select_records:
         LDA #$24 ; "press select to confirm"
         STA $12 ; stripe image loader
@@ -579,18 +585,18 @@ option_selection_mode:
         STA $1DFC ; apu i/o
         LDA #$80 ; fade out music
         STA $1DFB ; apu i/o
-        JMP .finish_no_sound
+        JMP .finish_no_change
     .select_enemy:
         LDA #$01 ; coin sound
         STA $1DFC ; apu i/o
         JSR reset_enemy_states
-        JMP .finish_no_sound
+        JMP .finish_no_change
     .select_moviesave:
         JSR export_movie_to_sram
-        JMP .finish_no_sound
+        JMP .finish_no_change
     .select_movieload:
         JSR load_movie
-        JMP .finish_no_sound
+        JMP .finish_no_change
     .select_exit:
         LDA #$29 ; ding sound
         STA $1DFC ; apu i/o
@@ -599,7 +605,7 @@ option_selection_mode:
     .test_start:
         LDA !util_byetudlr_frame
         AND #%00010000
-        BEQ .finish_no_sound
+        BEQ .finish_no_change
         JMP .select_exit
         
     .quit:
@@ -607,15 +613,16 @@ option_selection_mode:
         STA $0100 ; game mode
         
         JSL restore_basic_settings
-        BRA .finish_no_sound
+        BRA .finish_no_change
     
     .finish_sound:
         LDA #$06 ; fireball sound
         STA $1DFC ; apu i/o
+    .finish_no_sound:
         LDX !current_selection
         JSL draw_menu_selection
         
-    .finish_no_sound:
+    .finish_no_change:
         JSL draw_option_cursor
         JSL draw_option_text
         
@@ -859,11 +866,34 @@ update_background:
         BEQ +
         DEC $1C ; layer 1 y position
       + RTL
+      
+; check if ntsc/pal switched
+; A = 0/1 for L/R, X = option index
+; set carry to denote to not play fireball sfx
+check_pal_switch:
+        LDX !current_selection
+        CPX #$1E
+        BNE +
+        ASL #2
+        ORA.L !status_region
+        TAX
+        LDA.L pal_switch_sfx,X
+        BEQ +
+        STA $1DFC ; apu i/o 3
+        SEC
+        RTS
+        
+      + CLC
+        RTS
+      
+pal_switch_sfx:
+        db $00,$4C,$00,$4D,$4C,$00,$4D,$00
 
 ; check the bounds on the menu options, and fix them if they are out of bounds
 ; X = option index
 check_bounds:
         PHP
+        PHA
         PHY
         PHA
         LDA.L !status_table,X
@@ -897,6 +927,7 @@ check_bounds:
         PLY
         PLY
         PLY
+        PLA
         PLP
         RTS
         

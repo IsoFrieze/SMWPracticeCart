@@ -174,16 +174,29 @@ ORG !_F+$1F8000
         incbin "bin/spc_engine.bin"
         
 ; SPC700 modification
-;ORG !_F+$0577 ; @0x7B - 3F3E13
+;ORG $053B ; E880C5FC00E836C451E804C5F100ECFF00
+;        MOV A,#$80
+;        MOV $00FC,A
+;        MOV A,#$36
+;        MOV $51,A
+;        MOV A,#$04
+;        MOV $00F1,A
+;        MOV Y,$00FF
+;ORG $0577 ; 3F3E13
 ;        CALL $133E
-;ORG $133E ; @0xE42 - 6D2DBA44DAF4AEEE6084496F
-;        PUSH Y
-;        PUSH A
-;        MOVW YA, $44
-;        MOVW $F4, YA
-;        POP A
-;        POP Y
-;        CLRC
+;ORG $1338 ; CD34
+;        MOV X,#$34
+;ORG $133E ; FA44F4FA45F5784C07D0058F80FC2F08784D07D0038F6AFC6084496F
+;        MOV $F4, $44
+;        MOV $F5, $45
+;        CMP $07, #$4C
+;        BNE +
+;        MOV $FC, #$80
+;        BRA ++
+;      + CMP $07, #$4D
+;        BNE ++
+;        MOV $FC, #$6A
+;     ++ CLRC
 ;        ADC A, $49
 ;        RET
-; @0x00 - 4A
+; @0x00 - 5A

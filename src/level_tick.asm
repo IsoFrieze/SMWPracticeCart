@@ -515,7 +515,15 @@ meter_timer_all:
         LDA [$03]
         DEC $03
         TAX
+        PHX
+        LDA.L !status_region
+        CMP #$02
+        BCS .pal
         LDA.L fractional_seconds,X
+        BRA +
+    .pal:
+        LDA.L fractional_seconds_pal,X
+      + PLX
         JSL !_F+$00974C ; hex2dec
         STA [$00]
         DEC $00
@@ -572,20 +580,25 @@ meter_timer_all:
         DEC $03
         STA $06
         STZ $07
-        LDA #$3C ; frames in a second
+        LDA.L !status_region
+        TAX
+        LDA.L frames_in_a_second,X
         STA $4202 ; mult A
         LDA [$03] ; seconds
         DEC $03
         STA $4203 ; mult B
         REP #$20
         LDA [$03]
+        TAY
+        LDA.L !status_region
+        ASL A
         TAX
         LDA #$0000
-        CPX #$00
+        CPY #$00
       - BEQ +
         CLC
-        ADC #$0E10 ; frames in a minute
-        DEX
+        ADC frames_in_a_minute,X
+        DEY
         BRA -
       + CLC
         ADC $4216 ; mult result
@@ -610,6 +623,11 @@ meter_timer_all:
         STA [$00]
         
         RTS
+        
+frames_in_a_second:
+        db $3C,$3C,$32,$32
+frames_in_a_minute:
+        dw $0E10,$0E10,$0BB8,$0BB8
 
 ; table to convert frames into hundredths of seconds
 fractional_seconds:
@@ -618,6 +636,12 @@ fractional_seconds:
         db $28,$29,$2B,$2D,$2F,$30,$32,$33,$35,$37,$39,$3A
         db $3C,$3D,$3F,$41,$43,$44,$46,$47,$49,$4B,$4D,$4E
         db $50,$51,$53,$55,$57,$58,$5A,$5B,$5D,$5F,$61,$62
+fractional_seconds_pal:
+        db $00,$02,$04,$06,$08,$0A,$0C,$0E,$10,$12
+        db $14,$16,$18,$1A,$1C,$1E,$20,$22,$24,$26
+        db $28,$2A,$2C,$2E,$30,$32,$34,$36,$38,$3A
+        db $3C,$3E,$40,$42,$44,$46,$48,$4A,$4C,$4E
+        db $50,$52,$54,$56,$58,$5A,$5C,$5E,$60,$62
 
 ; display the coin count meter
 meter_coin_count:
@@ -670,7 +694,9 @@ meter_in_game_time:
         ; subtract one frame because this used to be done before the status bar was uploaded to VRAM!
         DEC $06
         BPL +
-        LDA #$28
+        LDA.L !status_region
+        TAX
+        LDA.L frames_in_igt_second,X
         STA $06
         DEC $05
         BPL +
@@ -1506,22 +1532,25 @@ tick_timer:
         LDA !freeze_timer_flag
         BNE .done
         
+        LDA.L !status_region
+        TAX
+        
         LDY #$02
         LDA ($00),Y
         CLC
         ADC !real_frames
-        CMP #$3C
+        CMP.L frames_in_a_second,X
         BCC .frames_less
         SEC
-        SBC #$3C
+        SBC.L frames_in_a_second,X
         STA ($00),Y
         DEY
         LDA ($00),Y
         INC A
-        CMP #$3C
+        CMP.L frames_in_a_second,X
         BCC .seconds_less
         SEC
-        SBC #$3C
+        SBC.L frames_in_a_second,X
         STA ($00),Y
         DEY
         LDA ($00),Y
@@ -1538,7 +1567,8 @@ tick_timer:
         STA ($00),Y
         BRA .done
     .minutes_max:
-        LDA #$3B
+        LDA.L frames_in_a_second,X
+        DEC A
         INY
         STA ($00),Y
         INY
@@ -2369,39 +2399,6 @@ boss_sprite_background:
         LDA.L !_F+$0281CF,X
         RTL
 
-; don't disable generators on J version
-goal_tape_trigger:
-        STZ $18DD
-        LDA.L !status_region
-        BEQ +
-        STZ $18B9
-      + RTL
-        
-; load from a different table for edible dolphins on J
-load_tweaker_1686:
-        LDA.L !status_region
-        BEQ +
-        LDA.L !_F+$07F590,X
-        RTL
-        
-      + LDA.L sprite_1686_J,X
-        RTL
-
-sprite_1686_J:
-        db $00,$00,$00,$00,$02,$02,$02,$02,$42,$52,$52,$52,$52,$00,$09,$00
-        db $40,$00,$01,$00,$00,$10,$10,$90,$90,$01,$10,$10,$90,$00,$11,$01
-        db $01,$08,$00,$00,$00,$00,$01,$01,$19,$80,$00,$39,$09,$09,$10,$0A
-        db $09,$09,$09,$99,$18,$29,$08,$19,$19,$19,$11,$11,$15,$10,$0A,$40
-        db $40,$8C,$8C,$8C,$11,$18,$11,$80,$00,$29,$29,$10,$10,$10,$10,$00
-        db $00,$10,$29,$20,$29,$A9,$A9,$A9,$A9,$A9,$A9,$A9,$A9,$A9,$A9,$A9
-        db $29,$29,$3D,$3D,$3D,$3D,$3D,$3D,$3D,$29,$19,$29,$29,$59,$59,$18
-        db $18,$10,$10,$50,$28,$28,$28,$28,$08,$29,$29,$39,$39,$29,$28,$28
-        db $3A,$28,$29,$31,$31,$29,$00,$29,$29,$29,$29,$29,$29,$29,$29,$29
-        db $11,$11,$11,$11,$11,$11,$11,$11,$11,$10,$11,$01,$39,$10,$19,$19
-        db $19,$19,$01,$29,$98,$14,$14,$10,$18,$18,$18,$00,$19,$19,$19,$19
-        db $19,$1D,$1D,$19,$19,$18,$18,$19,$19,$19,$1D,$19,$18,$00,$10,$00
-        db $99,$99,$10,$90,$A9,$B9,$FF,$39,$19
-
 ; if mario finds himself in translevel 0, reset his overworld position as a fail safe
 test_translevel_0_failsafe:
         LDA $0100 ; game mode
@@ -2652,5 +2649,7 @@ play_input:
     .done:
         PLP
         RTL
+        
+incsrc "region_differences.asm"
 
 print "inserted ", bytes, "/32768 bytes into bank $15"

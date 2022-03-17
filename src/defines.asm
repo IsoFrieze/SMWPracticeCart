@@ -1,7 +1,7 @@
 ; the version of this patch Va.b.c
 !version_a                   = $03
 !version_b                   = $27
-!version_c                   = $06
+!version_c                   = $07
 
 ; controller regs
 !mario_byetudlr_hold         = $15
@@ -105,7 +105,7 @@
 !status_moviesave            = $700338 ; sram1 | sram2
 !status_movieload            = $700339 ; sram1 | sram2 | demo1 | demo2
 !status_playername           = $70033A ; 4 bytes
-!status_region               = $70033E ; J | U | E
+!status_region               = $70033E ; J | U | E1.0 | E1.1
 ; $7003FF reserved for future expansion
 !backup_status_table         = $7006C0 ; $20 bytes
 

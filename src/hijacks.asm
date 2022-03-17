@@ -83,6 +83,11 @@ gfx27_hijack:
         JSR $AB42
         RTL
 
+; run on nintendo presents
+ORG !_F+$0093C5
+        JSL nintendo_presents
+        NOP
+
 ; run on temporary fade game modes
 ORG !_F+$009F37
         JSR temp_fade_hijack
@@ -228,6 +233,14 @@ ORG !_F+$008E4C
         JSL out_of_time
         JMP $8E69
 
+; load proper number of igt frames depending on region
+ORG !_F+$008D8A
+        JSL reset_igt_frames
+        NOP
+ORG !_F+$008E2D
+        JSL reset_igt_frames
+        NOP
+
 ; disable score sprites if sprite slot numbers are enabled
 ORG !_F+$02AEA5
 score_sprites:
@@ -306,7 +319,7 @@ ORG !_F+$0093F4
         JSR conclude_loading_level
 
 ; COP & BRK vectors
-ORG !_F+$00FFE6
+ORG !_F+$00FFE4
         dw #break_wrapper,#break_wrapper
 
 ; clear the controller registers so we can tsb them
@@ -356,10 +369,21 @@ check_option_bounds_hijack:
         DEC $1DF5
         RTS
 
+; 'fix' PI with this convoluted hijack
+ORG !_F+$01F203
+        JSL fix_powerup_incrementation
+        NOP #2
+        
+; 'fix' item swap
+ORG !_F+$01C53B
+        JSL fix_item_swap_bug
+
 ; on goal tape trigger
 ORG !_F+$00FA89
         JSL goal_tape_trigger
         NOP #2
+
+;;;;;;;;;;;;; REGION DIFFERENCES ;;;;;;;;;;;;;
 
 ; ldadDolphin
 ORG !_F+$07F7C1
@@ -374,12 +398,177 @@ ORG !_F+$05D8C2
 ORG !_F+$05D8EB
         JSL load_level_sprite_ptr
         JMP $D8F9
+        
+; load different title screen controller input depending on region
+; return differently depending on carry flag
+ORG !_F+$009C6F
+        JSL title_screen_input
+        BCC +
+        RTS
+      + JMP $9C9C
 
-; 'fix' PI with this convoluted hijack
-ORG !_F+$01F203
-        JSL fix_powerup_incrementation
+; play running out sfx for pswitch, coin snake, star
+ORG !_F+$00C54F
+        JSL check_pswitch_runout
+        NOP #2
+ORG !_F+$00E2E3
+        JSL check_star_runout
+        
+; physics regarding grabbing yoshi wings
+ORG !_F+$00C80F
+        JSL grab_yoshi_wings_phsyics
+        NOP
+        
+; physics regarding mario holding out arms
+ORG !_F+$00D014
+        JSL mario_holding_out_arms
         NOP #2
         
-; 'fix' item swap
-ORG !_F+$01C53B
-        JSL fix_item_swap_bug
+; physics regarding mario's running animation
+ORG !_F+$00CFFB
+        JSL get_animation_frame
+ORG !_F+$00CEF8
+        JSL get_animation_frame
+        
+; physics regarding wall triangle
+ORG !_F+$00EAEE
+        JSL calc_wall_triangle_y
+        NOP #3
+ORG !_F+$00F037
+        JSL calc_wall_triangle_x
+        NOP #3
+ORG !_F+$00F015
+        JSL wall_triangle_in_block
+        NOP #4
+
+; physics
+ORG !_F+$00D6F4
+        JSL physics_hijack_1
+        NOP #8
+ORG !_F+$00D742
+        JSL physics_hijack_2
+        BCS phy_hijack_a
+        BRA phy_hijack_b
+ORG !_F+$00D772
+        JSL physics_hijack_3
+        BCS phy_hijack_b
+        BRA phy_hijack_c
+    ORG !_F+$00D76B
+        phy_hijack_a:
+    ORG !_F+$00D7A0
+        phy_hijack_b:
+    ORG !_F+$00D7A2
+        phy_hijack_c:
+ORG !_F+$00D66A
+        JSL physics_hijack_4
+        NOP
+ORG !_F+$00D71C
+        JSL physics_hijack_5
+        NOP #5
+ORG !_F+$00D87E
+        JSL physics_hijack_6
+        NOP #2
+ORG !_F+$00D96A
+        JSL physics_hijack_7
+        RTS
+ORG !_F+$00DC4F
+        JSL physics_hijack_8
+        RTS
+ORG !_F+$00EF1F
+        JSL physics_hijack_9
+        NOP #5
+        
+; physics regarding kicked and spat shells
+ORG !_F+$01A090
+        JSL set_shell_speed_lda
+        NOP
+ORG !_F+$01A0A0
+        JSL set_shell_speed_adc
+        NOP #2
+ORG !_F+$01AAAC
+        JSL set_shell_speed_lda
+        NOP
+
+; roulette item speed
+ORG !_F+$01C31C
+        JSL set_roulette_speed
+        NOP #7
+
+; brown swinging platforms
+ORG !_F+$01CA79
+        JSL pal_brown_swinging_platform
+        JMP $CA9B
+        
+; big castle crusher
+ORG !_F+$02D429
+        JSL pal_castle_crusher_1
+        NOP
+ORG !_F+$02D44A
+        JSL pal_castle_crusher_2
+ORG !_F+$02D458
+        JSL pal_castle_crusher_3
+        JMP $D465
+ORG !_F+$02D489
+        JSL pal_castle_crusher_4
+ORG !_F+$02D496
+        JSL pal_castle_crusher_5
+        NOP
+        
+; shaking dorito spike
+ORG !_F+$03925C
+        JSL pal_shaking_dorito
+        NOP
+        
+; bowser
+ORG !_F+$009A37
+        JSL pal_boss_1
+        BNE pal_boss_a
+    ORG !_F+$009A4D
+            pal_boss_a:
+ORG !_F+$00994F
+        JSL pal_boss_2
+ORG !_F+$03A450
+        JSL pal_bowser_1
+ORG !_F+$03A47C
+        JSL pal_bowser_2
+        NOP
+ORG !_F+$03AB79
+        JSL pal_bowser_3
+ORG !_F+$03ABB4
+        JSL pal_bowser_4
+        NOP
+ORG !_F+$03ABE0
+        JSL pal_bowser_4
+        NOP
+ORG !_F+$03ABEB
+        JSL pal_bowser_5
+        BCC pal_bowser_b
+        BNE pal_bowser_a
+    ORG !_F+$03ABF8
+            pal_bowser_a:
+    ORG !_F+$03AC02
+            pal_bowser_b:
+ORG !_F+$03B193
+        JSL pal_bowser_6
+        BCC pal_bowser_c
+        NOP #2
+    ORG !_F+$03B1C5
+            pal_bowser_c:
+ORG !_F+$03B4BF
+        JSL pal_bowser_7
+        NOP
+ORG !_F+$03B503
+        JSL pal_bowser_8
+ORG !_F+$03B53D
+        JSL pal_bowser_8
+        
+; layer 2 scrolling
+ORG !_F+$05C871
+        JSL pal_l2_1
+ORG !_F+$05C9B1
+        JSL pal_l2_2
+        NOP #2
+ORG !_F+$05BF42
+        JSL pal_l2_3
+ORG !_F+$05C5ED
+        JSL pal_l2_4

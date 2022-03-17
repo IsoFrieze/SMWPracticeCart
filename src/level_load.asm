@@ -34,8 +34,7 @@ level_load:
         DEC A
         STA !held_item_slot
         STZ !freeze_timer_flag
-        LDA #$28
-        STA $0F30 ; igt timer
+        JSL reset_igt_frames
         LDA #$FF
         STA !save_timer_address+2
         
@@ -61,7 +60,7 @@ check_lagless:
 check_pal:
         LDA.L !status_region
         CMP #$02
-        BNE +
+        BCC +
         LDA #$01
         STA.L !spliced_run
     +   RTS
@@ -647,50 +646,6 @@ calculate_load_time:
         ADC #$001F ; add #$1F to account for the fade out time
       + SEP #$20
         STA !apu_timer_difference
-        RTL
-
-; load a different sprite pointer depending on region
-load_level_sprite_ptr:
-        LDA $EC00,Y
-        STA $CE
-        LDA $EC01,Y
-        STA $CF
-        LDA #$07
-        STA $D0
-        LDA.L !status_region
-        BNE +
-        CPY #$01EE ; ghost ship
-        BNE +
-        LDA #$3F
-        STA $CE
-        LDA #$F9
-        STA $CF
-        LDA #$12
-        STA $D0
-      + RTL
-        
-; load a different layer 1 pointer depending on region
-load_level_layer1_ptr:
-        LDA.L !status_region
-        BEQ .j
-        LDA $E000,Y
-        STA $65
-        LDA $E001,Y
-        STA $66
-        LDA $E002,Y
-        STA $67
-        BRA .done
-    .j:
-        PHX
-        TYX
-        LDA.L j_level_layer1_ptrs,X
-        STA $65
-        LDA.L j_level_layer1_ptrs+1,X
-        STA $66
-        LDA.L j_level_layer1_ptrs+2,X
-        STA $67
-        PLX
-    .done:
         RTL
 
 ; initialize status bar properties
