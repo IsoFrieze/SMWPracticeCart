@@ -1897,10 +1897,10 @@ fix_powerup_incrementation:
         PEA $F24F-1
         RTL
 
-; fix item swap bug by reverting the program bank if item index is out of bounds
+; fix item swap bug by reverting the program bank if pointer index is out of bounds
 ; open bus behavior requires program bank to be $01, not $81
 fix_item_swap_bug:
-        CMP #$05
+        CMP #$06
         BCC .done
         PHA
         LDA $04,S
@@ -1908,9 +1908,7 @@ fix_item_swap_bug:
         STA $04,S
         PLA
     .done:
-        ASL #2
-        ORA $19
-        RTL
+        JML !_F+$0086DF ; ExecutePtr
 
 ; activate orb flag if level beaten with orb that came out of the item box
 collect_orb:

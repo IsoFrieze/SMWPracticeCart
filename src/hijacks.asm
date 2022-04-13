@@ -375,7 +375,7 @@ ORG !_F+$01F203
         NOP #2
         
 ; 'fix' item swap
-ORG !_F+$01C53B
+ORG !_F+$01C550
         JSL fix_item_swap_bug
 
 ; on goal tape trigger
