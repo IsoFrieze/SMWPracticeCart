@@ -1201,7 +1201,8 @@ pal_bowser_data_6:
 pal_l2_1:
         PHA
         LDA.L !status_region
-        CMP #$02
+        AND #$00FF
+        CMP #$0002
         PLA
         BCC +
         CLC
