@@ -307,7 +307,7 @@ ORG !_F+$008650
         RTS
 
 ; run at the very start of the game, to make sure the option save data is not corrupt
-ORG !_F+$00940F
+ORG !_F+$009391
         JSR check_option_bounds_hijack
 
 ; run at the very start of level load
@@ -366,8 +366,7 @@ overworld_late_load_hijack:
         JMP $93F4
 check_option_bounds_hijack:
         JSL failsafe_check_option_bounds
-        DEC $1DF5
-        RTS
+        JMP $85FA
 
 ; 'fix' PI with this convoluted hijack
 ORG !_F+$01F203
