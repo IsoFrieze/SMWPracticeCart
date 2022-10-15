@@ -173,7 +173,7 @@ display_meters:
         dw meter_movie_recording
         dw meter_memory_7e
         dw meter_memory_7f
-        dw meter_rtc
+        dw meter_rng
     
     .meter_fade:
         dw .nothing
@@ -195,7 +195,7 @@ display_meters:
         dw .nothing
         dw meter_memory_7e
         dw meter_memory_7f
-        dw meter_rtc
+        dw meter_rng
 
 ; draw the item box meter (fixed position)
 meter_item_box:
@@ -999,91 +999,97 @@ meter_memory_all:
         AND #$0F
         STA [$00]
         RTS
-        
-; "UNSUPRTD"
-rtc_unsupported_string:
-        db $0D,$1D,$1B,$19,$1E,$1C,$17,$1E
 
-; draw the real time clock meter
-meter_rtc:
+; draw the random number generator
+meter_rng:
         LDA [!statusbar_layout_ptr],Y
-        BNE +
-        JMP .uptime
+        ASL A
+        TAX
+        JMP (.rng_type,X)
         
-      + LDA.L !clock_available
-        CMP #$BD
-        BEQ .wait
+    .rng_type
+        dw .index
+        dw .value
+        dw .seed
         
-    .uptime: ; temp label
-        LDX #$07
-      - LDA rtc_unsupported_string,X
-        STA $03,X
-        DEX
-        BPL -
-        BRA .draw
-    
-    .wait:
-        LDA.L $802800 ; clock dummy read
-        AND #$0F
-        CMP #$0F
-        BNE .wait
+    .index
+        LDA $00
+        PHA
         
-        LDA #$0D
-        STA.L $802801 ; clock latch
-        LDA.L $802800 ; clock dummy read
-        LDA.L $802800 ; clock seconds 1s
+        LDA !rng_index+2
         AND #$0F
-        STA $03
-        LDA.L $802800 ; clock seconds 10s
-        AND #$0F
-        STA $04
-        LDA.L $802800 ; clock minutes 1s
-        AND #$0F
-        STA $06
-        LDA.L $802800 ; clock minutes 10s
-        AND #$0F
-        STA $07
-        LDA.L $802800 ; clock hours 1s
-        AND #$0F
-        STA $09
-        LDA.L $802800 ; clock hours 10s
-        AND #$0F
-        STA $0A
-        LDA #$78
-        STA $05
-        STA $08
-        
-        LDA [!statusbar_layout_ptr],Y
-        CMP #$01
-        BEQ .draw
-        
-        LDA #$00
-        LDX $0A
-      - BEQ +
-        CLC
-        ADC #$0A
-        DEX
-        BRA -
-      + CLC
-        ADC $09
-        CMP #$0C
-        BCC .draw
-        SEC
-        SBC #$0C
-        JSL !_F+$00974C ; hex2dec
-        STX $0A
-        STA $09
-        
-    .draw:
-        LDX #$07
-      - LDA $03,X
         STA [$00]
         INC $00
-        DEX
-        BPL -
-        BRA .done
+        LDA !rng_index+1
+        PHA
+        LSR #4
+        STA [$00]
+        INC $00
+        PLA
+        AND #$0F
+        STA [$00]
+        INC $00
+        LDA !rng_index
+        PHA
+        LSR #4
+        STA [$00]
+        INC $00
+        PLA
+        AND #$0F
+        STA [$00]
         
-    .done:
+        PLA
+        STA $00
+        
+        LDX #$00 ; replace 0's with spaces cause it looks better for a 5 digit number
+      - LDA [$00]
+        BNE +
+        LDA #$FC
+        STA [$00]
+        INC $00
+        INX
+        CPX #$04
+        BNE -
+        
+      + RTS
+        
+    .seed
+        LDA $148B
+        PHA
+        LSR #4
+        STA [$00]
+        INC $00
+        PLA
+        AND #$0F
+        STA [$00]
+        INC $00
+        LDA $148C
+        PHA
+        LSR #4
+        STA [$00]
+        INC $00
+        PLA
+        AND #$0F
+        STA [$00]
+        RTS
+    .value
+        LDA $148D
+        PHA
+        LSR #4
+        STA [$00]
+        INC $00
+        PLA
+        AND #$0F
+        STA [$00]
+        INC $00
+        LDA $148E
+        PHA
+        LSR #4
+        STA [$00]
+        INC $00
+        PLA
+        AND #$0F
+        STA [$00]
         RTS
         
 ; slow down the game depending on how large the slowdown number is
@@ -2648,6 +2654,23 @@ play_input:
         PLP
         RTL
         
+count_rng_index:
+        REP #$21            ; 16bit, C=0
+        LDA $148B           ; seed
+        BNE +
+        STZ !rng_index		; if seed is zero, reset index
+        STZ !rng_index+1
+      + SED
+        LDA !rng_index
+        ADC #$0001
+        STA !rng_index
+        SEP #$20            ; 8bit
+        LDA !rng_index+2
+        ADC #$00
+        STA !rng_index+2
+        CLD
+        JML !_F+$01AD07
+
 incsrc "region_differences.asm"
 
 print "inserted ", bytes, "/32768 bytes into bank $15"

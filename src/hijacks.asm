@@ -495,6 +495,10 @@ ORG !_F+$01AAAC
         JSL set_shell_speed_lda
         NOP
 
+; count rng index
+ORG !_F+$01ACFC
+        JSL count_rng_index
+
 ; roulette item speed
 ORG !_F+$01C31C
         JSL set_roulette_speed

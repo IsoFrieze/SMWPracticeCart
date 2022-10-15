@@ -124,6 +124,12 @@ setup_room_reset:
         STA $D2 ; mario x position high byte
         LDA !restore_room_tide
         STA $1B9D ; layer 3 tide timer
+        LDA !restore_room_rng_index
+        STA !rng_index
+        LDA !restore_room_rng_index+1
+        STA !rng_index+1
+        LDA !restore_room_rng_index+2
+        STA !rng_index+2
         
         LDX #$03
       - LDA !restore_room_boo_ring,X
@@ -178,6 +184,9 @@ setup_level_reset:
         LDA !restore_level_xpos+1
         STA $D2 ; mario x position high byte
         STZ $1B9D ; layer 3 tide timer
+        STZ !rng_index
+        STZ !rng_index+1
+        STZ !rng_index+2
         
         ; set msb so it's not 00, which is a special case for entering the level
         ; we'll turn this byte into fnnnnnnn, f = 0 if just entered level, n = sublevel count
@@ -326,6 +335,12 @@ save_room_properties:
         DEX
         BPL -
         
+        LDA !rng_index
+        STA !restore_room_rng_index
+        LDA !rng_index+1
+        STA !restore_room_rng_index+1
+        LDA !rng_index+2
+        STA !restore_room_rng_index+2
         LDA !level_timer_minutes
         STA !restore_level_timer_minutes
         LDA !level_timer_seconds
@@ -754,7 +769,7 @@ init_statusbar_properties:
         dw .movie_recording
         dw .memory_7e
         dw .memory_7f
-        dw .rtc
+        dw .rng
         
     .mario_speed:
         LDA #$2C
@@ -853,9 +868,13 @@ init_statusbar_properties:
         LDA.L name_colors,X
         JMP .store_4
     
-    .rtc:
-        LDA #$2C
-        JMP .store_8
+    .rng:
+        LDA [!statusbar_layout_ptr],Y
+        PHP
+        LDA #$38
+        PLP
+        BEQ .store_5
+        JMP .store_4
         
     .store_8:
         STA [$00]
