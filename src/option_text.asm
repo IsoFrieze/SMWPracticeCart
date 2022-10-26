@@ -241,7 +241,7 @@ meter_names:
         db "RECORD LIMIT    "
         db "MEMORY VIEWER   "
         db "MEMORY VIEWER   "
-        db "REALTIME CLOCK  "
+        db "RANDOM NUMBER   "
 
 meter_types:
         dw meter_text_none
@@ -263,7 +263,7 @@ meter_types:
         dw meter_text_record
         dw meter_text_none
         dw meter_text_none
-        dw meter_text_rtc
+        dw meter_text_rng
         
 meter_text_none:
         db "                "
@@ -298,10 +298,10 @@ meter_text_name:
 meter_text_record:
         db "    VISUAL      "
         db "   NUMERIC      "
-meter_text_rtc:
-        db "   UP-TIME      "
-        db "   24-HOUR      "
-        db "   12-HOUR      "
+meter_text_rng:
+        db "     INDEX      "
+        db "     VALUE      "
+        db "      SEED      "
 
 meter_description:
         db "                                "
@@ -380,7 +380,7 @@ meter_description:
         db "  WORK RAM AT THIS ADDRESS      "
         db "  OF BANK 7Fh                   "
         db "                                "
-        db "  CLOCK ONLY AVAILABLE ON RTC   "
-        db "  ENABLED SYSTEMS               "
-        db "                                "
-        db "  UP-TIME SINCE POWER ON        "
+        db "  DISPLAYS THE CURRENTLY        "
+        db "  HELD VALUE ON THE             "
+        db "  RANDOM NUMBER GENERATOR       "
+        db "  OR INDEX OF THE VALUE         "
