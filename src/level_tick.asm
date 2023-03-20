@@ -2168,7 +2168,7 @@ draw_bowser_timer:
         STA !sbbowser_roomtimer+2+(4*3)
         LDA #$00;.L !status_fractions
         BEQ .draw_room_fractions
-        LDA !level_timer_frames
+        LDA !room_timer_frames
         JSR hex_to_bowser
         STX !sbbowser_roomtimer+2+(4*5)
         STA !sbbowser_roomtimer+2+(4*6)
@@ -2176,7 +2176,7 @@ draw_bowser_timer:
         STA !sbbowser_roomtimer+2+(4*4)
         JMP .set_room_positions
     .draw_room_fractions:
-        LDX !level_timer_frames
+        LDX !room_timer_frames
         LDA fractional_seconds,X
         JSR hex_to_bowser
         STX !sbbowser_roomtimer+2+(4*5)
@@ -2264,7 +2264,7 @@ draw_bowser_timer:
         STA !sbbowser_pausetimer+2+(4*3)
         LDA #$00;.L !status_fractions
         BEQ .draw_pause_fractions
-        LDA !level_timer_frames
+        LDA !pause_timer_frames
         JSR hex_to_bowser
         STX !sbbowser_pausetimer+2+(4*5)
         STA !sbbowser_pausetimer+2+(4*6)
@@ -2272,7 +2272,7 @@ draw_bowser_timer:
         STA !sbbowser_pausetimer+2+(4*4)
         JMP .set_pause_positions
     .draw_pause_fractions:
-        LDX !level_timer_frames
+        LDX !pause_timer_frames
         LDA fractional_seconds,X
         JSR hex_to_bowser
         STX !sbbowser_pausetimer+2+(4*5)
