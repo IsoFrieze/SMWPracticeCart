@@ -1095,7 +1095,6 @@ restore_all_tilemaps:
         
         LDX #$09
         JSL !_F+$03DD7D
-        JSL upload_bowser_timer_graphics
         JMP .no_mode7
         
     .no_mode7:
