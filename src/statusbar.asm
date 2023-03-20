@@ -81,7 +81,9 @@ ORG !_F+$00A5A8
         JSR DMA_Status_Bar
 ORG !_F+$0081F4
         JSR DMA_Status_Bar_Tiles
-ORG !_F+$0082E8
+ORG !_F+$0082E6
+        NOP
+        NOP
         JSR DMA_Status_Bar_Tiles
     
 ; disable all the old status bar counters

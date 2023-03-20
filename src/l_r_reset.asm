@@ -626,7 +626,18 @@ restore_hardware_regs:
         STA $210B ; bg12nba
         LDA #$04
         STA $210C ; bg34nba
-        RTS
+        
+        LDA $0D9B ; boss flag
+        CMP #$C1 ; bowser fight
+        BNE +
+        LDA #$48
+        STA $2112 ; HW_BG3VOFS
+        LDA #$03
+        STA $2112 ; HW_BG3VOFS
+        LDA #$BF
+        STA $4209 ; HW_VTIME
+        STZ $420A ; HW_VTIME+1
+      + RTS
         
 vram_locations:
         dw $7800,$7000,$6800,$6000

@@ -46,7 +46,11 @@ ORG !_F+$05C424
 ; disable yoshi message
 ORG !_F+$01EC36
         db $80
-        
+
+; enable IRQ for bowser fight
+ORG !_F+$008358
+        db #$A1
+
 ; increase size of status bar
 ORG !_F+$008293
         db #$26

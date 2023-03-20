@@ -199,6 +199,9 @@ display_meters:
 
 ; draw the item box meter (fixed position)
 meter_item_box:
+        LDA $0D9B ; boss flag
+        CMP #$C1 ; bowser fight
+        BEQ +
         LDA #$3A
         STA !status_bar+$2E
         STA !status_bar+$31
@@ -214,7 +217,7 @@ meter_item_box:
         STA !status_bar+$51
         STA !status_bar+$6E
         STA !status_bar+$71
-        RTS
+      + RTS
 
 ; draw the mario speed meter
 meter_mario_speed:
