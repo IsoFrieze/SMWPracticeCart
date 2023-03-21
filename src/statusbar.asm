@@ -81,14 +81,14 @@ ORG !_F+$00A5A8
         JSR DMA_Status_Bar
 ORG !_F+$0081F4
         JSR DMA_Status_Bar_Tiles
-ORG !_F+$0082E8
+ORG !_F+$0082E6
+        NOP
+        NOP
         JSR DMA_Status_Bar_Tiles
     
 ; disable all the old status bar counters
 ; lives, coins, score, bonus stars, dragon coins
-; also draw the bowser timer
 ORG !_F+$008E81
-        JSL draw_bowser_timer
         JMP $8F1D
 ORG !_F+$008F3B
         JSR $9079 ; draw item in itembox

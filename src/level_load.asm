@@ -530,51 +530,6 @@ load_slots_graphics:
         PLP
         RTL
 
-; upload the tiles used for the timer during the bowser fight
-upload_bowser_timer_graphics:
-        PHP
-        SEP #$20
-        REP #$10
-        
-        LDA $0D9B ; boss flag
-        CMP #$C1
-        BNE .done
-        
-        LDA #$80
-        STA $2100 ; force blank
-        STZ $4200 ; nmi disable
-        
-        LDA #$80
-        STA $2115 ; vram properties
-        PHK
-        PLA
-        LDY #$0140
-        LDX #$6A80
-        STX $2116 ; vram address
-        LDX #sprite_slots_graphics
-        JSL load_vram
-        
-        LDY #$00C0
-        LDX #$6B80
-        STX $2116 ; vram address
-        LDX #sprite_slots_graphics+$140
-        JSL load_vram
-        
-        LDY #$0080
-        LDX #$6980
-        STX $2116 ; vram address
-        LDX #sprite_slots_graphics+$200
-        JSL load_vram
-        
-        LDA #$81
-        STA $4200 ; nmi enable
-        LDA #$0F
-        STA $2100 ; exit force blank
-        
-    .done:
-        PLP
-        RTL
-        
 sprite_slots_graphics:
         incbin "bin/sprite_slots_graphics.bin"
 
