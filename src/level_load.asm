@@ -530,8 +530,8 @@ load_slots_graphics:
         PLP
         RTL
 
-; upload the tiles used for the timer during the bowser fight
-upload_bowser_timer_graphics:
+; upload the tiles used for the bowser fight
+upload_bowser_graphics:
         PHP
         SEP #$20
         REP #$10
@@ -549,6 +549,18 @@ upload_bowser_timer_graphics:
         PHK
         PLA
         
+        LDY #$0180
+        LDX #$5AE0
+        STX $2116 ; vram address
+        LDX #bowser_layer1_tilemap
+        JSL load_vram
+        
+        LDY #$0800
+        LDX #$7C00
+        STX $2116 ; vram address
+        LDX #bowser_layer2_tiles
+        JSL load_vram
+        
         LDA #$81
         STA $4200 ; nmi enable
         LDA #$0F
@@ -560,6 +572,12 @@ upload_bowser_timer_graphics:
         
 sprite_slots_graphics:
         incbin "bin/sprite_slots_graphics.bin"
+
+bowser_layer1_tilemap:
+        incbin "bin/bowser_layer1_tilemap.bin"
+
+bowser_layer2_tiles:
+        incbin "bin/bowser_layer2_tiles.bin"
 
 ; fix the graphics upload routine for reznor, iggy, & larry
 ; this really should have been done already, they were just lucky that
