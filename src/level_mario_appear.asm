@@ -20,6 +20,7 @@ level_mario_appear:
         STA $4209 ; HW_VTIME
         STZ $420A ; HW_VTIME+1
 
+        JSL upload_bowser_timer_graphics
       + JSR playback_buffered_inputs
         JSR try_midway_advance
         RTL
