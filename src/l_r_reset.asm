@@ -634,7 +634,7 @@ restore_hardware_regs:
         STA $2112 ; HW_BG3VOFS
         LDA #$03
         STA $2112 ; HW_BG3VOFS
-        LDA #$BF
+        LDA #$B7
         STA $4209 ; HW_VTIME
         STZ $420A ; HW_VTIME+1
       + RTS
