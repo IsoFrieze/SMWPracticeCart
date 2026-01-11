@@ -548,23 +548,6 @@ upload_bowser_timer_graphics:
         STA $2115 ; vram properties
         PHK
         PLA
-        LDY #$0140
-        LDX #$6A80
-        STX $2116 ; vram address
-        LDX #sprite_slots_graphics
-        JSL load_vram
-        
-        LDY #$00C0
-        LDX #$6B80
-        STX $2116 ; vram address
-        LDX #sprite_slots_graphics+$140
-        JSL load_vram
-        
-        LDY #$0080
-        LDX #$6980
-        STX $2116 ; vram address
-        LDX #sprite_slots_graphics+$200
-        JSL load_vram
         
         LDA #$81
         STA $4200 ; nmi enable

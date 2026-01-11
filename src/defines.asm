@@ -177,17 +177,8 @@
 ; the entire revamped status bar
 !status_bar                  = $1F30 ; 160 bytes
 
-!sbbowser_leveltimer         = $0258 ; 7x4 bytes
-!sbbowser_leveltimer_2       = $0436 ; 7 bytes
-!sbbowser_roomtimer          = $03A0 ; 7x4 bytes
-!sbbowser_roomtimer_2        = $0488 ; 7 bytes
-!sbbowser_pausetimer         = $02C0 ; 7x4 bytes
-!sbbowser_pausetimer_2       = $0450 ; 7 bytes
-
 ; oam slots for added objects
 !oam_slot_sprite_slots       = $2C
-!oam_slot_bowser_level_timer = $30
-!oam_slot_bowser_room_timer  = $68
 
 ; translevels that have swapped exits
 !translevel_swap_exit_A      = $04 ; dgh
