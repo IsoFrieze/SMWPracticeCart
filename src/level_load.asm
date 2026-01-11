@@ -626,6 +626,22 @@ do_final_loading:
         STZ !l_r_function
         RTL
 
+prepare_level_palette:
+        LDA $13FC       ; ActiveBoss
+        CMP #$03        ; Bowser
+        BNE +
+
+        PHB
+        REP #$30
+        LDA #$0007
+        LDX #$B178      ; StatusBarColors+$08
+        LDY #$071B      ; MainPalette+$018
+        MVN $7E,!_F>>16
+        SEP #$30
+        PLB
+
+      + RTL
+
 ; at the very end of level loading, latch the apu timer and calculate the load time
 calculate_load_time:
         REP #$20

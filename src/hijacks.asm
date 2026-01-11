@@ -47,6 +47,9 @@ overworld_load_hijack:
         JSR $937D
         JSL overworld_load
         RTS
+prepare_level_palette_hijack:
+        JSL prepare_level_palette
+        JMP $922F
         
 ; run every frame on overworld
 ORG !_F+$00A1C3
@@ -538,6 +541,8 @@ ORG !_F+$03A450
 ORG !_F+$03A47C
         JSL pal_bowser_2
         NOP
+ORG !_F+$00A5CF
+        JSR prepare_level_palette_hijack
 ORG !_F+$03AB79
         JSL pal_bowser_3
 ORG !_F+$03ABB4
