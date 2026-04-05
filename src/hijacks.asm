@@ -312,6 +312,8 @@ ORG !_F+$0084F4
         dl stripe_deleted
 
 ; fix reznor/iggy/larry graphics upload
+ORG !_F+$00996D
+        LDY #$FF80
 ORG !_F+$00AB4A
         JSL fix_iggy_larry_graphics
         NOP #2

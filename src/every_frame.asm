@@ -23,22 +23,41 @@ every_frame:
         
 update_lagometer:
         LDA.L !status_lagometer
-        BEQ +
+        BEQ .done
         LDA $0100 ; game mode
         CMP #$14
-        BNE +
+        BNE .done
+        
+        LDA $0D9B ; boss flag
+        CMP #$C1 ; bowser fight
+        BEQ .bowser
         
         LDA #$04
-        STA $0200 ; xpos
+        STA $0204 ; xpos
         LDA !lagometer_line
-        STA $0201 ; ypos
+        STA $0205 ; ypos
         LDA #$3D
-        STA $0202 ; tile
+        STA $0206 ; tile
         LDA #$38
-        STA $0203 ; prop
-        STZ $0420 ; size
+        STA $0207 ; prop
+        LDA #$0C
+        TRB $0400 ; size
+        BRA .done
         
-      + STZ $4300
+    .bowser
+        LDA #$04
+        STA $0214 ; xpos
+        LDA !lagometer_line
+        STA $0215 ; ypos
+        LDA #$3D
+        STA $0216 ; tile
+        LDA #$38
+        STA $0217 ; prop
+        LDA #$0C
+        TRB $0421 ; size
+        
+    .done
+        STZ $4300
         REP #$20
         RTL
         
