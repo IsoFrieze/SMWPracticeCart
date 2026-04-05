@@ -99,6 +99,18 @@ ORG !_F+$009F37
 ORG !_F+$0096D5
         JSR level_load_hijack
 
+; run when setting mode7 x,y position
+ORG !_F+$0083F9
+        JSL mode7_xy
+
+; run when setting layer 1 y position
+ORG !_F+$008416
+        NOP #5
+        LDA #$77
+ORG !_F+$00842A
+        JSL layer_1_y
+        RTS
+
 ; run when setting layer 3 y position
 ORG !_F+$0082AA
         NOP #2
@@ -565,9 +577,10 @@ ORG !_F+$03B193
         NOP #2
     ORG !_F+$03B1C5
             pal_bowser_c:
-ORG !_F+$03B4BF
-        JSL pal_bowser_7
-        NOP
+ORG !_F+$03B4B6
+        JSL bowser_scene_gfx
+        LDX #$05
+        JMP $B4F4
 ORG !_F+$03B503
         JSL pal_bowser_8
 ORG !_F+$03B53D

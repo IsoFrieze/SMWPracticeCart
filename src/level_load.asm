@@ -550,7 +550,7 @@ upload_bowser_graphics:
         PLA
         
         LDY #$0180
-        LDX #$5AE0
+        LDX #$56E0
         STX $2116 ; vram address
         LDX #bowser_layer1_tilemap
         JSL load_vram

@@ -12,6 +12,10 @@ level_mario_appear:
         STA $11 ; IRQType
         LDA #$09
         STA $3E ; MainBGMode
+        LDA #$54
+        STA $2107 ; HW_BG1SC
+        LDA #$59
+        STA $2108 ; HW_BG2SC
         LDA #$48
         STA $2112 ; HW_BG3VOFS
         LDA #$03
@@ -19,6 +23,8 @@ level_mario_appear:
         LDA #$B7
         STA $4209 ; HW_VTIME
         STZ $420A ; HW_VTIME+1
+        STZ !bowser_layer1_y_pos
+        STZ !bowser_layer1_y_pos+1
 
         JSL upload_bowser_graphics
       + JSR playback_buffered_inputs

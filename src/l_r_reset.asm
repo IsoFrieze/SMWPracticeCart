@@ -630,6 +630,10 @@ restore_hardware_regs:
         LDA $0D9B ; boss flag
         CMP #$C1 ; bowser fight
         BNE +
+        LDA #$54
+        STA $2107 ; HW_BG1SC
+        LDA #$59
+        STA $2108 ; HW_BG2SC
         LDA #$48
         STA $2112 ; HW_BG3VOFS
         LDA #$03
@@ -637,6 +641,8 @@ restore_hardware_regs:
         LDA #$B7
         STA $4209 ; HW_VTIME
         STZ $420A ; HW_VTIME+1
+        STZ !bowser_layer1_y_pos
+        STZ !bowser_layer1_y_pos+1
       + RTS
         
 vram_locations:

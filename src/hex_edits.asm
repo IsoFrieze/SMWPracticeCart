@@ -273,3 +273,7 @@ ORG !_F+$0083C7
 ORG !_F+$00843A
         db #$2B ;was #$20, for setting mode 7 bg position
 endif
+
+; main screen setting for Bowser level
+ORG !_F+$058447
+        db $17
