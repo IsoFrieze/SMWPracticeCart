@@ -1150,6 +1150,18 @@ pal_bowser_6:
         SEC
       + RTL
       
+pal_bowser_7:
+        PHX
+        LDA.L !status_region
+        TAX
+        LDA.L pal_bowser_data_6,X
+        PLX
+        CLC
+        ADC #$10
+        SEC
+        SBC $1C ; layer 1 y pos
+        RTL
+        
 pal_bowser_8:
         PHX
         LDA.L !status_region

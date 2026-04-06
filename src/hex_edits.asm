@@ -279,5 +279,7 @@ ORG !_F+$058447
         db $17
 
 ; OAM index for the roof tiles
+ORG !_F+$03B4F3
+        db $05
 ORG !_F+$03B4F9
         db $18

@@ -579,10 +579,11 @@ ORG !_F+$03B193
         NOP #2
     ORG !_F+$03B1C5
             pal_bowser_c:
-ORG !_F+$03B4B6
+ORG !_F+$03B4AD
         JSL bowser_scene_gfx
-        LDX #$05
-        JMP $B4F4
+ORG !_F+$03B4BF
+        JSL pal_bowser_7
+        NOP
 ORG !_F+$03B503
         JSL pal_bowser_8
 ORG !_F+$03B53D

@@ -2473,6 +2473,8 @@ bowser_scene_gfx:
         SEP #$30
         
     .done
+        LDY #$BC
+        STZ $01
         RTL
         
     .mouse_left:
