@@ -57,6 +57,10 @@
 !restore_room_xpos           = $19F3 ; 2 bytes, 16-bit value
 !restore_room_dragoncoins    = $19F5
 !restore_room_tide           = $19F6
+!restore_room_rng_index      = $0DDB ; 3 bytes
+
+; rng index
+!rng_index                   = $1487 ; 3 bytes
 
 ; determines when to load state from different level
 !load_state_timer            = $0EF9

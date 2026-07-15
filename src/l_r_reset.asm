@@ -73,19 +73,107 @@ activate_level_reset:
         
         RTL
         
-; copy timer from apu and put it in the rng value and effective frame counter to shuffle them
+; copy timer from apu and put it in the rng index and effective frame counter to shuffle them
 shuffle_rng_and_framerule:
         PHP
-        REP #$20
+        PHB
+        PHK
+        PLB
         
-      - LDA $2140 ; get apu timer and put it in room frame and rng
-        BEQ -
+        ; get apu timer and use the remainder of dividing by 128x217 as the index
+        REP #$30
+        LDA $2140           ; apu timer
+        CMP #$6C80          ; 128x217
+        BCC +
+        SBC #$6C80
+        CMP #$6C80
+        BCC +
+        SBC #$6C80
+      + PHA
         
-        STA $148B ; rng calc
+        ; convert index to BCD
+        SEP #$10
+        LDX #$0A
+        STA $4204           ; dividend
+        STX $4206           ; divisor
+        NOP #8
+        LDY $4216           ; div remainder
+        STY !rng_index
+        LDA $4214           ; div result
+        STA $4204           ; dividend
+        STX $4206           ; divisor
+        NOP #8
+        LDA $4216           ; div remainder
+        ASL #4
+        TSB !rng_index
+        LDA $4214           ; div result
+        STA $4204           ; dividend
+        STX $4206           ; divisor
+        NOP #8
+        LDY $4216           ; div remainder
+        STY !rng_index+1
+        LDA $4214           ; div result
+        STA $4204           ; dividend
+        STX $4206           ; divisor
+        NOP #8
+        LDA $4216           ; div remainder
+        ASL #4
+        TSB !rng_index+1
+        LDY $4214           ; div result
+        STY !rng_index+2
+        
+        ; determine the seed value and get random number
+        PLA
+        LDX #$D9            ; 217
+        STA $4204           ; dividend
+        STX $4206           ; divisor
         SEP #$20
-        STA $14 ; effective frame
+        AND #$7F
+        TAY
+        LDA seed1,Y
+        STA $148B           ; RNGCalc[0] = seed1[index % 128]
+        NOP
+        LDY $4216           ; div remainder
+        LDA seed2,Y
+        STA $148C           ; RNGCalc[1] = seed2[index % 217]
+        JSL !_F+$01ACF9     ; GetRand
+        
+        ; get apu timer and put it in room frame
+      - LDA $2140           ; apu timer
+        BEQ -
+        STA $14             ; effective frame
+        
+        PLB
         PLP
         RTS
+
+; possible values for $148B (128 values)
+seed1:
+        db $00,$06,$9C,$42,$78,$BE,$94,$7A,$F0,$76,$8C,$B2,$68,$2E,$84,$EA
+        db $E0,$E6,$7C,$22,$58,$9E,$74,$5A,$D0,$56,$6C,$92,$48,$0E,$64,$CA
+        db $C0,$C6,$5C,$02,$38,$7E,$54,$3A,$B0,$36,$4C,$72,$28,$EE,$44,$AA
+        db $A0,$A6,$3C,$E2,$18,$5E,$34,$1A,$90,$16,$2C,$52,$08,$CE,$24,$8A
+        db $80,$86,$1C,$C2,$F8,$3E,$14,$FA,$70,$F6,$0C,$32,$E8,$AE,$04,$6A
+        db $60,$66,$FC,$A2,$D8,$1E,$F4,$DA,$50,$D6,$EC,$12,$C8,$8E,$E4,$4A
+        db $40,$46,$DC,$82,$B8,$FE,$D4,$BA,$30,$B6,$CC,$F2,$A8,$6E,$C4,$2A
+        db $20,$26,$BC,$62,$98,$DE,$B4,$9A,$10,$96,$AC,$D2,$88,$4E,$A4,$0A
+
+; possible values for $148C (217 values)
+seed2:
+        db $00,$03,$0F,$3E,$F8,$E3,$8C,$30,$C1,$04,$13,$4D,$37,$DD,$77,$DC
+        db $73,$CC,$31,$C5,$14,$51,$44,$12,$49,$27,$9F,$7E,$F9,$E7,$9C,$72
+        db $C8,$21,$87,$1D,$74,$D0,$42,$0A,$2A,$AA,$A8,$A0,$81,$05,$17,$5D
+        db $75,$D4,$52,$48,$23,$8F,$3C,$F0,$C2,$08,$22,$8B,$2C,$B2,$CB,$2D
+        db $B6,$DB,$6F,$BF,$FE,$FB,$EF,$BD,$F6,$DA,$6B,$AF,$BC,$F2,$CA,$29
+        db $A6,$99,$66,$9A,$6A,$AB,$AC,$B0,$C3,$0C,$32,$C9,$25,$97,$5F,$7D
+        db $F5,$D6,$5A,$69,$A7,$9D,$76,$D8,$63,$8E,$38,$E0,$80,$01,$07,$1F
+        db $7C,$F1,$C6,$18,$60,$82,$09,$26,$9B,$6E,$BB,$EE,$B9,$E6,$98,$62
+        db $8A,$28,$A2,$89,$24,$93,$4F,$3F,$FC,$F3,$CE,$39,$E4,$90,$43,$0E
+        db $3A,$E8,$A1,$85,$15,$55,$54,$50,$40,$02,$0B,$2E,$BA,$EA,$A9,$A4
+        db $91,$47,$1E,$78,$E1,$84,$11,$45,$16,$59,$65,$96,$5B,$6D,$B7,$DF
+        db $7F,$FD,$F7,$DE,$7B,$ED,$B5,$D7,$5E,$79,$E5,$94,$53,$4C,$33,$CD
+        db $35,$D5,$56,$58,$61,$86,$19,$64,$92,$4B,$2F,$BE,$FA,$EB,$AD,$B4
+        db $D3,$4E,$3B,$EC,$B1,$C7,$1C,$70,$C0
 
 ; this code is run when the player presses L + R + X + Y in a level to advance to the next room
 activate_room_advance:
