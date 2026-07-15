@@ -626,7 +626,24 @@ restore_hardware_regs:
         STA $210B ; bg12nba
         LDA #$04
         STA $210C ; bg34nba
-        RTS
+        
+        LDA $0D9B ; boss flag
+        CMP #$C1 ; bowser fight
+        BNE +
+        LDA #$54
+        STA $2107 ; HW_BG1SC
+        LDA #$59
+        STA $2108 ; HW_BG2SC
+        LDA #$48
+        STA $2112 ; HW_BG3VOFS
+        LDA #$03
+        STA $2112 ; HW_BG3VOFS
+        LDA #$B7
+        STA $4209 ; HW_VTIME
+        STZ $420A ; HW_VTIME+1
+        STZ !bowser_layer1_y_pos
+        STZ !bowser_layer1_y_pos+1
+      + RTS
         
 vram_locations:
         dw $7800,$7000,$6800,$6000
@@ -1101,7 +1118,7 @@ restore_all_tilemaps:
         
         LDX #$09
         JSL !_F+$03DD7D
-        JSL upload_bowser_timer_graphics
+        JSL upload_bowser_graphics
         JMP .no_mode7
         
     .no_mode7:

@@ -530,8 +530,8 @@ load_slots_graphics:
         PLP
         RTL
 
-; upload the tiles used for the timer during the bowser fight
-upload_bowser_timer_graphics:
+; upload the tiles used for the bowser fight
+upload_bowser_graphics:
         PHP
         SEP #$20
         REP #$10
@@ -548,22 +548,17 @@ upload_bowser_timer_graphics:
         STA $2115 ; vram properties
         PHK
         PLA
-        LDY #$0140
-        LDX #$6A80
+        
+        LDY #$0180
+        LDX #$56E0
         STX $2116 ; vram address
-        LDX #sprite_slots_graphics
+        LDX #bowser_layer1_tilemap
         JSL load_vram
         
-        LDY #$00C0
-        LDX #$6B80
+        LDY #$0800
+        LDX #$7C00
         STX $2116 ; vram address
-        LDX #sprite_slots_graphics+$140
-        JSL load_vram
-        
-        LDY #$0080
-        LDX #$6980
-        STX $2116 ; vram address
-        LDX #sprite_slots_graphics+$200
+        LDX #bowser_layer2_tiles
         JSL load_vram
         
         LDA #$81
@@ -577,6 +572,12 @@ upload_bowser_timer_graphics:
         
 sprite_slots_graphics:
         incbin "bin/sprite_slots_graphics.bin"
+
+bowser_layer1_tilemap:
+        incbin "bin/bowser_layer1_tilemap.bin"
+
+bowser_layer2_tiles:
+        incbin "bin/bowser_layer2_tiles.bin"
 
 ; fix the graphics upload routine for reznor, iggy, & larry
 ; this really should have been done already, they were just lucky that
@@ -624,6 +625,22 @@ do_final_loading:
         
         STZ !l_r_function
         RTL
+
+prepare_level_palette:
+        LDA $13FC       ; ActiveBoss
+        CMP #$03        ; Bowser
+        BNE +
+
+        PHB
+        REP #$30
+        LDA #$0007
+        LDX #$B178      ; StatusBarColors+$08
+        LDY #$071B      ; MainPalette+$018
+        MVN $7E,!_F>>16
+        SEP #$30
+        PLB
+
+      + RTL
 
 ; at the very end of level loading, latch the apu timer and calculate the load time
 calculate_load_time:

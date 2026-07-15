@@ -46,7 +46,11 @@ ORG !_F+$05C424
 ; disable yoshi message
 ORG !_F+$01EC36
         db $80
-        
+
+; enable IRQ for bowser fight
+ORG !_F+$008358
+        db #$A1
+
 ; increase size of status bar
 ORG !_F+$008293
         db #$26
@@ -269,3 +273,13 @@ ORG !_F+$0083C7
 ORG !_F+$00843A
         db #$2B ;was #$20, for setting mode 7 bg position
 endif
+
+; main screen setting for Bowser level
+ORG !_F+$058447
+        db $17
+
+; OAM index for the roof tiles
+ORG !_F+$03B4F3
+        db $05
+ORG !_F+$03B4F9
+        db $18

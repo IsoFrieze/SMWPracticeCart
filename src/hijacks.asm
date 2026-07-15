@@ -47,6 +47,9 @@ overworld_load_hijack:
         JSR $937D
         JSL overworld_load
         RTS
+prepare_level_palette_hijack:
+        JSL prepare_level_palette
+        JMP $922F
         
 ; run every frame on overworld
 ORG !_F+$00A1C3
@@ -90,6 +93,18 @@ ORG !_F+$009F37
 ; run on level load in between game modes
 ORG !_F+$0096D5
         JSR level_load_hijack
+
+; run when setting mode7 x,y position
+ORG !_F+$0083F9
+        JSL mode7_xy
+
+; run when setting layer 1 y position
+ORG !_F+$008416
+        NOP #5
+        LDA #$77
+ORG !_F+$00842A
+        JSL layer_1_y
+        RTS
 
 ; run when setting layer 3 y position
 ORG !_F+$0082AA
@@ -292,6 +307,8 @@ ORG !_F+$0084F4
         dl stripe_deleted
 
 ; fix reznor/iggy/larry graphics upload
+ORG !_F+$00996D
+        LDY #$FF80
 ORG !_F+$00AB4A
         JSL fix_iggy_larry_graphics
         NOP #2
@@ -532,6 +549,8 @@ ORG !_F+$03A450
 ORG !_F+$03A47C
         JSL pal_bowser_2
         NOP
+ORG !_F+$00A5CF
+        JSR prepare_level_palette_hijack
 ORG !_F+$03AB79
         JSL pal_bowser_3
 ORG !_F+$03ABB4
@@ -554,6 +573,8 @@ ORG !_F+$03B193
         NOP #2
     ORG !_F+$03B1C5
             pal_bowser_c:
+ORG !_F+$03B4AD
+        JSL bowser_scene_gfx
 ORG !_F+$03B4BF
         JSL pal_bowser_7
         NOP

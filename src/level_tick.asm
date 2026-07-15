@@ -199,6 +199,9 @@ display_meters:
 
 ; draw the item box meter (fixed position)
 meter_item_box:
+        LDA $0D9B ; boss flag
+        CMP #$C1 ; bowser fight
+        BEQ +
         LDA #$3A
         STA !status_bar+$2E
         STA !status_bar+$31
@@ -214,7 +217,7 @@ meter_item_box:
         STA !status_bar+$51
         STA !status_bar+$6E
         STA !status_bar+$71
-        RTS
+      + RTS
 
 ; draw the mario speed meter
 meter_mario_speed:
@@ -2042,339 +2045,6 @@ display_replay_star:
         
       + RTS
 
-; draw the level and room timers, but on the sprite layer instead if in the bowser fight
-draw_bowser_timer:
-        LDA $0D9B ; boss flag
-        CMP #$C1 ; bowser fight
-        BEQ +
-        RTL
-        
-      + PHB
-        PHK
-        PLB
-        
-        LDA #$69 ; empty tile
-        STA !sbbowser_leveltimer+2-(4*1)
-        LDA.L !spliced_run
-        BNE +
-        LDA $13 ; true frame
-        AND #%00100000
-        BEQ +
-        LDA #$98 ; clock icon
-        STA !sbbowser_leveltimer+2-(4*1)
-      + LDA #$00;.L !status_fractions
-        CMP #$02
-        BEQ .draw_level_framecount
-        LDA !level_timer_minutes
-        JSR hex_to_bowser
-        STA !sbbowser_leveltimer+2+(4*0)
-        LDA !level_timer_seconds
-        JSR hex_to_bowser
-        STX !sbbowser_leveltimer+2+(4*2)
-        STA !sbbowser_leveltimer+2+(4*3)
-        LDA #$00;.L !status_fractions
-        BEQ .draw_level_fractions
-        LDA !level_timer_frames
-        JSR hex_to_bowser
-        STX !sbbowser_leveltimer+2+(4*5)
-        STA !sbbowser_leveltimer+2+(4*6)
-        LDA #$99
-        STA !sbbowser_leveltimer+2+(4*4)
-        JMP .set_level_positions
-    .draw_level_fractions:
-        LDX !level_timer_frames
-        LDA fractional_seconds,X
-        JSR hex_to_bowser
-        STX !sbbowser_leveltimer+2+(4*5)
-        STA !sbbowser_leveltimer+2+(4*6)
-        LDA #$9A
-        STA !sbbowser_leveltimer+2+(4*4)
-    .set_level_positions:
-        LDA #$99
-        STA !sbbowser_leveltimer+2+(4*1)
-        JMP .level_attr
-    .draw_level_framecount:
-        LDA !level_timer_frames
-        STA $00
-        STZ $01
-        LDA #$3C ; frames in a second
-        STA $4202 ; mult A
-        LDA !level_timer_seconds
-        STA $4203 ; mult B
-        REP #$20
-        LDA #$0000
-        LDX !level_timer_minutes
-      - BEQ +
-        CLC
-        ADC #$0E10 ; frames in a minute
-        DEX
-        BRA -
-      + CLC
-        ADC $4216 ; mult result
-        CLC
-        ADC $00
-        SEP #$20
-        PHA
-        AND #$0F
-        JSR dec_to_bowser
-        STA !sbbowser_leveltimer+2+(4*4)
-        PLA
-        LSR #4
-        JSR dec_to_bowser
-        STA !sbbowser_leveltimer+2+(4*3)
-        XBA
-        PHA
-        AND #$0F
-        JSR dec_to_bowser
-        STA !sbbowser_leveltimer+2+(4*2)
-        PLA
-        LSR #4
-        JSR dec_to_bowser
-        STA !sbbowser_leveltimer+2+(4*1)
-        LDA #$69
-        STA !sbbowser_leveltimer+2+(4*5)
-        STA !sbbowser_leveltimer+2+(4*0)
-        LDA #$9B
-        STA !sbbowser_leveltimer+2+(4*6) ; h
-        
-    .level_attr:
-        LDY #$07
-      - TYX
-        STZ !sbbowser_leveltimer_2-1,X
-        LDA timer_x,X
-        PHA
-        TYA
-        ASL A
-        ASL A
-        TAX
-        PLA
-        STA !sbbowser_leveltimer+0-(4*1),X
-        LDA #$08
-        STA !sbbowser_leveltimer+1-(4*1),X
-        LDA #$30
-        STA !sbbowser_leveltimer+3-(4*1),X
-        DEY
-        BPL -
-        
-        LDA #$00;.L !status_fractions
-        CMP #$02
-        BEQ .draw_room_framecount
-        LDA !room_timer_minutes
-        JSR hex_to_bowser
-        STA !sbbowser_roomtimer+2+(4*0)
-        LDA !room_timer_seconds
-        JSR hex_to_bowser
-        STX !sbbowser_roomtimer+2+(4*2)
-        STA !sbbowser_roomtimer+2+(4*3)
-        LDA #$00;.L !status_fractions
-        BEQ .draw_room_fractions
-        LDA !level_timer_frames
-        JSR hex_to_bowser
-        STX !sbbowser_roomtimer+2+(4*5)
-        STA !sbbowser_roomtimer+2+(4*6)
-        LDA #$99
-        STA !sbbowser_roomtimer+2+(4*4)
-        JMP .set_room_positions
-    .draw_room_fractions:
-        LDX !level_timer_frames
-        LDA fractional_seconds,X
-        JSR hex_to_bowser
-        STX !sbbowser_roomtimer+2+(4*5)
-        STA !sbbowser_roomtimer+2+(4*6)
-        LDA #$9A
-        STA !sbbowser_roomtimer+2+(4*4)
-    .set_room_positions:
-        LDA #$99
-        STA !sbbowser_roomtimer+2+(4*1)
-        JMP .room_attr
-    .draw_room_framecount:
-        LDA !room_timer_frames
-        STA $00
-        STZ $01
-        LDA #$3C ; frames in a second
-        STA $4202 ; mult A
-        LDA !room_timer_seconds
-        STA $4203 ; mult B
-        REP #$20
-        LDA #$0000
-        LDX !room_timer_minutes
-      - BEQ +
-        CLC
-        ADC #$0E10 ; frames in a minute
-        DEX
-        BRA -
-      + CLC
-        ADC $4216 ; mult result
-        CLC
-        ADC $00
-        SEP #$20
-        PHA
-        AND #$0F
-        JSR dec_to_bowser
-        STA !sbbowser_roomtimer+2+(4*4)
-        PLA
-        LSR #4
-        JSR dec_to_bowser
-        STA !sbbowser_roomtimer+2+(4*3)
-        XBA
-        PHA
-        AND #$0F
-        JSR dec_to_bowser
-        STA !sbbowser_roomtimer+2+(4*2)
-        PLA
-        LSR #4
-        JSR dec_to_bowser
-        STA !sbbowser_roomtimer+2+(4*1)
-        LDA #$69
-        STA !sbbowser_roomtimer+2+(4*5)
-        STA !sbbowser_roomtimer+2+(4*0)
-        LDA #$9B
-        STA !sbbowser_roomtimer+2+(4*6) ; h
-        
-    .room_attr:
-        LDY #$06
-      - TYX
-        STZ !sbbowser_roomtimer_2,X
-        INX
-        LDA timer_x,X
-        DEX
-        PHA
-        TYA
-        ASL A
-        ASL A
-        TAX
-        PLA
-        STA !sbbowser_roomtimer+0,X
-        LDA #$10
-        STA !sbbowser_roomtimer+1,X
-        LDA #$32
-        STA !sbbowser_roomtimer+3,X
-        DEY
-        BPL -
-        
-        LDA #$00;.L !status_fractions
-        CMP #$02
-        BEQ .draw_pause_framecount
-        LDA !pause_timer_minutes
-        JSR hex_to_bowser
-        STA !sbbowser_pausetimer+2+(4*0)
-        LDA !pause_timer_seconds
-        JSR hex_to_bowser
-        STX !sbbowser_pausetimer+2+(4*2)
-        STA !sbbowser_pausetimer+2+(4*3)
-        LDA #$00;.L !status_fractions
-        BEQ .draw_pause_fractions
-        LDA !level_timer_frames
-        JSR hex_to_bowser
-        STX !sbbowser_pausetimer+2+(4*5)
-        STA !sbbowser_pausetimer+2+(4*6)
-        LDA #$99
-        STA !sbbowser_pausetimer+2+(4*4)
-        JMP .set_pause_positions
-    .draw_pause_fractions:
-        LDX !level_timer_frames
-        LDA fractional_seconds,X
-        JSR hex_to_bowser
-        STX !sbbowser_pausetimer+2+(4*5)
-        STA !sbbowser_pausetimer+2+(4*6)
-        LDA #$9A
-        STA !sbbowser_pausetimer+2+(4*4)
-    .set_pause_positions:
-        LDA #$99
-        STA !sbbowser_pausetimer+2+(4*1)
-        JMP .pause_attr
-    .draw_pause_framecount:
-        LDA !pause_timer_frames
-        STA $00
-        STZ $01
-        LDA #$3C ; frames in a second
-        STA $4202 ; mult A
-        LDA !pause_timer_seconds
-        STA $4203 ; mult B
-        REP #$20
-        LDA #$0000
-        LDX !pause_timer_minutes
-      - BEQ +
-        CLC
-        ADC #$0E10 ; frames in a minute
-        DEX
-        BRA -
-      + CLC
-        ADC $4216 ; mult result
-        CLC
-        ADC $00
-        SEP #$20
-        PHA
-        AND #$0F
-        JSR dec_to_bowser
-        STA !sbbowser_pausetimer+2+(4*4)
-        PLA
-        LSR #4
-        JSR dec_to_bowser
-        STA !sbbowser_pausetimer+2+(4*3)
-        XBA
-        PHA
-        AND #$0F
-        JSR dec_to_bowser
-        STA !sbbowser_pausetimer+2+(4*2)
-        PLA
-        LSR #4
-        JSR dec_to_bowser
-        STA !sbbowser_pausetimer+2+(4*1)
-        LDA #$69
-        STA !sbbowser_pausetimer+2+(4*5)
-        STA !sbbowser_pausetimer+2+(4*0)
-        LDA #$9B
-        STA !sbbowser_pausetimer+2+(4*6) ; h
-        
-    .pause_attr:        
-        LDY #$06
-      - TYX
-        STZ !sbbowser_pausetimer_2,X
-        INX
-        LDA timer_x,X
-        DEX
-        PHA
-        TYA
-        ASL A
-        ASL A
-        TAX
-        PLA
-        STA !sbbowser_pausetimer+0,X
-        LDA #$18
-        STA !sbbowser_pausetimer+1,X
-        LDA #$3A
-        STA !sbbowser_pausetimer+3,X
-        DEY
-        BPL -
-        
-        PLB
-        RTL
-
-; the x positions of each of the tiles in the bowser timer
-timer_x:
-        db $30,$38,$40,$48,$50,$58,$60,$68
-
-; convert a hex number to decimal, then get tile numbers
-hex_to_bowser:
-        JSL !_F+$00974C ; hex2dec
-dec_to_bowser:
-        PHX
-        TAX
-        LDA bowser_numbers,X
-        PLX
-        PHA
-        LDA bowser_numbers,X
-        TAX
-        PLA
-        RTS
-        
-; tile numbers for each of the numbers 0-9 in the bowser timer
-bowser_numbers:
-        db $A8,$A9,$AA,$AB,$AC
-        db $AD,$AE,$AF,$B0,$B1
-        db $B8,$B9,$BA,$BB,$BC,$BD
-        
 ; if sprite slots are enabled, don't draw background in morton, roy, ludwig
 boss_sprite_background:
         LDA.L !status_slots
@@ -2406,7 +2076,98 @@ test_translevel_0_failsafe:
         BNE +
         JSL set_position_to_yoshis_house
       + RTS
+
+mode7_xy:
+        LDA $13FC   ; ActiveBoss
+        CMP #$03    ; Bowser
+        BNE .done
         
+        REP #$20
+        LDA $38     ; Mode7XScale/Mode7YScale
+        CMP #$2020
+        BNE .hide
+        LDA $3A     ; Mode7XPos
+        CMP #$FFF1
+        BMI .hide
+        CMP #$0130
+        BPL .hide
+        LDA $3C     ; Mode7YPos
+        CMP #$0030
+        BMI .hide
+        CMP #$010F
+        BPL .hide
+        
+        LDA $3A     ; Mode7XPos
+        SEC
+        SBC #$0090
+        SEP #$20
+        STA $210F   ; HW_BG2HOFS
+        XBA
+        AND #$03
+        STA $210F   ; HW_BG2HOFS
+        
+        LDA $3C     ; Mode7YPos
+        STA $2110   ; HW_BG2VOFS
+        LDA $3D     ; Mode7YPos+1
+        AND #$03
+        STA $2110   ; HW_BG2VOFS
+        BRA .done
+        
+    .hide
+        SEP #$20
+        STZ $2110   ; HW_BG2VOFS
+        STZ $2110   ; HW_BG2VOFS
+        
+    .done
+        LDA #$07
+        RTL
+
+layer_1_y:
+        LDA $13FC   ; ActiveBoss
+        CMP #$03    ; Bowser
+        BEQ .bowser
+        
+    .normal
+        LDA #$59
+        STA $2107   ; HW_BG1SC
+        LDA $1C     ; Layer1YPos
+        CLC
+        ADC $1888   ; ScreenShakeYOffset
+        STA $210E   ; HW_BG1VOFS
+        LDA $1D     ; Layer1YPos+1
+        STA $210E   ; HW_BG1VOFS
+        RTL
+        
+    ; To prevent layer1 and OAM from appearing misaligned,
+    ; we save the offset when called from NMI and set that value when called from IRQ.
+    .bowser
+        LDA $4212   ; HW_HVBJOY
+        BPL .bowser_irq
+        
+    .bowser_nmi
+        LDA.L !status_region
+        TAX
+        LDA.L .offset,X
+        REP #$20
+        AND #$00FF
+        CLC
+        ADC $1C     ; Layer1YPos
+        CLC
+        ADC $1888   ; ScreenShakeYOffset
+        STA !bowser_layer1_y_pos
+        SEP #$20
+        RTL
+        
+    .bowser_irq
+        LDA !bowser_layer1_y_pos
+        STA $210E
+        LDA !bowser_layer1_y_pos+1
+        STA $210E
+        RTL
+        
+    .offset:
+        db $07,$07,$07,$F7
+
 ; only reset layer 3 Y position if not in overworld menu
 layer_3_y:
         LDA !in_overworld_menu
@@ -2647,6 +2408,102 @@ play_input:
     .done:
         PLP
         RTL
+        
+bowser_scene_gfx:
+        LDA $0100           ; GameMode
+        CMP #$14
+        BNE .done
+        
+        REP #$30
+        PHB
+        PHK
+        PLB
+        LDA $7F837B         ; DynStripeImgSize
+        TAX
+        LDA $1BA2           ; Mode7TileIndex
+        AND #$0080
+        BNE .right
+        
+    .left
+        LDY #$0000
+      - LDA .mouse_left,Y
+        STA $7F837D,X       ; DynamicStripeImage
+        INX #2
+        INY #2
+        CPY #$0050
+        BNE -
+        
+        LDA $1428           ; ClownCarPropeller
+        AND #$0003
+        ASL #4
+        CLC
+        ADC #.propeller_left
+        BRA .propeller
+        
+    .right
+        LDY #$0000
+      - LDA .mouse_right,Y
+        STA $7F837D,X       ; DynamicStripeImage
+        INX #2
+        INY #2
+        CPY #$0050
+        BNE -
+        
+        LDA $1428           ; ClownCarPropeller
+        AND #$0003
+        ASL #4
+        CLC
+        ADC #.propeller_right
+        
+    .propeller
+        STA $00
+        LDY #$0000
+      - LDA ($00),Y
+        STA $7F837D,X       ; DynamicStripeImage
+        INX #2
+        INY #2
+        CPY #$0010
+        BNE -
+        
+        LDA #$FFFF
+        STA $7F837D,X       ; DynamicStripeImage
+        TXA
+        STA $7F837B         ; DynStripeImgSize
+        PLB
+        SEP #$30
+        
+    .done
+        LDY #$BC
+        STZ $01
+        RTL
+        
+    .mouse_left:
+        ; the mouth turned to the left
+        dw $2C59,$0F00,$00C0,$00C1,$00C2,$00C3,$00C4,$00C5,$00C6,$00C7
+        dw $4C59,$0F00,$00D0,$00D1,$00D2,$00D3,$00D4,$00D5,$00D6,$00D7
+        dw $6C59,$0F00,$00E0,$00E1,$00E2,$00E3,$00E4,$00E5,$00E6,$00E7
+        dw $8C59,$0F00,$00F0,$00F1,$00F2,$00F3,$00F4,$00F5,$00F6,$00F7
+        
+    .mouse_right:
+        ; the mouth turned to the right
+        dw $2C59,$0F00,$40C7,$40C6,$40C5,$40C4,$40C3,$40C2,$40C1,$40C0
+        dw $4C59,$0F00,$40D7,$40D6,$40D5,$40D4,$40D3,$40D2,$40D1,$40D0
+        dw $6C59,$0F00,$40E7,$40E6,$40E5,$40E4,$40E3,$40E2,$40E1,$40E0
+        dw $8C59,$0F00,$40F7,$40F6,$40F5,$40F4,$40F3,$40F2,$40F1,$40F0
+        
+    .propeller_left:
+        ; the propeller turned to the left
+        dw $AD59,$0B00,$00C8,$00C9,$00CA,$00CB,$00CC,$00CD
+        dw $AD59,$0B00,$00F0,$00D8,$00D9,$00DA,$00DB,$00F0
+        dw $AD59,$0B00,$00F0,$00F0,$00CE,$00CF,$00F0,$00F0
+        dw $AD59,$0B00,$00F0,$00DC,$00DD,$00DE,$00DF,$00F0
+        
+    .propeller_right:
+        ; the propeller turned to the right
+        dw $AD59,$0B00,$40CD,$40CC,$40CB,$40CA,$40C9,$40C8
+        dw $AD59,$0B00,$40F0,$40DB,$40DA,$40D9,$40D8,$40F0
+        dw $AD59,$0B00,$40F0,$40F0,$40CF,$40CE,$40F0,$40F0
+        dw $AD59,$0B00,$40F0,$40DF,$40DE,$40DD,$40DC,$40F0
         
 incsrc "region_differences.asm"
 
