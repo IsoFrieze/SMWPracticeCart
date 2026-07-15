@@ -666,6 +666,23 @@ restore_all_graphics:
         BPL -    
         PLB
         
+        SEP #$10
+        LDA $14 ; preserve frame counter, we're faking it now
+        PHA
+        
+        LDX #$07
+      - TXA
+        STA $14
+        PHX
+        JSL !_F+$05BB39 ; simulate 8 frames and load all animated tiles
+        JSL animate_animated_tiles
+        PLX
+        DEX
+        BPL -
+        
+        PLA
+        STA $14
+        
         JSL load_slots_graphics
         
         PLP

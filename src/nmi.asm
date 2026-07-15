@@ -490,8 +490,11 @@ break:
         PLD
         PLB
         PLP
-        CLC
-        RTL
+        
+        LDA.L !save_state_exists
+        BEQ .forever
+        JSL activate_load_state
+        RTI
         
 stripe_store_word:
     .be:

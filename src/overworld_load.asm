@@ -246,6 +246,7 @@ prepare_file:
         JSR set_overworld_position
         JSL restore_basic_settings
         JSR check_for_rtc
+        JSL check_for_pal_music
         RTL
 
 ; initialize mario on the overworld

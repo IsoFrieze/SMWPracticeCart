@@ -860,7 +860,7 @@ yoshi_color_mapping_output:
 ; update the background offset and colorg
 update_background:
         SEP #$20
-        INC $1A ; layer 1 x position
+        DEC $1A ; layer 1 x position
         LDA $13 ; frame counter
         AND #$01
         BEQ +

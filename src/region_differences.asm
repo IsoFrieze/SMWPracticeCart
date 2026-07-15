@@ -1,5 +1,5 @@
 ; switch to pal music if set
-nintendo_presents:
+check_for_pal_music:
         LDA.L !status_region
         CMP #$02
         BCC +
@@ -681,6 +681,33 @@ physics_hijack_9:
         
 slope_speed_thresholds:
         db $28,$28,$34,$34
+        
+physics_hijack_10:
+        LDA.L !status_region
+        CMP #2
+        BCS .pal
+        
+        LDA $D18D,Y ; pipe transition speeds
+        STA $7B ; player x speed
+        LDA $D18D+2,Y
+        STA $7D ; player y speed
+        RTL
+    
+    .pal:
+        PHB
+        PHK
+        PLB
+        LDA pipe_transition_speeds_pal,Y
+        STA $7B ; player x speed
+        LDA pipe_transition_speeds_pal+2,Y
+        STA $7D ; player y speed
+        PLB
+        RTL
+        
+pipe_transition_speeds_pal:
+        db $F8,$08
+        db $00,$00
+        db $F2,$0E
         
 get_animation_frame:
         PHX

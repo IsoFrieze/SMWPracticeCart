@@ -83,11 +83,6 @@ gfx27_hijack:
         JSR $AB42
         RTL
 
-; run on nintendo presents
-ORG !_F+$0093C5
-        JSL nintendo_presents
-        NOP
-
 ; run on temporary fade game modes
 ORG !_F+$009F37
         JSR temp_fade_hijack
@@ -345,14 +340,10 @@ conclude_loading_level:
      ++ INC $0100
         RTS
 break_wrapper:
-        JSL break
-        BCS +
-        LDA.L !save_state_exists
-        BEQ .forever
-        JSL activate_load_state
-      + RTI
-    .forever:
-        BRA .forever
+        JML break
+animate_animated_tiles:
+        JSR $A390 ; dma animated tiles
+        RTL
 ; tick the timer and co. for one frame after exiting the level with wings
 ; this is because the game exits out of this state abruptly
 tmp_fade_begin_hijack:
@@ -483,6 +474,9 @@ ORG !_F+$00DC4F
 ORG !_F+$00EF1F
         JSL physics_hijack_9
         NOP #5
+ORG !_F+$00D259
+        JSL physics_hijack_10
+        NOP #6
         
 ; physics regarding kicked and spat shells
 ORG !_F+$01A090
