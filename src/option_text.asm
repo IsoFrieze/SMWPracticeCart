@@ -32,6 +32,429 @@ option_title:
         db "     PLAYER NAME                "
         db "     PLAYER NAME                "
         db "     REGION                     "
+        
+option_value_lists:
+        dw option_off_on
+        dw option_off_on
+        dw option_off_on
+        dw option_off_on
+        dw option_off_on
+        dw option_powerups
+        dw option_sprites
+        dw option_yoshi_color&$7FFF
+        dw $0000
+        dw option_delete_saves
+        dw option_slot_numbers
+        dw option_player_2
+        dw option_frame_advance
+        dw option_time_up
+        dw option_music
+        dw option_hotkey_interference
+        dw option_save_states
+        dw $0000
+        dw option_dynmeter
+        dw option_slowmo
+        dw $0000
+        dw option_lr_reset
+        dw $0000
+        dw option_off_on
+        dw option_save_movie
+        dw option_load_movie
+        dw $0000
+        dw $0000
+        dw $0000
+        dw $0000
+        dw option_region
+        
+option_off_on:
+        db "      OFF                       "
+        db "      ON                        "
+        
+option_powerups:
+        db "      SMALL                     "
+        db "      BIG                       "
+        db "      CAPED                     "
+        db "      FIRE                      "
+        
+option_yoshi_color:
+        db "      NONE                      "
+        db "      YELLOW                    "
+        db "      BLUE                      "
+        db "      RED                       "
+        db "      GREEN                     "
+        
+option_delete_saves:
+        db "      ALL DATA                  "
+        db "      SINGLE LEVEL TIMES        "
+        db "      NORMAL SMALL ONLY         "
+        db "      NORMAL NO CAPE            "
+        db "      NORMAL CAPE               "
+        db "      NORMAL LUNAR DRAGON       "
+        db "      SECRET SMALL ONLY         "
+        db "      SECRET NO CAPE            "
+        db "      SECRET CAPE               "
+        db "      SECRET LUNAR DRAGON       "
+        db "      STATUS BAR 1              "
+        db "      STATUS BAR 2              "
+        db "      STATUS BAR 3              "
+        
+option_slot_numbers:
+        db "      DISABLED                  "
+        db "      LIVE AND ON SCREEN        "
+        db "      LIVE AND OFF SCREEN       "
+        db "      ALL SPRITE SLOTS          "
+        db "      BOUNCE SPRITE SLOTS       "
+        
+option_player_2:
+        db "      PORT 1 ONLY               "
+        db "      PORT 2 MARIO ONLY         "
+        db "      BOTH PORTS                "
+        
+option_frame_advance:
+        db "      DISABLED                  "
+        db "      COMING SOON TM            "
+        
+option_time_up:
+        db "      VANILLA                   "
+        db "      DISABLED                  "
+        
+option_music:
+        db "      ON                        "
+        db "      OFF                       "
+        
+option_hotkey_interference:
+        db "      NOT DISABLED              "
+        db "      DISABLED                  "
+        
+option_save_states:
+        db "      DISABLED                  "
+        db "      ENABLED                   "
+        db "      ENABLED RNG SHUFFLE       "
+        
+option_dynmeter:
+        db "      DISABLED                  "
+        db "      MARIO X SPEED             "
+        db "      MARIO TAKEOFF             "
+        db "      MARIO P METER             "
+        db "      MARIO X SUBPIXEL          "
+        db "      YOSHI X SUBPIXEL          "
+        db "      ITEM X SUBPIXEL           "
+        db "      ITEM X SPEED              "
+        
+option_slowmo:
+        db "      ENABLED                   "
+        db "      DISABLED                  "
+        
+option_lr_reset:
+        db "      ENABLED                   "
+        db "      DISABLED                  "
+        
+option_save_movie:
+        db "      SAVE TO S-RAM SLOT 1      "
+        db "      SAVE TO S-RAM SLOT 2      "
+        
+option_load_movie:
+        db "      LOAD S-RAM SLOT 1         "
+        db "      LOAD S-RAM SLOT 2         "
+        db "      LOAD DEMO 1               "
+        db "      LOAD DEMO 2               "
+        
+option_region:
+        db "      JAPANESE                  "
+        db "      NORTH AMERICAN            "
+        db "      PAL V 1.0                 "
+        db "      PAL V 1.1                 "
+        
+option_sprites:
+        db "      EMPTY                     ";00
+        db "      MUSHROOM                  "
+        db "      FIRE FLOWER               "
+        db "      SUPER STAR                "
+        db "      CAPE FEATHER              "
+        db "      1UP MUSHROOM              "
+        db "      GROWING VINE              "
+        db "      FIREWORK                  "
+        db "      GOAL TAPE                 "
+        db "      PRINCESS PEACH            "
+        db "      P-BALLOON                 "
+        db "      YOSHI WINGS               "
+        db "      FLYING GOLD MUSHROOM      "
+        db "      KEY                       "
+        db "      ROULETTE ITEM             "
+        db "      BONUS GAME                "
+        db "      FLYING Q BLOCK LEFT       ";10
+        db "      FLYING Q BLOCK HORIZ      "
+        db "      UNUSED 85                 "
+        db "      WIGGLER                   "
+        db "      LAKITU'S CLOUD            "
+        db "      WINGED CAGE               "
+        db "      LAYER 3 SMASH             "
+        db "      YOSHI'S HOUSE BIRD        "
+        db "      YOSHI'S HOUSE SMOKE       "
+        db "      SIDE EXIT ENABLER         "
+        db "      GHOST HOUSE EXIT          "
+        db "      WARP HOLE                 "
+        db "      MUSHROOM SCALE PLATS      "
+        db "      BIG GREEN BUBBLE          "
+        db "      CHARGIN' CHUCK            "
+        db "      SPLITTIN' CHUCK           "
+        db "      BOUNCIN' CHUCK            ";20
+        db "      WHISTLIN' CHUCK           "
+        db "      CLAPPIN' CHUCK            "
+        db "      UNUSED 96                 "
+        db "      PUNTIN' CHUCK             "
+        db "      PITCHIN' CHUCK            "
+        db "      VOLCANO LOTUS             "
+        db "      SUMO BRO                  "
+        db "      HAMMER BRO                "
+        db "      HAMMER BRO PLATFORM       "
+        db "      BUBBLE                    "
+        db "      BALL N CHAIN              "
+        db "      BANZAI BILL               "
+        db "      BOWSER                    "
+        db "      BIG STEELIE               "
+        db "      MECHA-KOOPA               "
+        db "      ROT GRAY PLATFORM         ";30
+        db "      SPIKE BALL                "
+        db "      SPARKY                    "
+        db "      HOT HEAD                  "
+        db "      IGGY'S BALL               "
+        db "      BLARGG                    "
+        db "      REZNOR                    "
+        db "      FISHBONE                  "
+        db "      REX                       "
+        db "      WOOD SPIKE DOWN           "
+        db "      WOOD SPIKE UP             "
+        db "      FISHIN' BOO               "
+        db "      BOO BLOCK                 "
+        db "      BOO STREAM                "
+        db "      CREATE EAT BLOCK          "
+        db "      FALLING SPIKE             "
+        db "      STATUE FIREBALL           ";40
+        db "      GRINDER GROUND            "
+        db "      UNUSED B5                 "
+        db "      BOUNCING PODOBOO          "
+        db "      CARROT PLAT LEFT          "
+        db "      CARROT PLAT RIGHT         "
+        db "      MESSAGE BLOCK             "
+        db "      CARROT TIMED PLAT         "
+        db "      MOVING STONE PLAT         "
+        db "      BOWSER STATUE             "
+        db "      SLIDING KOOPA             "
+        db "      SWOOPER                   "
+        db "      MEGA MOLE                 "
+        db "      SINKING GRAY LAVA PLAT    "
+        db "      AUTO GRAY PLAT            "
+        db "      BLURP                     "
+        db "      PORCU-PUFFER              ";50
+        db "      GRAY FALLING PLAT         "
+        db "      BIG BOO BOSS              "
+        db "      SPOTLIGHT                 "
+        db "      INVISIBLE MUSHROOM        "
+        db "      LIGHT SWITCH              "
+        db "      BULLET BILL SHOOTER       "
+        db "      TORPEDO TED GEN           "
+        db "      EERIE GEN                 "
+        db "      PARA-GOOMBA GEN           "
+        db "      PARA-BOBOMB GEN           "
+        db "      PARA-ENEMY GEN            "
+        db "      DOLPHIN GEN LEFT          "
+        db "      DOLPHIN GEN RIGHT         "
+        db "      CHEEP CHEEP GEN           "
+        db "      GENERATOR 2 OFF           "
+        db "      SUPER KOOPA GEN           ";60
+        db "      BUBBLE ENEMY GEN          "
+        db "      BULLET BILL GEN           "
+        db "      QUINT BULLET GEN          "
+        db "      DIAGONAL BULLET GEN       "
+        db "      FIREBALL GEN              "
+        db "      GENERATOR OFF             "
+        db "      GREEN SHELL               "
+        db "      RED SHELL                 "
+        db "      BLUE SHELL                "
+        db "      YELLOW SHELL              "
+        db "      5 WAVE EERIES             "
+        db "      ALWAYS GREEN SHELL        "
+        db "      3 GRAY ROT PLATS          "
+        db "      BOO CEILING               "
+        db "      BOO RING CCW              "
+        db "      BOO RING CW               ";70
+        db "      SWOOPER CEILING           "
+        db "      APPEARING BOOS            "
+        db "      BACKGROUND FLAMES         "
+        db "      UNUSED E7                 "
+        db "      SPECIAL AUTO SCROLL       "
+        db "      LAYER 2 SMASH             "
+        db "      LAYER 2 SCROLL            "
+        db "      UNUSED EB                 "
+        db "      UNUSED EC                 "
+        db "      LAYER 2 FALLS             "
+        db "      UNUSED EE                 "
+        db "      LAYER 2 SIDE SCROLL       "
+        db "      UNUSED F0                 "
+        db "      UNUSED F1                 "
+        db "      LAYER 2 ON-OFF            "
+        db "      AUTOSCROLL                ";80
+        db "      BG AUTOSCROLL             "
+        db "      LAYER 2 SINK              "
+        db "      UNUSED F6                 "
+        db "      UNUSED F7                 "
+        db "      UNUSED F8                 "
+        db "      UNUSED F9                 "
+        db "      UNUSED FA                 "
+        db "      UNUSED FB                 "
+        db "      UNUSED FC                 "
+        db "      UNUSED FD                 "
+        db "      UNUSED FE                 "
+        db "      UNUSED FF                 "
+        db "      GREEN SHELL-LESS KOOPA    "
+        db "      RED SHELL-LESS KOOPA      "
+        db "      BLUE SHELL-LESS KOOPA     "
+        db "      YELLOW SHELL-LESS KOOPA   ";90
+        db "      GREEN KOOPA               "
+        db "      RED KOOPA                 "
+        db "      BLUE KOOPA                "
+        db "      YELLOW KOOPA              "
+        db "      GREEN PARAKOOPA LEFT      "
+        db "      GREEN PARAKOOPA BOUNCE    "
+        db "      RED PARAKOOPA VERT        "
+        db "      RED PARAKOOPA HORIZ       "
+        db "      YELLOW PARAKOOPA          "
+        db "      BOB-BOMB                  "
+        db "      KEYHOLE                   "
+        db "      GOOMBA                    "
+        db "      PARA-GOOMBA               "
+        db "      BUZZY BEETLE              "
+        db "      UNUSED 12                 "
+        db "      SPINY                     ";a0
+        db "      SPINY EGG                 "
+        db "      CHEEP CHEEP HORIZ         "
+        db "      CHEEP CHEEP VERT          "
+        db "      CHEEP CHEEP FLYING        "
+        db "      CHEEP CHEEP JUMPING       "
+        db "      INTRO MESSAGE             "
+        db "      PIRANHA PLANT             "
+        db "      FOOTBALL                  "
+        db "      BULLET BILL               "
+        db "      HOPPING FLAME             "
+        db "      LAKITU                    "
+        db "      MAGIKOOPA                 "
+        db "      MAGIKOOPA'S MAGIC         "
+        db "      MOVING COIN               "
+        db "      GREEN NET KOOPA VERT      "
+        db "      RED NET KOOPA VERT        ";b0
+        db "      GREEN NET KOOPA HORIZ     "
+        db "      RED NET KOOPA HORIZ       "
+        db "      THWOMP                    "
+        db "      THWIMP                    "
+        db "      THE BIG 'BOO'             "
+        db "      KOOPALING                 "
+        db "      UPSIDE-DOWN PIRANHA PLANT "
+        db "      SUMO BRO LIGHTNING        "
+        db "      YOSHI EGG                 "
+        db "      BABY YOSHI                "
+        db "      SPIKE TOP                 "
+        db "      SPRINGBOARD               "
+        db "      DRY BONES THROWING        "
+        db "      BONY BEETLE               "
+        db "      DRY BONES LEDGE           "
+        db "      PODOBOO                   ";c0
+        db "      LUDWIG FIREBALL           "
+        db "      YOSHI                     "
+        db "      UNUSED 36                 "
+        db "      BOO                       "
+        db "      EERIE STRAIGHT            "
+        db "      EERIE WAVE                "
+        db "      URCHIN FIXED              "
+        db "      URCHIN FIND WALLS         "
+        db "      URCHIN FOLLOW WALLS       "
+        db "      RIP VAN FISH              "
+        db "      P-SWITCH                  "
+        db "      PARA-GOOMBA               "
+        db "      PARA-BOBOMB               "
+        db "      DOLPHIN FORWARDS          "
+        db "      DOLPHIN BACK AND FORTH    "
+        db "      DOLPHIN UP AND DOWN       ";d0
+        db "      TORPEDO TED               "
+        db "      DIRECTIONAL COINS         "
+        db "      DIGGIN' CHUCK             "
+        db "      CHEEP CHEEP DANCE         "
+        db "      DIGGIN' CHUCK ROCK        "
+        db "      SHRINKING PIPE END        "
+        db "      GOAL ORB                  "
+        db "      PIPE LAKITU               "
+        db "      EXPLODING TURN BLOCK      "
+        db "      MONTY MOLE GROUND         "
+        db "      MONTY MOLE WALL           "
+        db "      JUMPING PIRANHA PLANT     "
+        db "      JUMPING FIRE PLANT        "
+        db "      NINJI                     "
+        db "      MOVING HOLE               "
+        db "      THROW BLOCK               ";e0
+        db "      REVOLVING NET DOOR        "
+        db "      CHECKER PLAT HORIZ        "
+        db "      ROCK PLAT HORIZ           "
+        db "      CHECKER PLAT VERT         "
+        db "      ROCK PLAT VERT            "
+        db "      TURN BLOCK BRIDGE BOTH    "
+        db "      TURN BLOCK BRIDGE HORIZ   "
+        db "      FLOATING BROWN PLAT       "
+        db "      FLOATING CHECKER PLAT     "
+        db "      SMALL CARROT PLAT         "
+        db "      BIG CARROT PLAT           "
+        db "      SWINGING BROWN PLAT       "
+        db "      FLAT PALACE SWITCH        "
+        db "      SKULL RAFT                "
+        db "      BROWN PLAT LINE-GUIDED    "
+        db "      CHECKER PLAT LINE-GUIDED  ";f0
+        db "      ROPE LINE-GUIDED          "
+        db "      CHAINSAW UP               "
+        db "      CHAINSAW DOWN             "
+        db "      GRINDER LINE-GUIDED       "
+        db "      FUZZY LINE-GUIDED         "
+        db "      UNUSED 69                 "
+        db "      PINK BERRY CLOUD          "
+        db "      WALL SPRING LEFT          "
+        db "      WALL SPRING RIGHT         "
+        db "      INVISIBLE SOLID BLOCK     "
+        db "      DINO-RHINO                "
+        db "      DINO-TORCH                "
+        db "      POKEY                     "
+        db "      SUPER KOOPA RED           "
+        db "      SUPER KOOPA YELLOW        "
+        
+option_values:
+        db "     YELLOW SWITCH BLOCKS       "
+        db "     GREEN SWITCH BLOCKS        "
+        db "     RED SWITCH BLOCKS          "
+        db "     BLUE SWITCH BLOCKS         "
+        db "     SPECIAL WORLD EFFECTS      "
+        db "     MARIO POWERUP STATUS       "
+        db "     ITEM IN RESERVE BOX        "
+        db "     YOSHI COLOR                "
+        db "     RESET ENEMY STATES         "
+        db "     DELETE SAVE DATA           "
+        db "     SPRITE SLOT NUMBERS        "
+        db "     SECOND CONTROLLER          "
+        db "     FRAME ADVANCE              "
+        db "     TIME UP DEATH              "
+        db "     MUSIC                      "
+        db "     HOTKEY INTERFERENCE        "
+        db "     SAVE STATES                "
+        db "     SAVE STATE DELAY           "
+        db "     DYNAMIC METER DISPLAY      "
+        db "     SLOW MOTION                "
+        db "     EDIT STATUS BAR            "
+        db "     L-R RESET                  "
+        db "     SCORE LAG                  "
+        db "     LAG-O-METER                "
+        db "     SAVE MOVIE TO S-RAM        "
+        db "     LOAD MOVIE                 "
+        db "     PLAYER NAME                "
+        db "     PLAYER NAME                "
+        db "     PLAYER NAME                "
+        db "     PLAYER NAME                "
+        db "     REGION                     "
 
 option_description:
         db "  TURN THE YELLOW               "

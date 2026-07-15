@@ -621,6 +621,7 @@ option_selection_mode:
     .finish_no_sound:
         LDX !current_selection
         JSL draw_menu_selection
+        JSL draw_option_value
         
     .finish_no_change:
         JSL draw_option_cursor
@@ -1196,7 +1197,7 @@ load_cgram:
 
 ; stripe images for text when deleting data
 stripe_confirm:
-        db $52,$42,$00,$31
+        db $52,$82,$00,$31
         db $19,$2C
         db $1B,$2C,$0E,$2C
         db $1C,$2C,$1C,$2C
@@ -1212,7 +1213,7 @@ stripe_confirm:
         db $FC,$2C,$FC,$2C
         db $FF
 stripe_deleted:
-        db $52,$42,$00,$31
+        db $52,$82,$00,$31
         db $1D,$2C,$11,$2C
         db $0E,$2C,$FC,$2C
         db $0D,$2C,$0A,$2C
@@ -1282,10 +1283,12 @@ draw_option_text:
         STA $00
         LDA #$9898 ; bank of text
         STA $02
-        LDY #$6052
+        LDY #$4052
         LDX #$0020
         LDA #$3434
         JSL draw_text_string
+        
+        JSL draw_option_value
         
         LDA.L $7F837B
         TAX
@@ -1303,6 +1306,51 @@ draw_option_text:
         STA.L $7F837B    
     .done:
         SEP #$30
+        RTL
+        
+draw_option_value:
+        PHP
+        REP #$30
+        LDA #meter_description ; empty string
+        STA $00
+        LDA #$9898 ; bank of text
+        STA $02
+        LDA !current_selection
+        AND #$00FF
+        ASL A
+        TAX
+        LDA option_value_lists,X
+        BEQ .exit
+        BMI .continue
+        ORA #$8000
+        PHA ; special case for yoshi color which is a hybrid
+        LDA !current_selection
+        AND #$00FF
+        TAX
+        LDA.L !status_table,X
+        CMP #$0005
+        PLA
+        BCS .exit
+        STA $00
+        BRA .finish
+        
+    .continue:
+        STA $00
+        TXA
+        LSR A
+        TAX
+    .finish:
+        LDA.L !status_table,X
+        AND #$00FF
+        ASL #5
+        ADC $00
+        STA $00
+    .exit:
+        LDY #$6052
+        LDX #$0020
+        LDA #$3030
+        JSL draw_text_string
+        PLP
         RTL
 
 ; draw a text string
