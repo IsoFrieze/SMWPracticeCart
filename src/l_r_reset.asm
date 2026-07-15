@@ -61,6 +61,7 @@ activate_level_reset:
         LDY #$00
         JSL set_global_exit
         JSR trigger_screen_exit
+        STZ !bowser_phase_tracker
         
         LDA.L !status_states
         CMP #$02
@@ -207,7 +208,15 @@ activate_room_advance:
         JSL set_global_exit
         JSR trigger_screen_exit
         
-        LDA #$09 ; cape sound
+        STZ !bowser_phase_tracker
+        LDA $A7 ; sprite number,9
+        CMP #$A0 ; bowser
+        BNE +
+        LDA $14B4 ; bowser phase
+        INC A
+        STA !bowser_phase_tracker
+        
+      + LDA #$09 ; cape sound
         STA $1DF9 ; apu i/o
         
         PLA

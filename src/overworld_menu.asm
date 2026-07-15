@@ -1311,7 +1311,7 @@ draw_option_text:
 draw_option_value:
         PHP
         REP #$30
-        LDA #meter_description ; empty string
+        LDA #option_empty
         STA $00
         LDA #$9898 ; bank of text
         STA $02
@@ -1323,7 +1323,7 @@ draw_option_value:
         BEQ .exit
         BMI .continue
         ORA #$8000
-        PHA ; special case for yoshi color which is a hybrid
+        PHA ; special case for yoshi color/powerup which is a hybrid
         LDA !current_selection
         AND #$00FF
         TAX

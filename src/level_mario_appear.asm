@@ -25,11 +25,62 @@ level_mario_appear:
         STZ $420A ; HW_VTIME+1
         STZ !bowser_layer1_y_pos
         STZ !bowser_layer1_y_pos+1
-
+        
+        JSR setup_bowser_phase
         JSL upload_bowser_graphics
       + JSR playback_buffered_inputs
         JSR try_midway_advance
         RTL
+        
+; if required, set up the appropriate bowser fight phase
+; also place a stunned mechakoopa in the middle of the screen
+setup_bowser_phase:
+        ; this is #1 if advancing from start to phase 2,
+        ; #8 if advancing from phase 2 to 3, and #9 if
+        ; 'advancing' from phase 3 (don't advance)
+        LDA !bowser_phase_tracker
+        BNE +
+        RTS
+        
+      + TAX
+        LDA.L bowser_advancing_phases,X
+        STA $14B4 ; bowser phase
+        LDA #$03
+        STA $1525 ; bowser routine
+        STZ $14B0 ; bowser timer
+        LDA #$0E
+        STA $1579 ; bowser animation
+        
+        LDA #$A2 ; mechakoopa
+        STA $9E ; sprite number,0
+        LDA #$09
+        STA $14C8 ; sprite status
+        LDA #$FF
+        STA $1540 ; stun timer
+        STA $C2 ; frame timer
+        STZ $AA ; y speed
+        STZ $B6 ; x speed
+        STZ $14E0 ; high x pos
+        STZ $14D4 ; high y pos
+        LDA #$78
+        STA $E4 ; low x pos
+        LDA #$B0
+        STA $D8 ; low y pos
+        LDA #$10
+        STA $1656 ; tweaker a
+        LDA #$3B
+        STA $1662 ; tweaker b
+        LDA #$BB
+        STA $166E ; tweaker c
+        LDA #$19
+        STA $167A ; tweaker d
+        LDA #$01
+        STA $1686 ; tweaker e
+        
+        RTS
+        
+bowser_advancing_phases:
+        db $00,$07,$00,$00,$00,$00,$00,$08,$08,$08
 
 ; when entering a mode 7 boss area, retrigger button presses
 playback_buffered_inputs:

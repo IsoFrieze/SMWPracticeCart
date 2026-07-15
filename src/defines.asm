@@ -210,6 +210,9 @@
 ; y position of layer1 for bowser fight
 !bowser_layer1_y_pos         = $1415
 
+; bowser fight phase for phase advance
+!bowser_phase_tracker        = $F7
+
 ; flag = #$BD if save data exists
 !save_data_exists            = $700000
 ; mario's overworld position

@@ -39,7 +39,7 @@ option_value_lists:
         dw option_off_on
         dw option_off_on
         dw option_off_on
-        dw option_powerups
+        dw option_powerups&$7FFF
         dw option_sprites
         dw option_yoshi_color&$7FFF
         dw $0000
@@ -48,14 +48,14 @@ option_value_lists:
         dw option_player_2
         dw option_frame_advance
         dw option_time_up
-        dw option_music
-        dw option_hotkey_interference
+        dw option_on_off
+        dw option_enabled_disabled
         dw option_save_states
         dw $0000
         dw option_dynmeter
-        dw option_slowmo
+        dw option_enabled_disabled
         dw $0000
-        dw option_lr_reset
+        dw option_enabled_disabled
         dw $0000
         dw option_off_on
         dw option_save_movie
@@ -66,6 +66,9 @@ option_value_lists:
         dw $0000
         dw option_region
         
+        
+option_on_off:
+        db "      ON                        "
 option_off_on:
         db "      OFF                       "
         db "      ON                        "
@@ -75,6 +78,8 @@ option_powerups:
         db "      BIG                       "
         db "      CAPED                     "
         db "      FIRE                      "
+option_empty:
+        db "                                "
         
 option_yoshi_color:
         db "      NONE                      "
@@ -117,15 +122,10 @@ option_frame_advance:
 option_time_up:
         db "      VANILLA                   "
         db "      DISABLED                  "
-        
-option_music:
-        db "      ON                        "
-        db "      OFF                       "
-        
-option_hotkey_interference:
-        db "      NOT DISABLED              "
-        db "      DISABLED                  "
-        
+
+option_enabled_disabled:
+        db "      ENABLED                   "
+option_disabled_enabled:
 option_save_states:
         db "      DISABLED                  "
         db "      ENABLED                   "
@@ -140,14 +140,6 @@ option_dynmeter:
         db "      YOSHI X SUBPIXEL          "
         db "      ITEM X SUBPIXEL           "
         db "      ITEM X SPEED              "
-        
-option_slowmo:
-        db "      ENABLED                   "
-        db "      DISABLED                  "
-        
-option_lr_reset:
-        db "      ENABLED                   "
-        db "      DISABLED                  "
         
 option_save_movie:
         db "      SAVE TO S-RAM SLOT 1      "
