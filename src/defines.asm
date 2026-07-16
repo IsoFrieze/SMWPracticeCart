@@ -107,7 +107,7 @@
 !status_scorelag             = $700336 ; none | count...
 !status_lagometer            = $700337 ; off | on
 !status_moviesave            = $700338 ; sram1 | sram2
-!status_movieload            = $700339 ; sram1 | sram2 | demo1 | demo2
+!status_movieload            = $700339 ; sram1 | sram2 | demo1 | demo2...
 !status_playername           = $70033A ; 4 bytes
 !status_region               = $70033E ; J | U | E1.0 | E1.1
 ; $7003FF reserved for future expansion

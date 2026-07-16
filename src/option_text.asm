@@ -150,6 +150,13 @@ option_load_movie:
         db "      LOAD S-RAM SLOT 2         "
         db "      LOAD DEMO 1               "
         db "      LOAD DEMO 2               "
+        db "      LOAD DEMO 3               "
+        db "      LOAD DEMO 4               "
+        db "      LOAD DEMO 5               "
+        db "      LOAD DEMO 6               "
+        db "      LOAD DEMO 7               "
+        db "      LOAD DEMO 8               "
+        db "      LOAD DEMO 9               "
         
 option_region:
         db "      JAPANESE                  "

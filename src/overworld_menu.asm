@@ -287,7 +287,7 @@ option_index:
         dw $0001,$0003,$0005,$0007,$0009,$000B,$010B,$020B
         dw $030B,$030C,$0319,$031E,$0321,$0323,$0325,$0327
         dw $0329,$032C,$0337,$033F,$0341,$0347,$0349,$03AE
-        dw $03B0,$03B2,$03BA,$03BA,$03BA,$03BA,$03B6
+        dw $03B0,$03B2,$03C1,$03C1,$03C1,$03C1,$03BD
 menu_option_tiles:
         incbin "bin/menu_option_tiles.bin"
 menu_object_tiles:
@@ -335,11 +335,11 @@ selection_press_right:
 
 ; the number of options to allow when holding x or y
 minimum_selection_extended:
-        db $01,$01,$01,$01,$01,$FF,$FF,$FF,$00,$0C,$04,$02,$01,$01,$01,$01,$02,$0A,$07,$01,$05,$01,$64,$01,$01,$03,$28,$28,$28,$28,$03
+        db $01,$01,$01,$01,$01,$FF,$FF,$FF,$00,$0C,$04,$02,$01,$01,$01,$01,$02,$0A,$07,$01,$05,$01,$64,$01,$01,$0A,$28,$28,$28,$28,$03
 
 ; the number of options to allow when not holding x or y
 minimum_selection_normal:
-        db $01,$01,$01,$01,$01,$03,$04,$04,$00,$0C,$04,$02,$01,$01,$01,$01,$02,$0A,$07,$01,$05,$01,$37,$01,$01,$03,$28,$28,$28,$28,$03
+        db $01,$01,$01,$01,$01,$03,$04,$04,$00,$0C,$04,$02,$01,$01,$01,$01,$02,$0A,$07,$01,$05,$01,$37,$01,$01,$0A,$28,$28,$28,$28,$03
 
 ; this code is run on every frame during the overworld menu game mode (after fade in completes)
 ; GAME MODE #$1F
@@ -691,26 +691,36 @@ load_movie:
         STA $02
         BRA .copy
     .getptr:
-        DEC #2
+        LDA !potential_translevel
+        TAX
+        LDA.L translevel_movie_ptrs_count,X
+        BEQ .error
+        LDA.B #translevel_movie_ptrs_head>>16
+        STA $02
+        TXA
+        ASL A
+        TAX
+        LDA.L translevel_movie_ptrs_head,X
         STA $00
+        LDA.L translevel_movie_ptrs_head+1,X
+        STA $01
+        LDA.L !status_movieload
+        DEC #2
+        STA $03
         ASL A
         CLC
-        ADC $00
-        TAX
-        LDA rom_movie_locations,X
-        STA $00
-        LDA rom_movie_locations+1,X
-        STA $01
-        LDA rom_movie_locations+2,X
-        STA $02
-        LDA !potential_translevel
-        ASL A
+        ADC $03
         TAY
         REP #$20
         LDA [$00],Y
+        PHA
+        INY
+        LDA [$00],Y
+        STA $01
+        PLA
+        CLC
+        ADC #$0014 ; skip the movie name
         STA $00
-        SEP #$20
-        BEQ .error
         
     .copy:
         REP #$30
@@ -737,8 +747,6 @@ load_movie:
         
 sram_movie_locations:
         dl $707000, $707800
-rom_movie_locations:
-        dl translevel_movie_ptr_A, translevel_movie_ptr_B
 
         
 ; restore gameplay settings
@@ -891,7 +899,7 @@ pal_switch_sfx:
         db $00,$4C,$00,$4D,$4C,$00,$4D,$00
 
 ; check the bounds on the menu options, and fix them if they are out of bounds
-; X = option index
+; X = option index, A = direction
 check_bounds:
         PHP
         PHA
@@ -910,7 +918,18 @@ check_bounds:
         LDA minimum_selection_extended,X
         BRA ++
       + LDA minimum_selection_normal,X
-     ++ REP #$20
+      
+     ++ CPX #$0019 ; load movie, length depends on level
+        BNE +
+        LDA #$00
+        XBA
+        LDA !potential_translevel
+        TAX
+        LDA.L translevel_movie_ptrs_count,X
+        INC A
+        LDX #$0019
+        
+      + REP #$20
         AND #$00FF
         CMP $02,S
         SEP #$30
@@ -1350,6 +1369,55 @@ draw_option_value:
         LDX #$0020
         LDA #$3030
         JSL draw_text_string
+        
+        SEP #$30
+        LDA !current_selection
+        CMP #$19
+        BNE +
+        LDA !status_movieload
+        CMP #$02
+        BCC +
+        BRA ++
+      + PLP
+        RTL
+        
+        ; draw movie name for load movie option
+     ++ LDA !potential_translevel
+        ASL A
+        TAX
+        LDA.L translevel_movie_ptrs_head,X
+        STA $00
+        LDA.L translevel_movie_ptrs_head+1,X
+        STA $01
+        LDA #translevel_movie_ptrs_head>>16
+        STA $02
+        
+        LDA.L !status_movieload
+        DEC #2
+        STA $03
+        ASL A
+        CLC
+        ADC $03
+        TAY
+        LDA [$00],Y
+        PHA
+        INY
+        LDA [$00],Y
+        PHA
+        INY
+        LDA [$00],Y
+        STA $02
+        PLA
+        STA $01
+        PLA
+        STA $00
+      
+        REP #$30
+        LDY #$6B52
+        LDX #$0014
+        LDA #$3030
+        JSL draw_text_string
+        
         PLP
         RTL
 
