@@ -14,6 +14,17 @@ cleartable
 ; internal rom name
 ORG !_F+$00FFC0
         db "SMW PRACTICE CART    "
+
+; ROM speed and memory map mode
+if !_F = $800000
+ORG !_F+$00FFD5
+        db #$30
+endif
+
+; give the cartridge more ROM
+ORG !_F+$00FFD7
+        db $0A
+
 ; give the cartridge more SRAM
 ORG !_F+$00FFD8
         db $05
