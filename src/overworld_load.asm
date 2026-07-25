@@ -21,28 +21,42 @@ overworld_load:
         ORA !level_timer_seconds
         BEQ .done_saving
     
+    .check_no_powerup_save:
         LDA !record_used_powerup
         BNE +
         JSR attempt_timer_save
+        LDA !save_timer_address
+        CLC
+        ADC #$0C
+        STA !save_timer_address
+        BRA .check_lunar_dragon_save
       + LDA !save_timer_address
         CLC
         ADC #$04
         STA !save_timer_address
         
+    .check_no_cape_save:
         LDA !record_used_cape
         BNE +
         JSR attempt_timer_save
+        LDA !save_timer_address
+        CLC
+        ADC #$08
+        STA !save_timer_address
+        BRA .check_lunar_dragon_save
       + LDA !save_timer_address
         CLC
         ADC #$04
         STA !save_timer_address
         
+    .check_no_restrictions_save:
         JSR attempt_timer_save
         LDA !save_timer_address
         CLC
         ADC #$04
         STA !save_timer_address
         
+    .check_lunar_dragon_save:
         LDA !record_lunar_dragon
         BEQ .done_saving
         JSR attempt_timer_save
@@ -81,7 +95,16 @@ overworld_load:
         JSL restore_basic_settings
         
     .no_playback:
-        STZ !ow_display_times
+        LDA !give_yoshi_back
+        BEQ +
+        STA.L !status_table+7
+        STA $0DBA
+        STA $13C7
+        LDA #$01
+        STA $0DC1
+        STZ !give_yoshi_back
+    
+      + STZ !ow_display_times
         LDA #$00
         STA.L !spliced_run
         STZ !start_midway

@@ -66,6 +66,11 @@ update_potential_translevel:
         PLP
         RTS
         
+no_yoshi_translevels:
+        db $25,$07,$40,$0E,$20,$1A,$34,$31,$32 ; castles
+        db $0B,$1F,$1B,$35 ; fortresses
+        db $04,$13,$2B,$41,$21,$38 ; ghost houses
+        
 ; hijack for testing if level is entered
 test_main_enter_level:
         PHP
@@ -151,6 +156,24 @@ test_main_enter_level:
         LDA !util_byetudlr_frame
         AND #$40
         BNE +
+        LDA !util_axlr_frame
+        AND #$80
+        BEQ .exit
+        
+        ; if level is no-yoshi level, temporarily remove yoshi
+        STZ !give_yoshi_back
+        LDX #$12
+      - LDA.L no_yoshi_translevels,X
+        CMP !potential_translevel
+        BEQ .remove_yoshi
+        DEX
+        BPL -
+        JMP .finish
+    .remove_yoshi:
+        LDA $0DBA
+        STA !give_yoshi_back
+        STZ $0DBA
+        
     .exit:
         JMP .finish
         

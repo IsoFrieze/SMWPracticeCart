@@ -155,6 +155,9 @@
 ; the translevel mario is hovering over on the overworld
 !potential_translevel        = $0F2A
 
+; if set, reset yoshi status after returning from a no-yoshi level on the overworld
+!give_yoshi_back             = $F6
+
 ; if we are currently in movie playback mode
 !in_playback_mode            = $0F2B
 ; if we are currently in movie record mode

@@ -142,6 +142,7 @@ shuffle_rng_and_framerule:
         ; get apu timer and put it in room frame
       - LDA $2140           ; apu timer
         BEQ -
+        STA $13             ; real frame
         STA $14             ; effective frame
         
         PLB

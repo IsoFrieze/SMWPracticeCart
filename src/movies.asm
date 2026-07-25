@@ -650,8 +650,8 @@ movie_SP3_B:
         db "WAY COOL NO CAPE    "
 		incbin "bin/movies/sp3_nocape.smwmovie"
 movie_SP4_A:
-        db "AWESOME GET FLOWER  "
-		incbin "bin/movies/sp4_flower.smwmovie"
+        db "AWESOME BOSS KILL   "
+		incbin "bin/movies/sp4_ark.smwmovie"
 movie_SP4_B:
         db "AWESOME SMALL MARIO "
 		incbin "bin/movies/sp4_small.smwmovie"
