@@ -104,7 +104,12 @@ setup_room_reset:
         LDA !restore_room_takeoff
         STA $149F ; takeoff
         LDA !restore_room_dragoncoins
+        AND #$7F
         STA $1420 ; dragon coins
+        LDA !restore_room_dragoncoins
+        ROL #2
+        AND #$01
+        STA $13C5 ; collected moon flag
         LDA !restore_room_igt
         STA $0F31
         LDA !restore_room_igt+1
@@ -169,6 +174,7 @@ setup_level_reset:
         STZ $0F33 ; in game timer
         STZ $1B95 ; yoshi heaven flag
         STZ $1420 ; dragon coins
+        STA $13C5 ; collected moon flag
         STZ $2A ; mode 7 center
         STZ $13CE ; midway flag
         STZ !level_timer_minutes
@@ -305,7 +311,9 @@ save_room_properties:
         STA !restore_room_takeoff
         LDA $0DBF ; coins
         STA !restore_room_coins
-        LDA $1420 ; dragon coins
+        LDA $13C5 ; collected moon flag
+        ROR #2
+        ORA $1420 ; dragon coins
         STA !restore_room_dragoncoins
         LDA $1B9D ; layer 3 tide timer
         STA !restore_room_tide
@@ -1262,7 +1270,7 @@ intended_exit_type_indicies:
         dw $02C7,$02C8,$02C9,$02CA,$02CC,$02CD,$02CE,$02D0
         dw $02D1,$02D2,$02D4,$02D5,$02D6
         
-; draw "Practice Cart", "Dotsarecool", version, & exit type count + total time
+; draw "Practice Cart", "IsoFrieze", version, & exit type count + total time
 draw_title_screen_extras:
         PHP
         REP #$30
@@ -1408,7 +1416,7 @@ stripe_practicecart:
         db $0A,$38,$0C,$38,$1D,$38,$12,$38
         db $0C,$38,$0E,$38,$FC,$38,$0C,$38
         db $0A,$38,$1B,$38,$1D,$38
-stripe_dotsarecool:
+stripe_isofrieze:
         db $53,$07,$00,$25,$FC,$28,$FC,$28
         db $FC,$28,$FC,$28,$FC,$28,$12,$28
         db $1C,$28,$18,$28,$0F,$28,$1B,$28

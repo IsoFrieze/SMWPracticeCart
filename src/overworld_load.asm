@@ -97,11 +97,11 @@ overworld_load:
     .no_playback:
         LDA !give_yoshi_back
         BEQ +
-        STA.L !status_table+7
         STA $0DBA
         STA $13C7
         LDA #$01
         STA $0DC1
+        JSL load_yoshi_color
         STZ !give_yoshi_back
     
       + STZ !ow_display_times
@@ -184,12 +184,11 @@ late_overworld_load:
         LDY #$0070
         JSL load_vram
         
-        LDX #$6BD0
+        LDX #$6B00
         STX $2116 ; vram address
-        PHK
-        PLA ; #bank of overworld_object_tiles
-        LDX #overworld_object_tiles
-        LDY #$0060
+        LDA #sprite_slots_graphics>>16
+        LDX #sprite_slots_graphics
+        LDY #$02A0
         JSL load_vram
         
         PLP
@@ -197,8 +196,6 @@ late_overworld_load:
 
 overworld_layer_3_tiles:
         incbin "bin/overworld_layer3_tiles.bin"
-overworld_object_tiles:
-        incbin "bin/overworld_object_tiles.bin"
         
 ; compare the timer stored at !save_timer_address against the current time, and save it if it is faster
 attempt_timer_save:

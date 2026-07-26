@@ -1812,10 +1812,11 @@ test_run_type:
         BNE .set_yoshi
         LDA $19 ; powerup
         BNE .deny_low
-        LDA $1490 ; star
-        BNE .deny_low
-        LDA $13F3 ; p-balloon flag
-        BEQ .check_cape
+; current leaderboard rules allow star and p-balloon in small mario only categories
+;        LDA $1490 ; star
+;        BNE .deny_low
+;        LDA $13F3 ; p-balloon flag
+;        BEQ .check_cape
         
     .set_yoshi:
         LDA #%01000000
@@ -1850,7 +1851,7 @@ test_run_type:
         RTS
 
 levels_with_moons:
-        db $29,$06,$2E,$0F,$41,$22,$36,$3A
+        db $29,$06,$2E,$0F,$41,$22,$3A
 
 ; 'fix' powerup incrementation by adjust all the values that mess with the stack
 ; the 5 values of interest should be shifted back 4 because the stack is 4 bytes higher here

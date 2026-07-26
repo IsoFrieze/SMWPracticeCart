@@ -834,31 +834,23 @@ draw_option_cursor:
         
 ; load yoshi color from yoshi space to simple space
 load_yoshi_color:
-        PHB
-        PHK
-        PLB
         LDA $0DBA ; ow yoshi color
         CMP #$0B
         BCS +
         TAX
-        LDA yoshi_color_mapping_input,X
+        LDA.L yoshi_color_mapping_input,X
       + STA.L !status_yoshi
-        PLB
         RTL
         
 ; save yoshi color from simple space to yoshi space
 save_yoshi_color:
-        PHB
-        PHK
-        PLB
         LDA.L !status_yoshi
         CMP #$0B
         BCS +
         TAX
-        LDA yoshi_color_mapping_output,X
+        LDA.L yoshi_color_mapping_output,X
       + STA $0DBA ; ow yoshi color
         STA $13C7 ; level yoshi color
-        PLB
         RTL
         
 yoshi_color_mapping_input:
@@ -1347,6 +1339,7 @@ draw_option_value:
         AND #$00FF
         TAX
         LDA.L !status_table,X
+        AND #$00FF
         CMP #$0005
         PLA
         BCS .exit

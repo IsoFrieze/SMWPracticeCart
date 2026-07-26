@@ -155,8 +155,8 @@ test_main_enter_level:
     .no_record:
         LDA !util_byetudlr_frame
         AND #$40
-        BNE +
-        LDA !util_axlr_frame
+        BNE .replay_movie
+        LDA !util_byetudlr_frame
         AND #$80
         BEQ .exit
         
@@ -177,7 +177,8 @@ test_main_enter_level:
     .exit:
         JMP .finish
         
-      + LDA.L !movie_location+$04
+    .replay_movie:
+        LDA.L !movie_location+$04
         CMP !potential_translevel
         BNE .exit
         
@@ -1093,7 +1094,7 @@ draw_movie_slots:
         RTS
 
 slot_tiles:
-        db $BD,$BE,$BF
+        db $B1,$B2,$C4
 slot_offsets:
         dw $0008,$000C,$000F,$0005,$FFFF,$0009
 
