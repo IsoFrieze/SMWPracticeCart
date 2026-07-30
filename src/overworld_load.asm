@@ -183,7 +183,15 @@ late_overworld_load:
         LDX #overworld_layer_3_tiles+$170
         LDY #$0070
         JSL load_vram
-        
+
+        LDX #$4500
+        STX $2116 ; vram address
+        PHK
+        PLA ; #bank of overworld_layer_3_tiles
+        LDX #overworld_layer_3_tiles+$200
+        LDY #$0290
+        JSL load_vram
+
         LDX #$6B00
         STX $2116 ; vram address
         LDA #sprite_slots_graphics>>16
