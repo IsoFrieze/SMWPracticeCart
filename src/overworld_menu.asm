@@ -2549,10 +2549,10 @@ draw_edited_status_bar:
         RTS
         
     .edited_mario_speed:
-        LDA #$2C04
+        LDA #$28A4
         STA [$00],Y
         INY #2
-        LDA #$2C08
+        LDA #$28A8
         STA [$00],Y
         RTS
         
@@ -2668,19 +2668,19 @@ draw_edited_status_bar:
         RTS
         
     .edited_lag_frames:
-        LDA #$2C01
+        LDA #$28A1
         STA [$00],Y
         INY #2
-        LDA #$2C0E
+        LDA #$28AE
         STA [$00],Y
         INY #2
-        LDA #$2C07
+        LDA #$28A7
         STA [$00],Y
         INY #2
-        LDA #$2C0F
+        LDA #$28AF
         STA [$00],Y
         INY #2
-        LDA #$2CD7
+        LDA #$28D7
         STA [$00],Y
         RTS
         
@@ -2864,7 +2864,7 @@ draw_edited_status_bar:
         RTS
         
     .edited_slowdown:
-        LDA #$2C02
+        LDA #$28A2
         STA [$00],Y
         RTS
         
@@ -2985,16 +2985,16 @@ draw_edited_status_bar:
         STA [$00],Y
         RTS
     .recording_types_hex:
-        LDA #$2C05
+        LDA #$28A5
         STA [$00],Y
         INY #2
-        LDA #$2C0E
+        LDA #$28AE
         STA [$00],Y
         INY #2
-        LDA #$2C03
+        LDA #$28A3
         STA [$00],Y
         INY #2
-        LDA #$2CD7
+        LDA #$28D7
         STA [$00],Y
         RTS
         
