@@ -2178,7 +2178,7 @@ draw_meter_cursors:
         RTL
 
 meter_subtype_counts:
-        db $01,$01,$01,$01,$02,$03,$03,$01,$03,$03,$03,$02,$03,$01,$05,$03,$02,$FF,$FF,$03
+        db $01,$01,$01,$01,$02,$03,$03,$01,$03,$03,$03,$02,$03,$01,$05,$06,$02,$FF,$FF,$03
 meter_widths:
         db $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
         db $04,$FF,$FF,$FF,$FF,$FF,$FF,$FF
@@ -2195,7 +2195,7 @@ meter_widths:
         db $03,$05,$04,$FF,$FF,$FF,$FF,$FF
         db $01,$FF,$FF,$FF,$FF,$FF,$FF,$FF
         db $08,$06,$06,$03,$03,$FF,$FF,$FF
-        db $04,$04,$04,$FF,$FF,$FF,$FF,$FF
+        db $04,$04,$04,$04,$04,$04,$FF,$FF
         db $07,$04,$FF,$FF,$FF,$FF,$FF,$FF
         db $02,$FF,$FF,$FF,$FF,$FF,$FF,$FF
         db $02,$FF,$FF,$FF,$FF,$FF,$FF,$FF
@@ -2216,7 +2216,7 @@ meter_heights:
         db $01,$01,$01,$FF,$FF,$FF,$FF,$FF
         db $01,$FF,$FF,$FF,$FF,$FF,$FF,$FF
         db $03,$02,$02,$04,$04,$FF,$FF,$FF
-        db $01,$01,$01,$FF,$FF,$FF,$FF,$FF
+        db $01,$01,$01,$01,$01,$01,$FF,$FF
         db $01,$01,$FF,$FF,$FF,$FF,$FF,$FF
         db $01,$FF,$FF,$FF,$FF,$FF,$FF,$FF
         db $01,$FF,$FF,$FF,$FF,$FF,$FF,$FF
@@ -2924,12 +2924,16 @@ draw_edited_status_bar:
         INY
         LDA [!statusbar_layout_ptr],Y
         AND #$00FF
+        STA $07 ; color option, for alt-set check
         PLY
         TAX
         LDA.L name_colors,X
         AND #$00FF
         XBA
         STA $05
+        LDA $07
+        CMP #$0003
+        BCS .alt_set
         LDA.L !status_playername
         AND #$00FF
         ORA $05
@@ -2950,7 +2954,36 @@ draw_edited_status_bar:
         ORA $05
         STA [$00],Y
         RTS
-        
+    .alt_set:
+        LDA.L !status_playername
+        AND #$00FF
+        CLC
+        ADC #$00A0 ; alt character set
+        ORA $05
+        STA [$00],Y
+        INY #2
+        LDA.L !status_playername+1
+        AND #$00FF
+        CLC
+        ADC #$00A0 ; alt character set
+        ORA $05
+        STA [$00],Y
+        INY #2
+        LDA.L !status_playername+2
+        AND #$00FF
+        CLC
+        ADC #$00A0 ; alt character set
+        ORA $05
+        STA [$00],Y
+        INY #2
+        LDA.L !status_playername+3
+        AND #$00FF
+        CLC
+        ADC #$00A0 ; alt character set
+        ORA $05
+        STA [$00],Y
+        RTS
+
     .edited_movie_recording:
         PHY
         LDA $05,S

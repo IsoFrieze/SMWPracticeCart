@@ -1097,7 +1097,7 @@ init_statusbar_properties:
         RTS
 
 name_colors:
-        db $28,$38,$3C
+        db $28,$38,$3C,$28,$38,$3C ; green,white,yellow,red,blue,orange
         
 title_screen_load:
         PHB

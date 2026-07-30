@@ -859,8 +859,12 @@ layout_locations:
 ; display the name meter
 meter_name:
         LDA !in_playback_mode
-        BNE +
-        
+        BNE .movie
+
+        LDA [!statusbar_layout_ptr],Y ; color option
+        CMP #$03
+        BCS .alt_set
+
         LDA.L !status_playername
         STA [$00]
         INC $00
@@ -873,8 +877,31 @@ meter_name:
         LDA.L !status_playername+3
         STA [$00]
         RTS
-    
-      + LDA.L !movie_location+7
+
+    .alt_set:
+        LDA.L !status_playername
+        CLC
+        ADC #$A0 ; alt character set
+        STA [$00]
+        INC $00
+        LDA.L !status_playername+1
+        CLC
+        ADC #$A0 ; alt character set
+        STA [$00]
+        INC $00
+        LDA.L !status_playername+2
+        CLC
+        ADC #$A0 ; alt character set
+        STA [$00]
+        INC $00
+        LDA.L !status_playername+3
+        CLC
+        ADC #$A0 ; alt character set
+        STA [$00]
+        RTS
+
+    .movie:
+        LDA.L !movie_location+7
         STA [$00]
         INC $00
         LDA.L !movie_location+8
