@@ -1812,6 +1812,7 @@ test_run_type:
         BNE .set_yoshi
         LDA $19 ; powerup
         BNE .deny_low
+        BRA .check_cape
 ; current leaderboard rules allow star and p-balloon in small mario only categories
 ;        LDA $1490 ; star
 ;        BNE .deny_low
