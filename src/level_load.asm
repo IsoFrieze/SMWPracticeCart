@@ -174,7 +174,7 @@ setup_level_reset:
         STZ $0F33 ; in game timer
         STZ $1B95 ; yoshi heaven flag
         STZ $1420 ; dragon coins
-        STA $13C5 ; collected moon flag
+        STZ $13C5 ; collected moon flag
         STZ $2A ; mode 7 center
         STZ $13CE ; midway flag
         STZ !level_timer_minutes
