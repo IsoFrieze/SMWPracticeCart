@@ -1947,7 +1947,20 @@ drop_item_box:
         
     .no_select:
         INC A
+        RTL
     .yes_select:
+        LDA $0DC2 ; item box item
+        BEQ .done
+        CMP #$01
+        BEQ .done
+        CMP #$02
+        BEQ .done
+        CMP #$04
+        BEQ .done
+        LDA #%00010000
+        STA !record_used_foreign_item
+    .done:
+        LDA #$00
         RTL
 
 ; test the start button to see if we should pause the game (return 0 in A for no pause, pause otherwisxe)

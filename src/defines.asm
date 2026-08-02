@@ -144,6 +144,7 @@
 !record_used_cape            = $0F24
 !record_used_yoshi           = $0F25
 !record_used_orb             = $0F26
+!record_used_foreign_item    = $0F2E
 !record_lunar_dragon         = $0F27
 
 ; the number of options in the overworld menu

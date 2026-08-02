@@ -184,6 +184,7 @@ setup_level_reset:
         STZ !record_used_cape
         STZ !record_used_yoshi
         STZ !record_used_orb
+        STZ !record_used_foreign_item
         STZ !record_lunar_dragon
         LDA !restore_level_xpos
         STA $D1 ; mario x position low byte
@@ -439,6 +440,7 @@ save_level_properties:
         STZ !record_used_cape
         STZ !record_used_yoshi
         STZ !record_used_orb
+        STZ !record_used_foreign_item
         STZ !record_lunar_dragon
         STZ !level_finished
         

@@ -573,7 +573,7 @@ draw_times:
         PLX
         JSR compare_to_gold
         JSR compare_to_platinum
-        JSR check_if_used_orb
+        JSR check_if_used_orb_or_foreign_item
         JSR load_stripe_from_buffer
         PLY
     
@@ -832,7 +832,7 @@ compare_to_platinum:
         PLB
         RTS
 
-check_if_used_orb:
+check_if_used_orb_or_foreign_item:
         PHB
         PHK
         PLB
@@ -851,7 +851,7 @@ check_if_used_orb:
         SEP #$20
         INY
         LDA [$00],Y
-        AND #%00100000
+        AND #%00110000
         BEQ .no_orb
         
     .yes_orb:

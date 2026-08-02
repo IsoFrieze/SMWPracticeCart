@@ -208,14 +208,22 @@ attempt_timer_save:
         
         LDY #$03
         LDA [$00],Y
-        AND #$20
-        CMP !record_used_orb
-        BEQ +
-        CMP #$00
-        BEQ .done
-        BRA .new_record
+        AND #%00110000 ; orb or foreign item
+        BEQ .original_was_legit
         
-      + LDY #$00
+    .original_wasnt_legit:
+        LDA !record_used_foreign_item
+        ORA !record_used_orb
+        BEQ .new_record
+        BRA .compare_times
+        
+    .original_was_legit:
+        LDA !record_used_foreign_item
+        ORA !record_used_orb
+        BNE .done
+        
+    .compare_times:
+        LDY #$00
       - CPY #$03
         BEQ .done
         LDA [$00],Y
@@ -237,6 +245,13 @@ attempt_timer_save:
         INY
         BRA -
     
+        ; fourth byte
+        ; SHOIYGRB
+        ; S = used special effects
+        ; H = used yoshi
+        ; O = used orb
+        ; I = used foreign item in itembox
+        ; YGRB = used switch blocks
       + LDA $1F28 ; yellow switch blocks
         ASL A
         ORA $1F27 ; green switch blocks
@@ -249,6 +264,8 @@ attempt_timer_save:
         LDA.L !status_special
         ROR A
         ROR A
+        TSB $04
+        LDA !record_used_foreign_item
         TSB $04
         LDA !record_used_yoshi
         TSB $04
