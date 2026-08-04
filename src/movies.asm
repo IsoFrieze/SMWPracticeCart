@@ -33,22 +33,22 @@ translevel_movie_ptrs_head:
 translevel_movie_ptrs_count:
 		db 0, 2, 2, 2
 		db 2, 2, 2, 2
+		db 1, 2, 2, 1
 		db 2, 2, 2, 2
-		db 2, 2, 2, 2
-		db 2, 2, 0, 2
+		db 2, 1, 0, 2
 		db 2, 2, 0, 0
 		db 2, 0, 2, 2
+		db 2, 2, 0, 3
+		db 2, 2, 2, 2
+		db 2, 2, 2, 2
+		db 2, 2, 2, 2
+		db 0, 3, 2, 2
+		db 0, 2, 2, 2
 		db 2, 2, 0, 2
 		db 2, 2, 2, 2
-		db 2, 2, 2, 2
-		db 2, 2, 2, 2
-		db 0, 2, 2, 2
-		db 0, 2, 2, 2
-		db 2, 2, 0, 2
-		db 2, 2, 2, 2
-		db 2, 2, 2, 2
-		db 2, 2, 2, 2
-		db 2, 2, 2, 2
+		db 2, 2, 3, 1
+		db 2, 3, 3, 2
+		db 2, 1, 2, 2
 		db 0, 2, 2, 2
 		db 2, 0, 2, 2
 		db 2, 2, 0, 0
@@ -67,7 +67,7 @@ movie_list_YI3:
 movie_list_YI4:
         dl movie_YI4_A, movie_YI4_B
 movie_list_YSP:
-        dl movie_YSP_A, movie_YSP_B
+        dl movie_YSP_A
 movie_list_C1:
         dl movie_C1_A, movie_C1_B
 movie_list_DP1:
@@ -87,13 +87,13 @@ movie_list_DGH:
 movie_list_DSH:
         dl movie_DSH_A, movie_DSH_B
 movie_list_GSP:
-        dl movie_GSP_A, movie_GSP_B
+        dl movie_GSP_A
 movie_list_TSA:
         dl movie_TSA_A, movie_TSA_B
 movie_list_C2:
         dl movie_C2_A, movie_C2_B
 movie_list_VD1:
-        dl movie_VD1_A, movie_VD1_B
+        dl movie_VD1_A, movie_VD1_B, movie_VD1_C
 movie_list_VD2:
         dl movie_VD2_A, movie_VD2_B
 movie_list_VD3:
@@ -101,7 +101,7 @@ movie_list_VD3:
 movie_list_VD4:
         dl movie_VD4_A, movie_VD4_B
 movie_list_VS1:
-        dl movie_VS1_A, movie_VS1_B
+        dl movie_VS1_A, movie_VS1_B, movie_VS1_C
 movie_list_VS2:
         dl movie_VS2_A, movie_VS2_B
 movie_list_VS3:
@@ -111,7 +111,7 @@ movie_list_VGH:
 movie_list_RSP:
         dl movie_RSP_A, movie_RSP_B
 movie_list_VF:
-        dl movie_VF_A, movie_VF_B
+        dl movie_VF_A
 movie_list_C3:
         dl movie_C3_A, movie_C3_B
 movie_list_BB1:
@@ -123,11 +123,11 @@ movie_list_CBA:
 movie_list_CM:
         dl movie_CM_A, movie_CM_B
 movie_list_SL:
-        dl movie_SL_A, movie_SL_B
+        dl movie_SL_A
 movie_list_C4:
         dl movie_C4_A, movie_C4_B
 movie_list_FoI1:
-        dl movie_FoI1_A, movie_FoI1_B
+        dl movie_FoI1_A, movie_FoI1_B, movie_FoI1_C
 movie_list_FoI2:
         dl movie_FoI2_A, movie_FoI2_B
 movie_list_FoI3:
@@ -137,11 +137,11 @@ movie_list_FoI4:
 movie_list_FSA:
         dl movie_FSA_A, movie_FSA_B
 movie_list_FGH:
-        dl movie_FGH_A, movie_FGH_B
+        dl movie_FGH_A, movie_FGH_B, movie_FGH_C
 movie_list_BSP:
-        dl movie_BSP_A, movie_BSP_B
+        dl movie_BSP_A
 movie_list_FF:
-        dl movie_FF_A, movie_FF_B
+        dl movie_FF_A, movie_FF_B, movie_FF_C
 movie_list_C5:
         dl movie_C5_A, movie_C5_B
 movie_list_CI1:
@@ -242,9 +242,6 @@ movie_YI4_B:
 movie_YSP_A:
         db "YSP PIPE FLY        "
 		incbin "bin/movies/ysp_pipefly.smwmovie"
-movie_YSP_B:
-        db "YSP SMALL MARIO     "
-		incbin "bin/movies/ysp_small.smwmovie"
 movie_C1_A:
         db "C1 GET FIRE         "
 		incbin "bin/movies/c1_fire.smwmovie"
@@ -262,7 +259,7 @@ movie_DP2_A:
         db "DP2 CAPE SECRET     "
 		incbin "bin/movies/dp2_secret.smwmovie"
 movie_DP2_B:
-        db "DP2 SMALL NORMAL    "
+        db "DP2 SMALL SECRET    "
 		incbin "bin/movies/dp2_small.smwmovie"
 movie_DP3_A:
         db "DP3 FIRE MARIO      "
@@ -303,9 +300,6 @@ movie_DSH_B:
 movie_GSP_A:
         db "GSP PIPE FLY        "
 		incbin "bin/movies/gsp_pipefly.smwmovie"
-movie_GSP_B:
-        db "GSP SMALL MARIO     "
-		incbin "bin/movies/gsp_small.smwmovie"
 movie_TSA_A:
         db "TSA COLLECT ORB     "
 		incbin "bin/movies/tsa_orb.smwmovie"
@@ -325,6 +319,9 @@ movie_VD1_A:
 movie_VD1_B:
         db "VD1 CAPELESS WINGS  "
 		incbin "bin/movies/vd1_nocape.smwmovie"
+movie_VD1_C:
+        db "VD1 SMALL SECRET    "
+		incbin "bin/movies/vd1_small.smwmovie"
 movie_VD2_A:
         db "VD2 CAPE NORMAL     "
 		incbin "bin/movies/vd2_cape.smwmovie"
@@ -349,6 +346,9 @@ movie_VS1_A:
 movie_VS1_B:
         db "VS1 CAPELESS NORMAL "
 		incbin "bin/movies/vs1_nocape.smwmovie"
+movie_VS1_C:
+        db "VS1 SMALL SECRET    "
+		incbin "bin/movies/vs1_small.smwmovie"
 movie_VS2_A:
         db "VS2 FIRE MARIO      "
 		incbin "bin/movies/vs2_nocape.smwmovie"
@@ -376,9 +376,6 @@ movie_RSP_B:
 movie_VF_A:
         db "VF CAPE MARIO       "
 		incbin "bin/movies/vf_cape.smwmovie"
-movie_VF_B:
-        db "VF SMALL MARIO      "
-		incbin "bin/movies/vf_small.smwmovie"
 movie_C3_A:
         db "C3 CAPE MARIO       "
 		incbin "bin/movies/c3_cape.smwmovie"
@@ -411,9 +408,6 @@ movie_CM_B:
         db "CM BOSS KILL        "
 		incbin "bin/movies/cm_cmbk.smwmovie"
 movie_SL_A:
-        db "SL CAPE MARIO       "
-		incbin "bin/movies/sl_cape.smwmovie"
-movie_SL_B:
         db "SL DRAGON COINS     "
 		incbin "bin/movies/sl_ld.smwmovie"
 movie_C4_A:
@@ -435,6 +429,9 @@ movie_FoI1_A:
 movie_FoI1_B:
         db "FOI1 FIRE NORMAL    "
 		incbin "bin/movies/foi1_nocape.smwmovie"
+movie_FoI1_C:
+        db "FOI1 SMALL SECRET   "
+		incbin "bin/movies/foi1_small.smwmovie"
 movie_FoI2_A:
         db "FOI2 YOSHI CLIP     "
 		incbin "bin/movies/foi2_clip.smwmovie"
@@ -463,20 +460,23 @@ movie_FGH_A:
         db "FGH CAPE NORMAL     "
 		incbin "bin/movies/fgh_cape.smwmovie"
 movie_FGH_B:
+        db "FGH SMALL SECRET    "
+		incbin "bin/movies/fgh_small.smwmovie"
+movie_FGH_C:
         db "FGH CORNER CLIP     "
 		incbin "bin/movies/fgh_clip.smwmovie"
 movie_BSP_A:
         db "BSP CAPE PIPE FLY   "
 		incbin "bin/movies/bsp_pipefly.smwmovie"
-movie_BSP_B:
-        db "BSP SMALL MARIO     "
-		incbin "bin/movies/bsp_small.smwmovie"
 movie_FF_A:
         db "FF CAPE MARIO       "
 		incbin "bin/movies/ff_cape.smwmovie"
 movie_FF_B:
         db "FF FIRE MARIO       "
 		incbin "bin/movies/ff_nocape.smwmovie"
+movie_FF_C:
+        db "FF SMALL MARIO      "
+		incbin "bin/movies/ff_small.smwmovie"
 movie_C5_A:
         db "C5 CAPE MARIO       "
 		incbin "bin/movies/c5_cape.smwmovie"
