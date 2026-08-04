@@ -545,7 +545,7 @@ activate_load_state:
         INC !previous_sixty_hz ; waiting here shouldn't count as lag
         BRA -
     
-        STZ $2100
+        STZ $2100 ; clear force blank
     
       + RTL
         

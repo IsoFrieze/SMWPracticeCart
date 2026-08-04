@@ -587,11 +587,6 @@ upload_bowser_graphics:
         LDX #bowser_layer2_tiles
         JSL load_vram
         
-        LDA #$81
-        STA $4200 ; nmi enable
-        LDA #$0F
-        STA $2100 ; exit force blank
-        
     .done:
         PLP
         RTL

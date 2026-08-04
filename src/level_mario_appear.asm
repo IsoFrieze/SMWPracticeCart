@@ -28,6 +28,12 @@ level_mario_appear:
         
         JSR setup_bowser_phase
         JSL upload_bowser_graphics
+        
+        LDA #$81
+        STA $4200 ; nmi enable
+        LDA #$0F
+        STA $2100 ; exit force blank
+        
       + JSR playback_buffered_inputs
         JSR try_midway_advance
         RTL
