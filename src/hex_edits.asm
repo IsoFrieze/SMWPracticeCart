@@ -38,10 +38,6 @@ ORG !_F+$00CA2C
         db $00
 ORG !_F+$048F35
         JMP $8F56
-        
-; disable original layer 3 background position update
-ORG !_F+$05C424
-        NOP #2
 
 ; disable yoshi message
 ORG !_F+$01EC36

@@ -31,8 +31,12 @@ level_tick:
         CMP #$14
         BNE .done
         
-        JSR setup_layer3_bg
-        JSR prepare_input
+        ; process this early to prevent jitteryness
+        LDA $13D5 ; layer 3 scroll flag
+        BNE +
+        JSL process_layer_3_position
+        
+      + JSR prepare_input
         JSR record_input
         JSR emulate_score_lag
         
@@ -2202,34 +2206,6 @@ layer_3_y:
         LDA $25
         STA $2112
         RTL
-        
-; prepare layer 3 background x position
-; this must be done before IRQ fires!
-setup_layer3_bg:
-        PHP
-        REP #$20
-        SEP #$10
-        LDX $13D5 ; layer 3 lock
-        BNE .done
-        LDX $1403 ; layer 3 tide setting
-        BNE .done
-        LDX $1BE3 ; layer 3 type
-        CPX #$03
-        BNE .done
-        
-        LDX $1931 ; tileset
-        CPX #$03
-        BEQ +
-        CPX #$01
-        BNE .done
-        
-      + LDA $1A ; layer 1 future x pos
-        LSR A
-        STA $22 ; layer 3 x pos
-        
-    .done:
-        PLP
-        RTS
 
 ; disable layer 3 priority if in overworld menu
 layer_3_priority:

@@ -158,6 +158,7 @@ setup_level_reset:
         LDA #$00
         STA.L !spliced_run
         
+        JSR check_pal
         LDA !restore_level_powerup
         STA $19 ; powerup
         LDA !restore_level_itembox

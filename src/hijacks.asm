@@ -390,6 +390,18 @@ ORG !_F+$01C550
 ORG !_F+$00FA89
         JSL goal_tape_trigger
         NOP #2
+        
+; relocate layer 3 position calculation to be earlier in the frame to prevent jitteryness
+ORG !_F+$05BC3F
+        PLB
+        RTL
+process_layer_3_position:
+        PHB
+        PHK
+        PLB
+        JSR $C40C
+        PLB
+        RTL
 
 ;;;;;;;;;;;;; REGION DIFFERENCES ;;;;;;;;;;;;;
 
