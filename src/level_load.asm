@@ -150,7 +150,17 @@ setup_room_reset:
         LDA #$0B ; carried
         STA $14C8 ; sprite 0 status
         
-      + JSR restore_common_aspects
+      + LDX #$7F
+      - LDA.L !restore_item_memory,X
+        STA $19F8,X
+        LDA.L !restore_item_memory+$80,X
+        STA $19F8+$80,X
+        LDA.L !restore_item_memory+$100,X
+        STA $19F8+$100,X
+        DEX
+        BPL -
+        
+        JSR restore_common_aspects
         RTS
 
 ; prepare the level load if we just did a level reset
@@ -209,6 +219,13 @@ setup_level_reset:
         BPL -
         
         JSR restore_common_aspects
+        
+        LDX #$7F
+      - STZ $19F8,X ; item memory tables
+        STZ $19F8+$80,X
+        STZ $19F8+$100,X
+        DEX
+        BPL -
         
         LDA $13BF ; translevel
         LDX #$05
@@ -284,12 +301,6 @@ restore_common_aspects:
         DEX
         BPL -
         
-        REP #$10
-        LDX #$017F
-      - STZ $19F8,X ; item memory
-        DEX
-        BPL -
-        SEP #$10
         RTS
         
 ; save everything after entering a new room
@@ -363,6 +374,16 @@ save_room_properties:
         STZ !pause_timer_minutes
         STZ !pause_timer_seconds
         STZ !pause_timer_frames
+        
+        LDX #$7F
+      - LDA $19F8,X
+        STA.L !restore_item_memory,X
+        LDA $19F8+$80,X
+        STA.L !restore_item_memory+$80,X
+        LDA $19F8+$100,X
+        STA.L !restore_item_memory+$100,X
+        DEX
+        BPL -
         
         RTS
         

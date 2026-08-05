@@ -389,6 +389,14 @@ go_save_state:
         DEX
         BPL -
         
+        ; save wram $7F9C7B-$7F9DFA to $704E80-$704FFF
+        ; item memory backup
+        LDX #$017F
+      - LDA.L !restore_item_memory,X
+        STA $704E80,X
+        DEX
+        BPL -
+        
 ;        ; save wram $B900-$C0FF to $704C40-$70543F
 ;        ; background tilemap
 ;        LDX #$07FF
@@ -581,6 +589,14 @@ go_load_state:
         LDX #$01FF
       - LDA $704AE0,X
         STA $7F9A7B,X
+        DEX
+        BPL -
+        
+        ; load $704E80-$704FFF wram to $7F9C7B-$7F9DFA
+        ; item memory backup
+        LDX #$017F
+      - LDA $704E80,X
+        STA.L !restore_item_memory,X
         DEX
         BPL -
         

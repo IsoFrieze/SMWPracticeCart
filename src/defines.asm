@@ -58,6 +58,7 @@
 !restore_room_dragoncoins    = $19F5
 !restore_room_tide           = $19F6
 !restore_room_rng_index      = $0DDB ; 3 bytes
+!restore_item_memory         = $7F9C7B
 
 ; rng index
 !rng_index                   = $1487 ; 3 bytes

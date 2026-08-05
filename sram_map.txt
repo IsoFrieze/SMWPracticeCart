@@ -82,8 +82,10 @@ $704D4B-$704D4F ($05 bytes)
 		: UNUSED
 $704D50-$704E6F ($120 bytes)
 	: 24 status bar meters, 4 bytes each, 3 layouts
-$704E70-$704FFF ($190 bytes)
+$704E70-$704E7F ($10 bytes)
 		: UNUSED
+$704E80-$704FFF ($180 bytes)
+	: save state wram 7F9C7B (item memory backup)
 $705000-$706FFF ($2000 bytes)
 	; save state wram 7E0000-7E1FFF (mirror ram)
 $707000-$707FFF ($1000 bytes)
