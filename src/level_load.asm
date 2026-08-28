@@ -389,41 +389,51 @@ save_room_properties:
         
 ; add the frame count stored in A to the timer
 add_many_to_timer:
+        PHA
+        LDA !status_region
+        TAX
+        PLA
+        
         CLC
         ADC !level_timer_frames
     .check_frames:
-        CMP #$3C
+        CMP.L frames_in_a_second,X
         BCS .carry_frame
         STA !level_timer_frames
         LDA !level_timer_seconds
         BRA .check_seconds
     .carry_frame:
         SEC
-        SBC #$3C
+        SBC.L frames_in_a_second,X
         INC !level_timer_seconds
         BRA .check_frames
+        
     .check_seconds:
-        CMP #$3C
+        CMP #60
         BCS .carry_seconds
         STA !level_timer_seconds
         LDA !level_timer_minutes
         BRA .check_minutes
     .carry_seconds:
         SEC
-        SBC #$3C
+        SBC #60
         INC !level_timer_minutes
         BRA .check_seconds
+        
     .check_minutes:
-        CMP #$0A
+        CMP #10
         BCS .timer_overflow
         STA !level_timer_minutes
         RTL
     .timer_overflow:
-        LDA #$09
+        LDA #9
         STA !level_timer_minutes
-        LDA #$3B
+        LDA #59
         STA !level_timer_seconds
+        LDA.L frames_in_a_second,X
+        DEC A
         STA !level_timer_frames
+        
         RTL
         
 ; save everything after entering a new level
