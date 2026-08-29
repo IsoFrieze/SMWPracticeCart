@@ -269,9 +269,9 @@ if !_F = $800000
 ORG !_F+$008390
         db #$2A ;was #$1F, for setting layer 3 scroll
 ORG !_F+$0083C7
-        db #$1B ;was #$14, for setting layer 1 scroll
+        db #$11 ;was #$14, for setting layer 1 scroll
 ORG !_F+$00843A
-        db #$2B ;was #$20, for setting mode 7 bg position
+        db #$24 ;was #$20, for setting mode 7 bg position
 endif
 
 ; main screen setting for Bowser level
