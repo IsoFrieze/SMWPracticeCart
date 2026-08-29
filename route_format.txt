@@ -1,0 +1,85 @@
+route format:
+
+header + list of levels
+
+header:
+    $00     : number of levels
+    $01     : format version
+    $02     : show timer
+                0 = only on overworld at end
+                1 = briefly at each level exit
+                2 = always
+    $03     : show end requirements
+                0 = no
+                2 = only exit type
+                1 = all restrictions
+    $04-$0F : x
+    
+level:
+    $00 : translevel
+    $01 : item box start
+    $02 : item box end
+    $03 : pppPPPms
+            ppp = ending powerup
+            PPP = starting powerup
+            m = midway start
+            s = special enabled
+    $04 : yyyYYYdd
+            yyy = ending yoshi
+            YYY = starting yoshi
+            dd = strictness
+    $05 : -eeegybr
+            eee = exit type
+            gybr = green, yellow, blue, red ! switch
+            
+proposed level:
+    $00 : translevel
+    $01 : item box start
+    $02 : item box end
+    $03 : powerup start
+    $04 : powerup end
+    $05 : yoshi start
+    $06 : yoshi end
+    $07 : --msgybr
+            m = midway start
+            s = special enabled
+            gybr = green, yellow, blue, red ! switch
+    $08 : eeeexpyi
+            i = 1 if item box end required
+            y = 1 if yoshi end required
+            p = 1 if powerup end required
+            x = 1 if exit type required (if not required, still need to be normal or secret exit)
+            eeee = exit type
+                000 = normal
+                001 = secret
+                010 = 2nd secret
+                011 = 3rd secret
+                100 = start+select
+                101 = death
+                110 = side exit
+                others reserved
+    $09 : reserved
+    
+            
+===
+
+when not compressed, level:
+
+    $00 : translevel
+    $01 : item box start
+    $02 : item box end
+    $03 : start powerup
+    $04 : end powerup
+    $05 : start yoshi
+    $06 : end yoshi
+    $07 : red ! switch
+    $08 : blue ! switch
+    $09 : yellow ! switch
+    $0A : green ! switch
+    $0B : special enable
+    $0C : midway enable
+    $0D : exit type
+    $0E : item box required 
+    $0F : yoshi required
+    $10 : powerup required
+    $11 : exit type required

@@ -10,6 +10,10 @@ overworld_menu_load:
         PHK
         PLB
         
+        STZ !fast_mode_current_level
+        STZ !menu_tile_upload_bytes
+        STZ !menu_tile_upload_bytes+1
+        
         LDA #$09 ; special world theme
         STA $1DFB ; apu i/o
         STZ $0D9F ; hdmaen
@@ -68,8 +72,9 @@ overworld_menu_load:
         LDX #$0000
         STX $1E ; layer 2 x position
         STX $22 ; layer 3 x position
-        LDX #$0003
+        LDX #$0000
         STX $20 ; layer 2 y position
+        LDX #$0020
         STX $24 ; layer 3 y position
         STZ $2121 ; cgram address
         LDA $13
@@ -80,7 +85,7 @@ overworld_menu_load:
         STA $2122 ; cgram data
         SEP #$10
         
-        LDX #!number_of_options-1
+        LDX #!number_of_options_pg1-1
       - JSL draw_menu_selection
         DEX
         BPL -
@@ -104,14 +109,10 @@ overworld_menu_load:
         BPL -
         SEP #$30
         
-        JSL default_status_bar
-        JSL display_meters_wrapper
-        JSL DMA_Status_Bar_Wrapper
-        
         LDA #$01
         STA !in_overworld_menu
         
-        LDA #$52
+        LDA #$53
         STA $2109 ; BG3SC
         LDA #$01
         STA $2105 ; mode
@@ -136,58 +137,86 @@ upload_overworld_menu_graphics:
         
         LDX #$2000
         STX $2116 ; vram address
-        LDA #$19 ; #bank of menu_layer1_tilemap
+        LDA.B #bank(menu_layer1_tilemap)
         LDX #menu_layer1_tilemap
         LDY #$0800
         JSL load_vram
         
         LDX #$0000
         STX $2116 ; vram address
-        LDA #$19 ; #bank of menu_layer2_tiles
+        LDA.B #bank(menu_layer2_tiles)
         LDX #menu_layer2_tiles
         LDY #$4000
         JSL load_vram
         
         LDX #$3000
         STX $2116 ; vram address
-        LDA #$19 ; #bank of menu_layer2_tilemap
+        LDA.B #bank(menu_layer2_tilemap)
+        LDX #menu_layer2_tilemap
+        LDY #$0800
+        JSL load_vram
+        
+        LDX #$3400
+        STX $2116 ; vram address
+        LDA.B #bank(menu_layer2_tilemap)
         LDX #menu_layer2_tilemap
         LDY #$0800
         JSL load_vram
         
         LDX #$3800
         STX $2116 ; vram address
-        LDA #$19 ; #bank of menu_layer2_tilemap
+        LDA.B #bank(menu_layer2_tilemap)
+        LDX #menu_layer2_tilemap
+        LDY #$0800
+        JSL load_vram
+        
+        LDX #$3C00
+        STX $2116 ; vram address
+        LDA.B #bank(menu_layer2_tilemap)
         LDX #menu_layer2_tilemap
         LDY #$0800
         JSL load_vram
         
         LDX #$6000
         STX $2116 ; vram address
-        LDA #$18 ; #bank of menu_object_tiles
+        LDA.B #bank(menu_object_tiles)
         LDX #menu_object_tiles
         LDY #$1000
         JSL load_vram
         
         LDA #$00
         STA $2121 ; cgram address
-        LDA #$19 ; #bank of menu_palette
+        LDA.B #bank(menu_palette)
         LDX #menu_palette
         LDY #$0100
         JSL load_cgram
         
         LDA #$80
         STA $2121 ; cgram address
-        LDA #$19 ; #bank of menu_palette
+        LDA.B #bank(menu_palette)
         LDX #menu_palette
         LDY #$0100
         JSL load_cgram
         
         LDX #$5000
         STX $2116 ; vram address
-        LDA #$19 ; #bank of menu_layer3_tilemap
+        LDA.B #bank(menu_layer3_tilemap)
         LDX #menu_layer3_tilemap
         LDY #$0800
+        JSL load_vram
+        
+        LDX #$5800
+        STX $2116 ; vram address
+        LDA.B #bank(menu_layer3_tilemap)
+        LDX #menu_layer3_tilemap
+        LDY #$0800
+        JSL load_vram
+        
+        LDX #$4800
+        STX $2116 ; vram address
+        LDA.B #bank(menu_layer3_tiles)
+        LDX #menu_layer3_tiles
+        LDY #$1000
         JSL load_vram
         
         PLP
@@ -200,13 +229,35 @@ draw_menu_selection:
         PHB
         PHK
         PLB
-        
+
+        REP #$20
+
         LDA option_x_position,X
-        STA $00
+        AND #$00FF
+        BIT #$0020
+        BEQ +
+        EOR #$0420 ; on the second page
+      + STA $00
         LDA option_y_position,X
-        STA $01
-        
+        AND #$00FF
+        BIT #$0020
+        BEQ +
+        EOR #$0060 ; on the second page (so technically 3rd page)
+      + ASL #5
+        ADC $00
+        ADC #$3000
         REP #$30
+        LDY !menu_tile_upload_bytes
+        STA !menu_tile_upload_location,Y
+        CLC
+        INC A
+        STA !menu_tile_upload_location+4,y
+        CLC
+        ADC #$001F
+        STA !menu_tile_upload_location+8,y
+        INC A
+        STA !menu_tile_upload_location+12,y
+
         LDA.L !status_table,X
         AND #$00FF
         STA $0E
@@ -216,85 +267,63 @@ draw_menu_selection:
         LDA $0E
         CLC
         ADC option_index,X
-        STA $03
-        
-        LDA $7F837B
-        TAX
-        SEP #$20
-        
-        LDA $01
-        LSR #3
-        ORA #$30
-        STA $7F837D+00,X
-        LDA $01
-        INC A
-        LSR #3
-        ORA #$30
-        STA $7F837D+08,X
-        LDA $01
-        ASL #5
-        ORA $00
-        STA $7F837D+01,X
-        LDA $01
-        INC A
-        ASL #5
-        ORA $00
-        STA $7F837D+09,X
-        LDA #$00
-        STA $7F837D+02,X
-        STA $7F837D+10,X
-        LDA #$03
-        STA $7F837D+03,X
-        STA $7F837D+11,X
-        LDA #$FF
-        STA $7F837D+16,X
-        
-        REP #$20
-        LDA $03
         ASL #3
-        TAY
-        LDA menu_option_tiles,Y
-        STA $7F837D+04,X
-        LDA menu_option_tiles+2,Y
-        STA $7F837D+06,X
-        LDA menu_option_tiles+4,Y
-        STA $7F837D+12,X
-        LDA menu_option_tiles+6,Y
-        STA $7F837D+14,X
-        
-        TXA
-        CLC
+        TAX
+
+        LDA menu_option_tiles,X
+        STA !menu_tile_upload_location+2,y
+        LDA menu_option_tiles+2,X
+        STA !menu_tile_upload_location+6,y
+        LDA menu_option_tiles+4,X
+        STA !menu_tile_upload_location+10,y
+        LDA menu_option_tiles+6,X
+        STA !menu_tile_upload_location+14,y
+
+        TYA
         ADC #$0010
-        STA $7F837B
-        
+        STA !menu_tile_upload_bytes
+
         PLB
         PLP
         PLX
         RTL
 
-;        db $00,$01,$02,$03,$04,$05,$06,$07,$08,$09,$0A,$0B,$0C,$0D,$0E,$0F,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$1A,$1B,$1C,$1D,$1E
+
 option_x_position:
-        db $06,$06,$06,$06,$06,$09,$09,$09,$09,$18,$0C,$15,$12,$12,$15,$0C,$0F,$0F,$0C,$0F,$18,$0F,$12,$15,$12,$15,$0E,$10,$12,$14,$0C
+        db $06,$06,$06,$06,$06,$09,$09,$09,$09,$18,$0C,$15,$12,$12,$15,$0C
+        db $0F,$0F,$0C,$0F,$18,$0F,$12,$15,$12,$15,$0E,$10,$12,$14,$0C,$18
+        db $26,$26,$26,$26,$26,$29,$29,$29,$2C,$2C,$2C,$29,$2C,$23,$23,$23
 option_y_position:
-        db $03,$06,$09,$0C,$0F,$06,$09,$0C,$03,$0F,$09,$06,$0C,$09,$09,$0F,$06,$09,$06,$0C,$03,$0F,$06,$0C,$0F,$0F,$02,$02,$02,$02,$0C
+        db $03,$06,$09,$0C,$0F,$06,$09,$0C,$03,$0F,$09,$06,$0C,$09,$09,$0F
+        db $06,$09,$06,$0C,$03,$0F,$06,$0C,$0F,$0F,$02,$02,$02,$02,$0C,$0C
+        db $03,$06,$09,$0C,$0F,$06,$09,$0C,$06,$09,$0C,$03,$03,$03,$06,$0F
 option_width:
-        db $10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$08,$08,$08,$08,$10
+        db $10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10
+        db $10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$08,$08,$08,$08,$10,$10
+        db $10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10
 option_height:
-        db $10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10
+        db $10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10
+        db $10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10
+        db $10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10
 option_type:
-        db $01,$01,$01,$01,$01,$01,$01,$01,$02,$03,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$03,$01,$01,$01,$03,$03,$01,$01,$01,$01,$01
+        db $01,$01,$01,$01,$01,$01,$01,$01,$02,$03,$01,$01,$01,$01,$01,$01
+        db $01,$01,$01,$01,$03,$01,$01,$01,$03,$03,$01,$01,$01,$01,$01,$01
+        db $01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$03
 option_index:
         dw $0001,$0003,$0005,$0007,$0009,$000B,$010B,$020B
         dw $030B,$030C,$0319,$031E,$0321,$0323,$0325,$0327
         dw $0329,$032C,$0337,$033F,$0341,$0347,$0349,$03AE
-        dw $03B0,$03B2,$03C1,$03C1,$03C1,$03C1,$03BD
+        dw $03B0,$03B2,$03BA,$03BA,$03BA,$03BA,$03B6,$03E3
+        dw $0001,$0003,$0005,$0007,$0009,$000B,$010B,$020B
+        dw $000B,$010B,$020B,$03EC,$03E8,$03F1,$03F4,$03F7
 menu_option_tiles:
         incbin "bin/menu_option_tiles.bin"
 menu_object_tiles:
         incbin "bin/menu_object_tiles.bin"
+menu_layer3_tiles:
+        incbin "bin/menu_layer3_tiles.bin"
         
-; the text for option titles and descriptions
-        incsrc "option_text.asm"
+; See level_mario_appear.asm for option_text
 
 print "inserted ", bytes, "/32768 bytes into bank $18"
 
@@ -323,23 +352,34 @@ menu_palette:
         incbin "bin/menu_palette.bin"
 
 ; which selection to go to when a direction is pressed
-;        db $00,$01,$02,$03,$04,$05,$06,$07,$08,$09,$0A,$0B,$0C,$0D,$0E,$0F,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$1A,$1B,$1C,$1D,$1E
 selection_press_up:
-        db $04,$00,$01,$02,$03,$08,$05,$06,$07,$14,$12,$1D,$0D,$16,$0B,$1E,$1B,$10,$1A,$11,$09,$13,$1C,$0E,$0C,$17,$0F,$15,$18,$19,$0A
-selection_press_down:                                                                           
-        db $01,$02,$03,$04,$00,$06,$07,$08,$05,$14,$1E,$0E,$18,$0C,$17,$1A,$11,$13,$0A,$15,$09,$1B,$0D,$19,$1C,$1D,$12,$10,$16,$0B,$0F
-selection_press_left:                                                                           
-        db $14,$0B,$0E,$17,$09,$01,$02,$03,$00,$19,$06,$16,$13,$11,$0D,$04,$12,$0A,$05,$1E,$1D,$0F,$10,$0C,$15,$18,$08,$1A,$1B,$1C,$07
-selection_press_right:                                                                          
-        db $08,$05,$06,$07,$0F,$12,$0A,$1E,$1A,$04,$11,$01,$17,$0E,$02,$15,$16,$0D,$10,$0C,$00,$18,$0B,$03,$19,$09,$1B,$1C,$1D,$14,$13
+        db $04,$00,$01,$02,$03,$08,$05,$06,$07,$1F,$12,$1D,$0D,$16,$0B,$1E
+        db $1B,$10,$1A,$11,$09,$13,$1C,$0E,$0C,$17,$0F,$15,$18,$19,$0A,$14
+        db $24,$20,$21,$22,$23,$2B,$25,$26,$2C,$28,$29,$27,$2A,$2F,$2D,$2E
+selection_press_down:
+        db $01,$02,$03,$04,$00,$06,$07,$08,$05,$14,$1E,$0E,$18,$0C,$17,$1A
+        db $11,$13,$0A,$15,$1F,$1B,$0D,$19,$1C,$1D,$12,$10,$16,$0B,$0F,$09
+        db $21,$22,$23,$24,$20,$26,$27,$2B,$29,$2A,$2C,$25,$28,$2E,$2F,$2D
+selection_press_left:
+        db $14,$0B,$0E,$1F,$09,$01,$02,$03,$00,$19,$06,$16,$13,$11,$0D,$04
+        db $12,$0A,$05,$1E,$1D,$0F,$10,$0C,$15,$18,$08,$1A,$1B,$1C,$07,$17
+        db $2D,$2E,$29,$2A,$2F,$21,$22,$23,$25,$26,$27,$20,$2B,$2C,$28,$24
+selection_press_right:
+        db $08,$05,$06,$07,$0F,$12,$0A,$1E,$1A,$04,$11,$01,$17,$0E,$02,$15
+        db $16,$0D,$10,$0C,$00,$18,$0B,$1F,$19,$09,$1B,$1C,$1D,$14,$13,$03
+        db $2B,$25,$26,$27,$2F,$28,$29,$2A,$2E,$22,$23,$2C,$2D,$20,$21,$24
 
 ; the number of options to allow when holding x or y
 minimum_selection_extended:
-        db $01,$01,$01,$01,$01,$FF,$FF,$FF,$00,$0C,$04,$02,$01,$01,$01,$01,$02,$0A,$07,$01,$05,$01,$64,$01,$01,$0A,$28,$28,$28,$28,$03
+        db $01,$01,$01,$01,$01,$FF,$FF,$FF,$00,$0C,$04,$02,$01,$01,$01,$01
+        db $02,$0A,$07,$01,$05,$01,$64,$01,$01,$03,$28,$28,$28,$28,$03,$04
+        db $01,$01,$01,$01,$01,$07,$FF,$07,$07,$FF,$07,$01,$03,$02,$02,$01
 
 ; the number of options to allow when not holding x or y
 minimum_selection_normal:
-        db $01,$01,$01,$01,$01,$03,$04,$04,$00,$0C,$04,$02,$01,$01,$01,$01,$02,$0A,$07,$01,$05,$01,$37,$01,$01,$0A,$28,$28,$28,$28,$03
+        db $01,$01,$01,$01,$01,$03,$04,$04,$00,$0C,$04,$02,$01,$01,$01,$01
+        db $02,$0A,$07,$01,$05,$01,$37,$01,$01,$03,$28,$28,$28,$28,$03,$03
+        db $01,$01,$01,$01,$01,$03,$04,$04,$03,$04,$04,$01,$01,$02,$02,$01
 
 ; this code is run on every frame during the overworld menu game mode (after fade in completes)
 ; GAME MODE #$1F
@@ -352,8 +392,13 @@ overworld_menu:
         INC $14
         JSL $7F8000
         
-        LDA !in_meter_editor
-        ASL A
+        JSL scroll_screens
+        PHP
+        LDA !overworld_menu_mode
+        PLP
+        BMI +
+        STA !menu_screen_moved
+      + ASL A
         TAX
         JSR (overworld_menu_submodes,X)
     
@@ -364,23 +409,331 @@ overworld_menu:
 overworld_menu_submodes:
         dw option_selection_mode
         dw meter_editor_mode
+        dw FastMode_editor_mode
+
+; move the screen if not in the right spot
+scroll_screens:
+        PHP
+        REP #$20
+        LDY #$00
+        LDX !overworld_menu_mode
+
+        CPX #$00
+        BNE .check_mode_1
+        
+        ; main menu @ ($00,$00)
+        LDA $20 ; bg1 y
+        BEQ +
+        LDA $20
+        SEC
+        SBC #$0004
+        STA $20
+        INY
+      + LDA $22 ; bg3 x
+        BEQ +
+        SEC
+        SBC #$0008
+        STA $22
+        INY
+      + LDA $24 ; bg3 y
+        CMP #$0020
+        BEQ +
+        SEC
+        SBC #$0004
+        STA $24
+        INY
+      + LDA $1E ; bg1 x
+        BEQ +
+        SEC
+        SBC #$0008
+        STA $1E
+        INY
+      + BRA .done_scrolling
+        
+    .check_mode_1:
+        CPX #$01
+        BNE .check_mode_2
+        
+        ; status bar editor @ ($00,$A4)
+        LDA $20 ; bg1 y
+        CMP #$00A4
+        BCS +
+        ADC #$0004
+        STA $20
+        INY
+      + LDA $22 ; bg3 x
+        BEQ +
+        SEC
+        SBC #$0008
+        STA $22
+        INY
+      + LDA $24 ; bg3 y
+        CMP #$00C4
+        BCS +
+        ADC #$0004
+        STA $24
+        INY
+      + LDA $1E ; bg1 x
+        BEQ +
+        SEC
+        SBC #$0008
+        STA $1E
+        INY
+      + BRA .done_scrolling
+
+    .check_mode_2:
+        CPX #$02
+        BNE .done_scrolling
+        
+        ; route editor @ ($100,$00)
+        LDA $20 ; bg1 y
+        BEQ +
+        SEC
+        SBC #$0004
+        STA $20
+        INY
+      + LDA $22 ; bg3 x
+        CMP #$0100
+        BEQ +
+        CLC
+        ADC #$0008
+        STA $22
+        INY
+      + LDA $24 ; bg3 y
+        CMP #$0020
+        BEQ +
+        SEC
+        SBC #$0004
+        STA $24
+        INY
+      + LDA $1E ; bg1 x
+        CMP #$0100
+        BEQ +
+        CLC
+        ADC #$0008
+        STA $1E
+        INY
+        
+    .done_scrolling:
+      + PLP
+        DEY
+        TYA
+        EOR #$FF
+        STA !menu_screen_moved
+        RTL
+        
+unpack_FastMode_level_settings:
+        JSL retrieve_current_level
+        BNE +
+        
+        ; empty route
+        LDA #$00
+        STA !status_fast_mode_timer
+        STA !status_fast_mode_heads_up
+        STA !status_fast_mode_start_item
+        STA !status_fast_mode_end_item
+        STA !status_fast_mode_start_powerup
+        STA !status_fast_mode_end_powerup
+        STA !status_fast_mode_start_yoshi
+        STA !status_fast_mode_end_yoshi
+        STA !status_fast_mode_red
+        STA !status_fast_mode_blue
+        STA !status_fast_mode_yellow
+        STA !status_fast_mode_green
+        STA !status_fast_mode_special
+        STA !status_fast_mode_midway
+        STA !status_fast_mode_exit_type
+        BRA .done
+        
+;      + LDA !fast_mode_save_current_header+1
+;        CMP #$01 ; version
+;        BEQ +
+        
+      + LDA !fast_mode_save_current_header+2
+        STA !status_fast_mode_timer
+        
+        LDA !fast_mode_save_current_header+3
+        STA !status_fast_mode_heads_up
+
+        LDA !fast_mode_save_current_level+1
+        STA !status_fast_mode_start_item
+
+        LDA !fast_mode_save_current_level+2
+        STA !status_fast_mode_end_item
+
+        LDA !fast_mode_save_current_level+3
+        STA !status_fast_mode_start_powerup
+
+        LDA !fast_mode_save_current_level+4
+        STA !status_fast_mode_end_powerup
+
+        LDA !fast_mode_save_current_level+5
+        STA !status_fast_mode_start_yoshi
+
+        LDA !fast_mode_save_current_level+6
+        STA !status_fast_mode_end_yoshi
+
+        LDA !fast_mode_save_current_level+7
+        STA !status_fast_mode_red
+
+        LDA !fast_mode_save_current_level+8
+        STA !status_fast_mode_blue
+
+        LDA !fast_mode_save_current_level+9
+        STA !status_fast_mode_yellow
+
+        LDA !fast_mode_save_current_level+10
+        STA !status_fast_mode_green
+
+        LDA !fast_mode_save_current_level+11
+        STA !status_fast_mode_special
+
+        LDA !fast_mode_save_current_level+12
+        STA !status_fast_mode_midway
+
+        LDA !fast_mode_save_current_level+13
+        STA !status_fast_mode_exit_type
+        
+        ;; TODO special case for required flags
+
+    .done:
+        RTS
+        
+pack_FastMode_level_settings:
+        JSL retrieve_current_header
+        
+        LDA #$01 ; version of route data
+        STA !fast_mode_save_current_header+1
+        
+        LDA !status_fast_mode_timer
+        STA !fast_mode_save_current_header+2
+        
+        LDA !status_fast_mode_heads_up
+        STA !fast_mode_save_current_header+3
+
+        LDA !status_fast_mode_start_item
+        STA !fast_mode_save_current_level+1
+
+        LDA !status_fast_mode_end_item
+        STA !fast_mode_save_current_level+2
+
+        LDA !status_fast_mode_start_powerup
+        STA !fast_mode_save_current_level+3
+
+        LDA !status_fast_mode_end_powerup
+        STA !fast_mode_save_current_level+4
+
+        LDA !status_fast_mode_start_yoshi
+        STA !fast_mode_save_current_level+5
+
+        LDA !status_fast_mode_end_yoshi
+        STA !fast_mode_save_current_level+6
+
+        LDA !status_fast_mode_red
+        STA !fast_mode_save_current_level+7
+
+        LDA !status_fast_mode_blue
+        STA !fast_mode_save_current_level+8
+
+        LDA !status_fast_mode_yellow
+        STA !fast_mode_save_current_level+9
+
+        LDA !status_fast_mode_green
+        STA !fast_mode_save_current_level+10
+
+        LDA !status_fast_mode_special
+        STA !fast_mode_save_current_level+11
+
+        LDA !status_fast_mode_midway
+        STA !fast_mode_save_current_level+12
+
+        LDA !status_fast_mode_exit_type
+        STA !fast_mode_save_current_level+13
+        
+        ;; TODO special case for required flags
+
+        JSL store_current_level
+        RTS
+
+RedrawPg2:
+        LDX #!number_of_options_pg1                         ; \
+      - JSL draw_menu_selection                             ; | Draw all page 2 options
+        INX                                                 ; |
+        CPX #!number_of_options_pg1+!number_of_options_pg2  ; |
+        BNE -                                               ; /
+        RTS
+
+FastMode_editor_mode:
+        JSL retrieve_current_level
+        JSR unpack_FastMode_level_settings
+
+        LDA !util_byetudlr_frame                            ; \
+        AND #$10                                            ; |
+        BEQ +                                               ; |
+                                                            ; |
+        LDA #$00                                            ; |
+        STA !overworld_menu_mode                            ; |
+        STA !util_byetudlr_frame                            ; | Return to main menu on START
+        STZ !text_timer                                     ; |
+        LDA #$1F                                            ; |
+        STA !current_selection                              ; |
+        LDA #$0B ; on/off sound
+        STA $1DF9 ; apu i/o
+        JMP .done                                           ; /
+
+      + LDA !util_byetudlr_hold                             ; \
+        AND #$40                                            ; |
+        BEQ .no_y                                           ; |
+                                                            ; |
+        LDA !util_byetudlr_frame                            ; | 
+        BIT #$04                                            ; | if Y+Down, increment level counter
+        BEQ .check_ydown                                    ; | 
+        
+        JSR pack_FastMode_level_settings                    ; | Pack away old values before increment
+        INC !fast_mode_current_level                        ; |
+        LDA !fast_mode_save_current_header+0
+        DEC A
+        CMP !fast_mode_current_level
+        BCS +
+        LDA #00
+        STA !fast_mode_current_level
+      + STZ !util_byetudlr_frame                            ; |
+        STZ !text_timer                                     ; |
+        LDA #$06 ; fireball sound
+        STA $1DFC ; apu i/o
+        JSR unpack_FastMode_level_settings                  ; | unpack new values after increment
+        JSR RedrawPg2
+        JSL draw_route_level_list
+        BRA .no_y
+
+    .check_ydown:
+        LDA !util_byetudlr_frame                            ; |
+        BIT #$08                                            ; | if Y+Up, decrement level counter
+        BEQ .no_y                                           ; |
+        JSR pack_FastMode_level_settings                    ; |
+        DEC !fast_mode_current_level                        ; |
+        BPL +
+        LDA !fast_mode_save_current_header+0
+        DEC A
+        STA !fast_mode_current_level
+      + STZ !util_byetudlr_frame                            ; |
+        STZ !text_timer                                     ; |
+        LDA #$06 ; fireball sound
+        STA $1DFC ; apu i/o
+        JSR unpack_FastMode_level_settings                  ; |
+        JSR RedrawPg2                                       ; /
+        JSL draw_route_level_list
+        
+    .no_y:
+        JSR option_selection_mode
+    .done
+        JSR pack_FastMode_level_settings
+        RTS
         
 ; run the default part of the menu
 option_selection_mode:
         LDA !current_selection
         STA $0B
-        
-        LDA $24
-        CMP #$03
-        BEQ .no_scroll
-        SEC
-        SBC #$04
-        STA $24
-        LDA $20
-        SEC
-        SBC #$04
-        STA $20
-    .no_scroll:
         
         INC !fast_scroll_timer
         LDA !util_axlr_hold
@@ -395,12 +748,20 @@ option_selection_mode:
         
     .test_select:
         LDA !erase_records_flag
-        BEQ .test_dup
+        BEQ .test_start
         LDA !util_byetudlr_hold
         AND #%00100000
-        BEQ .test_dup
+        BEQ .test_start
         JSR delete_data
         JMP .finish_no_change
+    
+    .test_start:
+        LDA !util_byetudlr_frame
+        AND #%00010000
+        BEQ .test_dup
+        LDA #$29 ; ding sound
+        STA $1DFC ; apu i/o
+        JMP .quit
         
     .test_dup:
         LDA !util_byetudlr_frame
@@ -491,90 +852,131 @@ option_selection_mode:
         ORA !util_byetudlr_frame
         AND #%10000000
         BNE .make_selection
-        JMP .test_start
+        JMP .finish_no_change
     .make_selection:
         LDA !current_selection
         ASL A
         TAX
-        JMP (.selection_table,X)
-        
-    .selection_table:
-        dw .select_yellow
-        dw .select_green
-        dw .select_red
-        dw .select_blue
-        dw .select_special
-        dw .select_powerup
-        dw .select_itembox
-        dw .select_yoshi
-        dw .select_enemy
-        dw .select_records
-        dw .select_slots
-        dw .select_fractions
-        dw .select_pause
-        dw .select_timedeath
-        dw .select_music
-        dw .select_drop
-        dw .select_states
-        dw .select_statedelay
-        dw .select_dynmeter
-        dw .select_slowdown
-        dw .select_meters
-        dw .select_lrreset
-        dw .select_scorelag
-        dw .select_placeholder
-        dw .select_moviesave
-        dw .select_movieload
-        dw .select_name
-        dw .select_name
-        dw .select_name
-        dw .select_name
-        dw .select_region
-        dw .select_exit
-        
-    .select_yellow:
-    .select_green:
-    .select_red:
-    .select_blue:
-    .select_special:
-    .select_powerup:
-    .select_itembox:
-    .select_slots:
-    .select_fractions:
-    .select_pause:
-    .select_timedeath:
-    .select_music:
-    .select_drop:
-    .select_dynmeter:
-    .select_states:
-    .select_statedelay:
-    .select_slowdown:
-    .select_lrreset:
-    .select_scorelag:
-    .select_placeholder:
-    .select_region:
-    .select_name:
+        LDA .selection_table,X
+        BNE +
         JMP .finish_no_change
+      + JMP (.selection_table,X)
+        
+	.selection_table:
+		dw 0                               ;00
+		dw 0                               ;01
+		dw 0                               ;02
+		dw 0                               ;03
+		dw 0                               ;04
+		dw 0                               ;05
+		dw 0                               ;06
+		dw .select_yoshi                   ;07
+		dw .select_enemy                   ;08
+		dw .select_records                 ;09
+		dw 0                               ;0A
+		dw 0                               ;0B
+		dw 0                               ;0C
+		dw 0                               ;0D
+		dw 0                               ;0E
+		dw 0                               ;0F
+		dw 0                               ;10
+		dw 0                               ;11
+		dw 0                               ;12
+		dw 0                               ;13
+		dw .select_meters                  ;14
+		dw 0                               ;15
+		dw 0                               ;16
+		dw 0                               ;17
+		dw .select_moviesave               ;18
+		dw .select_movieload               ;19
+		dw 0                               ;1A
+		dw 0                               ;1B
+		dw 0                               ;1C
+		dw 0                               ;1D
+		dw 0                               ;1E
+		dw .select_fast_mode_save          ;1F
+		dw .propogate_forward              ;20
+		dw .propogate_forward              ;21
+		dw .propogate_forward              ;22
+		dw .propogate_forward              ;23
+		dw .propogate_forward              ;24
+		dw .propogate_forward              ;25
+		dw .propogate_forward              ;26
+		dw .propogate_forward              ;27
+		dw .propogate_forward              ;28
+		dw .propogate_forward              ;29
+		dw .propogate_forward              ;2A
+		dw .propogate_forward              ;2B
+		dw .propogate_forward              ;2C
+		dw 0                               ;2D
+		dw 0                               ;2E
+		dw .select_fast_mode_delete_save   ;2F
+
+
+    .propogate_forward:
+        LDA !util_byetudlr_hold
+        AND !util_axlr_hold
+        AND #$80
+        BEQ +
+        JSR FastMode_propogate_forward
+        LDA #$01 ; coin sound
+        STA $1DFC ; apu i/o
+      + JMP .finish_no_change
+      
+    .select_fast_mode_save:
+        LDA !status_fast_mode
+        BNE +
+        LDA #$2A ; wrong sound
+        STA $1DFC ; apu i/o
+        JMP .finish_no_change
+      + LDA #$02
+        STA !overworld_menu_mode
+        LDA #$20
+        STA !current_selection
+        STZ !text_timer
+        STZ !fast_mode_current_level
+        JSL draw_route_level_list
+        JSR unpack_FastMode_level_settings
+        JSR RedrawPg2
+        LDA #$0B ; on/off sound
+        STA $1DF9 ; apu i/o
+        JMP .finish_no_change
+        
+    .select_fast_mode_delete_save:
+        LDA !status_fast_mode_delete
+        BNE ++
+        LDA !fast_mode_save_current_header
+        BNE +
+        JMP .finish_error_sound
+      + JSL route_remove_level
+        JMP .finish_no_change
+     ++ LDA !fast_mode_save_current_header
+        BEQ +
+        JSL route_duplicate_level
+        JMP .finish_no_change
+      + JSL route_add_new_level
+        JMP .finish_no_change
+        
     .select_meters:
         LDA.L !status_layout
         CMP #$03
         BCS +
-        LDA #$2A ; wrong sound
-        STA $1DFC ; apu i/o
-        JMP .finish_no_change
+        JMP .finish_error_sound
       + LDA #$0B ; on/off sound
         STA $1DF9 ; apu i/o
         JSL update_meterset_pointer
         JSL draw_meter_names
         JSR draw_edited_status_bar
         LDA #$01
-        STA !in_meter_editor
+        STA !overworld_menu_mode
         STZ !text_timer
         JMP .no_update_text
+        
     .select_yoshi:
         LDA #$1F ; yoshi sound
         STA $1DFC ; apu i/o
         JMP .finish_no_change
+        
     .select_records:
         LDA #$24 ; "press select to confirm"
         STA $12 ; stripe image loader
@@ -586,34 +988,33 @@ option_selection_mode:
         LDA #$80 ; fade out music
         STA $1DFB ; apu i/o
         JMP .finish_no_change
+        
     .select_enemy:
         LDA #$01 ; coin sound
         STA $1DFC ; apu i/o
         JSR reset_enemy_states
         JMP .finish_no_change
+        
     .select_moviesave:
         JSR export_movie_to_sram
         JMP .finish_no_change
+        
     .select_movieload:
         JSR load_movie
-        JMP .finish_no_change
-    .select_exit:
-        LDA #$29 ; ding sound
-        STA $1DFC ; apu i/o
-        JMP .quit
-    
-    .test_start:
-        LDA !util_byetudlr_frame
-        AND #%00010000
-        BEQ .finish_no_change
-        JMP .select_exit
-        
+        JMP .finish_no_change    
+
+
     .quit:
         LDA #$0B
         STA $0100 ; game mode
         
         JSL restore_basic_settings
         BRA .finish_no_change
+        
+    .finish_error_sound:
+        LDA #$2A ; wrong sound
+        STA $1DFC ; apu i/o
+        BRA .finish_no_sound
     
     .finish_sound:
         LDA #$06 ; fireball sound
@@ -639,6 +1040,186 @@ option_selection_mode:
         STZ !text_timer
     .no_update_text:
         RTS
+
+; remove the current level from the route
+; shouldn't happen if route is empty
+route_remove_level: ; use mvn, (Y) <- (X), C = len-1
+        PHP
+        LDA #$06 ; gulp sound
+        STA $1DF9 ; apu i/o
+        
+        LDA.L !status_fast_mode
+        DEC A
+        REP #$30
+        AND #$00FF
+        ASL #2
+        TAX
+        LDA.L FastMode_header_locations,X
+        STA $00
+        LDA.L FastMode_header_locations+1,X
+        STA $01
+        LDA [$00]
+        DEC A
+        STA [$00] ; shorten route by one
+        STA $03
+        LDA.L FastMode_save_locations,X
+        STA $00
+        LDA.L FastMode_save_locations+1,X
+        STA $01
+        LDA !fast_mode_current_level
+        AND #$00FF
+        STA $05
+        ASL #2
+        CLC
+        ADC $05
+        ASL A ; x10
+        CLC
+        ADC $00
+        TAY
+        CLC
+        ADC #$000A ; level entry length
+        TAX
+        LDA $03
+        AND #$00FF
+        SEC
+        SBC !fast_mode_current_level
+        STA $05
+        ASL #2
+        CLC
+        ADC $05
+        ASL A ; x10
+        PHB
+        MVN $70,$70
+        PLB
+        
+        SEP #$30
+        LDA $03
+        CMP !fast_mode_current_level
+        BNE +
+        DEC !fast_mode_current_level
+      + JSL draw_route_level_list
+        JSR unpack_FastMode_level_settings
+        JSR RedrawPg2
+        PLP
+        RTL
+
+; add a fresh new level to a route that was previously empty
+route_add_new_level:
+        LDA #$2A ; yi2
+        STA !potential_translevel
+        LDX #$00
+        JSL FastMode_add_level
+        JSL draw_route_level_list
+        JSR unpack_FastMode_level_settings
+        JSR RedrawPg2
+        RTL
+
+; duplicate the current level in the route
+route_duplicate_level: ; use mvp
+        PHP
+        
+        LDA.L !status_fast_mode
+        DEC A
+        REP #$30
+        AND #$00FF
+        ASL #2
+        TAX
+        LDA.L FastMode_header_locations,X
+        STA $00
+        LDA.L FastMode_header_locations+1,X
+        STA $01
+        LDA [$00]
+        AND #$00FF
+        CMP.W #!fast_mode_max_route_length ; full
+        BCC +
+        SEP #$20
+        LDA #$2A ; wrong sound
+        STA $1DFC ; apu i/o
+        PLP
+        RTL
+        
+      + STA $03
+        INC A
+        STA [$00] ; lengthen route by one
+        LDA.L FastMode_save_locations,X
+        STA $00
+        LDA.L FastMode_save_locations+1,X
+        STA $01
+        LDA $03
+        AND #$00FF
+        STA $05
+        ASL #2
+        CLC
+        ADC $05
+        ASL A ; x10
+        DEC A
+        CLC
+        ADC $00
+        TAX
+        CLC
+        ADC #$000A ; level entry length
+        TAY
+        LDA $03
+        AND #$00FF
+        SEC
+        SBC !fast_mode_current_level
+        STA $05
+        ASL #2
+        CLC
+        ADC $05
+        ASL A ; x10
+        DEC A
+        PHB
+        MVP $70,$70
+        PLB
+        
+        SEP #$30
+        JSL draw_route_level_list
+        JSR unpack_FastMode_level_settings
+        JSR RedrawPg2     
+
+        LDA #$02 ; bop sound
+        STA $1DF9 ; apu i/o
+        
+        PLP
+        RTL
+
+; take the selection option and apply it to all later levels in the route
+FastMode_propogate_forward:
+        LDA !current_selection
+        TAX
+        LDA selection_to_uncompressed_table-$20,X
+        TAX
+        STA $04
+        LDA !fast_mode_current_level
+        STA $05
+        LDA !fast_mode_save_current_level,X
+        STA $06
+
+        LDY !fast_mode_save_current_header+0
+
+      - INC !fast_mode_current_level
+        JSL retrieve_current_level
+        BEQ .done
+
+        LDA $04
+        TAX
+        LDA $06
+        STA !fast_mode_save_current_level,X
+        JSL store_current_level
+        BRA -
+
+    .done:
+        LDA $05
+        STA !fast_mode_current_level
+        JSL retrieve_current_level
+
+        ;; TODO special case for required flags
+        RTS
+
+; mapping of overworld menu options to indices into route level data
+selection_to_uncompressed_table:
+    db $09,$0A,$07,$08,$0B,$03,$01,$05,$04,$02,$06,$0C,$10
         
 ; copy currently loaded movie to sram
 export_movie_to_sram:
@@ -787,22 +1368,32 @@ draw_option_cursor:
         LDA option_type,X
         STA $03
         LDA option_y_position,X
-        ASL #3
-        SEC
-        SBC #$09
         REP #$20
         AND #$00FF
+        ASL #3
         SEC
-        SBC $24
+        SBC #$0009
+
+        SEC
+        SBC $20
         BPL +
         CMP #$FFE8
         BCC .done
       + SEP #$20
         TAY
         LDA option_x_position,X
+        REP #$20
+        AND #$00FF
         ASL #3
         SEC
-        SBC #$08
+        SBC #$0008
+        
+        SEC
+        SBC $1E
+        BPL +
+        CMP #$FFE8
+        BCC .done
+      + SEP #$20
         TAX
         
         LDA !util_axlr_hold
@@ -985,7 +1576,11 @@ delete_all_data:
       + DEX
         DEX
         BPL -
-        
+
+        LDA #$0000
+        STA !restore_status_from_backup
+        SEP #$30
+        JSL reset_header
         PLB
         PLP
         RTL
@@ -1036,6 +1631,7 @@ metersets:
         dd !statusbar_meters
         dd !statusbar_meters+$60
         dd !statusbar_meters+$C0
+        dd meterset_vanilla
 meterset_default:
         db $01,$00,$00,$21,$02,$00,$00,$21,$03,$00,$00,$41,$04,$00,$00,$61
         db $05,$00,$00,$24,$06,$00,$00,$44,$08,$00,$00,$26,$09,$00,$00,$47
@@ -1053,6 +1649,13 @@ meterset_lagcalibrated:
 meterset_empty:
         db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
         db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+        db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+        db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+        db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+        db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+meterset_vanilla:
+        db $01,$00,$00,$24,$15,$00,$00,$42,$0B,$00,$00,$5B,$0C,$00,$00,$73
+        db $14,$00,$00,$77,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
         db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
         db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
         db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
@@ -1208,7 +1811,7 @@ load_cgram:
 
 ; stripe images for text when deleting data
 stripe_confirm:
-        db $52,$82,$00,$31
+        db $53,$02,$00,$31
         db $19,$2C
         db $1B,$2C,$0E,$2C
         db $1C,$2C,$1C,$2C
@@ -1224,7 +1827,7 @@ stripe_confirm:
         db $FC,$2C,$FC,$2C
         db $FF
 stripe_deleted:
-        db $52,$82,$00,$31
+        db $53,$02,$00,$31
         db $1D,$2C,$11,$2C
         db $0E,$2C,$FC,$2C
         db $0D,$2C,$0A,$2C
@@ -1241,8 +1844,18 @@ stripe_deleted:
         db $FF
 
 ; draw option title and description
+; $04|$05 contains background offset
 draw_option_text:
-        LDA !text_timer
+        PHP
+        STZ $04
+        STZ $05
+        LDA !overworld_menu_mode
+        CMP #$02
+        BNE +
+        LDA #$04
+        STA $05 ; route editor is on second page
+        
+      + LDA !text_timer
         AND #$07
         BEQ +
         BRL .done
@@ -1250,8 +1863,10 @@ draw_option_text:
       + LDA !text_timer
         BNE +
         BRL .draw_title_and_clear
-      + REP #$30
+        
+      + SEP #$30
         LDA !current_selection
+        REP #$30
         AND #$00FF
         ASL #6
         STA $00
@@ -1269,7 +1884,7 @@ draw_option_text:
         CLC
         ADC $00
         STA $00
-        LDA #$9898 ; bank of text
+        LDA.W #bank(option_description) ; bank of text
         STA $02
         LDA !text_timer
         AND #$00FF
@@ -1277,13 +1892,16 @@ draw_option_text:
         SBC #$0008
         ASL #2
         CLC
-        ADC #$52A0
+        ADC #$5320 ; position of description
+        CLC
+        ADC $04
         XBA
         TAY
         LDX #$0020
         LDA #$3838
         JSL draw_text_string
         BRL .done
+        
     .draw_title_and_clear:
         REP #$30
         LDA !current_selection
@@ -1292,9 +1910,13 @@ draw_option_text:
         CLC
         ADC #option_title
         STA $00
-        LDA #$9898 ; bank of text
+        LDA.W #bank(option_title) ; bank of text
         STA $02
-        LDY #$4052
+        LDA #$52C0 ; position of option name
+        CLC
+        ADC $04
+        XBA
+        TAY
         LDX #$0020
         LDA #$3434
         JSL draw_text_string
@@ -1303,7 +1925,10 @@ draw_option_text:
         
         LDA.L $7F837B
         TAX
-        LDA #$A052
+        LDA #$5320 ; position of description
+        CLC
+        ADC $04
+        XBA
         STA.L $7F837D,X
         LDA #$BF41
         STA.L $7F837F,X
@@ -1316,23 +1941,26 @@ draw_option_text:
         ADC #$0006
         STA.L $7F837B    
     .done:
-        SEP #$30
+        PLP
         RTL
         
+; $04|$05 contains background offset
 draw_option_value:
         PHP
         REP #$30
         LDA #option_empty
         STA $00
-        LDA #$9898 ; bank of text
+        LDA.W #bank(option_empty) ; bank of text
         STA $02
         LDA !current_selection
         AND #$00FF
         ASL A
         TAX
         LDA option_value_lists,X
-        BEQ .exit
+        BEQ .exit_default
         BMI .continue
+        
+    .yoshi_powerup_hybrid:
         ORA #$8000
         PHA ; special case for yoshi color/powerup which is a hybrid
         LDA !current_selection
@@ -1342,7 +1970,7 @@ draw_option_value:
         AND #$00FF
         CMP #$0005
         PLA
-        BCS .exit
+        BCS .exit_default
         STA $00
         BRA .finish
         
@@ -1357,9 +1985,14 @@ draw_option_value:
         ASL #5
         ADC $00
         STA $00
-    .exit:
-        LDY #$6052
+    .exit_default:
         LDX #$0020
+        LDA #$52E0 ; position of option selection
+        CLC
+        ADC $04
+        XBA
+        TAY
+    .exit:
         LDA #$3030
         JSL draw_text_string
         
@@ -1406,7 +2039,11 @@ draw_option_value:
         STA $00
       
         REP #$30
-        LDY #$6B52
+        LDA #$52EB ; position of movie name
+        CLC
+        ADC $04
+        XBA
+        TAY
         LDX #$0014
         LDA #$3030
         JSL draw_text_string
@@ -1427,6 +2064,10 @@ draw_text_string:
         TYA
         STA.L $7F837D,X
         LDA $0C
+        PHA
+        AND #$3FFF
+        STA $0C
+        PLA
         ASL A
         DEC A
         XBA
@@ -1460,10 +2101,38 @@ draw_text_string:
         PLA
         RTL
 
+; draw a single tile
+; and A holds the property and tile
+; X (16-bit) holds the vram address
+draw_single_tile:
+        STA $0C
+        PHX
+        LDA.L $7F837B
+        TAX
+        PLA
+        STA.L $7F837D,X
+        LDA #$0100
+        STA.L $7F837F,X
+        LDA $0C
+        STA.L $7F8381,X
+        LDA #$FFFF
+        STA.L $7F8383,X
+        TXA
+        CLC
+        ADC #$0006
+        STA.L $7F837B
+        RTL
+
 ; draw a cursor
 ; where X = x pos, Y = y pos, $00 = width, $01 = height, $02 = squeezed, $03 = cursor type, $04 = change color, $0A = pointer to OAM
 draw_generic_cursor:
-        PHX
+        LDA !menu_screen_moved
+        BMI +
+        CMP !overworld_menu_mode
+        BEQ ++
+      + RTS
+
+     ++ PHX
         PHY
         
         LDA $02
@@ -1651,7 +2320,202 @@ draw_cursor_bit:
         LDA $05
         STA ($06),Y
         RTS        
-    
+        
+; draw the list of levels in the current fast mode route
+; list maxes at 12 long
+; uses $00-$08
+draw_route_level_list:
+        PHP
+        SEP #$30
+        LDA !status_fast_mode
+        BNE +
+        BRL .exit
+        
+      + DEC A
+        ASL #2
+        TAX
+        LDA.L FastMode_header_locations,X
+        STA $00
+        LDA.L FastMode_header_locations+1,X
+        STA $01
+        LDA.L FastMode_header_locations+2,X
+        STA $02
+        LDA [$00] ; number of levels
+        STA $03 ; number of levels in route
+        BNE .not_empty
+        
+        LDA.B #level_names
+        STA $00
+        LDA.B #level_names>>8
+        STA $01
+        LDA.B #bank(level_names)
+        STA $02
+        REP #$30
+        LDA #$28FC ; blank tile
+        LDX #$F554 ; address
+        JSL draw_single_tile
+        LDA #$28FC ; blank tile
+        LDX #$9556 ; address
+        JSL draw_single_tile
+        LDX #$0010
+        LDA #$5511 ; address
+        STA $04
+        XBA
+        TAY
+        LDA #$2D2D
+        JSL draw_text_string
+        
+        LDA.W #level_names_empty
+        STA $00
+      - LDA $04
+        CLC
+        ADC #$0020
+        CMP #$5511+($20*12)
+        BEQ +
+        STA $04
+        XBA
+        TAY
+        LDX #$0010
+        LDA #$2D2D
+        JSL draw_text_string
+        BRA -
+        
+      + LDX #$400C ; hack for vertical string
+        LDY #$1055
+        LDA #$2929
+        JSL draw_text_string
+        BRL .exit
+        
+    .not_empty:
+        PHX
+        
+        LDA !fast_mode_current_level
+        PHA
+      - CMP #12
+        BCC +
+        SEC
+        SBC #12
+        BRA -
+        
+      + STA $08
+        PLA
+        SEC
+        SBC $08
+        
+        STA $08
+        CMP #$01
+        REP #$30
+        LDA #$28FC ; blank tile
+        BCC + ; if more levels exit, draw arrow
+        LDA #$2841 ; arrow tile
+      + LDX #$F554 ; address
+        JSL draw_single_tile
+        
+        LDA.W #level_names_empty
+        STA $00
+        LDA.W #level_names_empty>>8
+        STA $01
+        LDX #$400C ; hack for vertical string
+        LDY #$1055
+        LDA #$2929
+        JSL draw_text_string
+        
+        SEP #$30
+        PLX
+        STZ $07 ; number of levels to show
+        LDA.L FastMode_save_locations,X
+        STA $04
+        LDA.L FastMode_save_locations+1,X
+        STA $05
+        LDA.L FastMode_save_locations+2,X
+        STA $06
+        
+      - LDA $07
+        CMP #12 ; max levels to show
+        BNE .not_finished
+        LDA $08
+        CMP $03
+        REP #$30
+        LDA #$28FC ; blank tile
+        BCS + ; if more levels exit, draw arrow
+        LDA #$2842 ; arrow tile
+      + LDX #$9556 ; address
+        JSL draw_single_tile
+        BRL .exit
+        
+    .not_finished:
+        LDA $08
+        CMP $03
+        BCC .level
+        REP #$30
+        LDA.W #level_names_empty
+        STA $00
+        JMP .merge
+        
+    .level:
+        REP #$30
+        AND #$00FF
+        STA $09
+        ASL #2
+        CLC
+        ADC $09
+        ASL A ; x10
+        TAY
+        LDA [$04],Y
+        AND #$00FF
+        ASL #4
+        CLC
+        ADC.W #level_names
+        STA $00
+    .merge:
+        LDX.W #10
+        LDA $08
+        EOR !fast_mode_current_level
+        AND #$00FF
+        BEQ .highlight_me
+        INY #8
+        LDA [$04],Y
+        AND #$00F0
+        BEQ .normal_exit
+        LDA #$3D3D
+        BRA +
+    .normal_exit:
+        LDA #$2D2D
+        BRA +
+    .highlight_me:
+        PHX
+        LDA $07
+        AND #$00FF
+        ASL #5
+        CLC
+        ADC #$5510 ; address
+        XBA
+        TAX
+        LDA #$2C40 ; arrow tile
+        JSL draw_single_tile
+        PLX
+        LDA #$2929
+        
+      + PHA
+        LDA $07
+        AND #$00FF
+        ASL #5
+        CLC
+        ADC #$5511
+        XBA
+        TAY
+        PLA
+        JSL draw_text_string
+        SEP #$30
+        INC $07
+        INC $08
+        BRL -
+        
+        
+    .exit:
+        PLP
+        RTL
+
 ; check the saved options, and if any are out of bounds, set them to zero as a failsafe
 failsafe_check_option_bounds:
         PHP
@@ -1660,7 +2524,7 @@ failsafe_check_option_bounds:
         PLB
         SEP #$30
         
-        LDX #!number_of_options-1
+        LDX #!number_of_options
       - LDA.L !status_table,X
         DEC A
         CMP minimum_selection_extended,X
@@ -1685,20 +2549,9 @@ meter_editor_mode: ; w$5460
         BEQ +
         LDA #$0B ; on/off sound
         STA $1DF9 ; apu i/o
-        STZ !in_meter_editor
+        STZ !overworld_menu_mode
         STZ !text_timer
         RTS
-        
-      + LDA $24
-        CMP #$A7
-        BEQ +
-        CLC
-        ADC #$04
-        STA $24
-        LDA $20
-        CLC
-        ADC #$04
-        STA $20
         
       + INC !fast_scroll_timer
         LDA !util_axlr_hold
@@ -1753,7 +2606,7 @@ meter_editor_mode: ; w$5460
         LDA [!statusbar_layout_ptr],Y
         DEC A
         BPL +
-        LDA #$13 ; number of meters
+        LDA #$14 ; number of meters
       + STA [!statusbar_layout_ptr],Y
         LDA #$00
         INY
@@ -1803,7 +2656,7 @@ meter_editor_mode: ; w$5460
         TAY
         LDA [!statusbar_layout_ptr],Y
         INC A
-        CMP #$14 ; number of meters + 1
+        CMP #$15 ; number of meters + 1
         BNE +
         LDA #$00
       + STA [!statusbar_layout_ptr],Y
@@ -1934,7 +2787,7 @@ meter_editor_mode: ; w$5460
         JSL draw_meter_text_draw_subtype_text
         SEP #$30
     .done_update_meter:
-        LDA #$98
+        LDA.b #bank(meter_names)
         STA $02
         LDA !current_meter_selection
         ASL #2
@@ -1951,7 +2804,7 @@ meter_editor_mode: ; w$5460
         TAX
         ASL #5
         CLC
-        ADC #$5462
+        ADC #$58E2
         CPX #$000C
         BCC +
         SEC
@@ -2092,7 +2945,7 @@ draw_meter_cursors:
         CLC
         REP #$20
         AND #$00FF
-        ADC #$010F
+        ADC #$012F
         SEC
         SBC $24
         CMP #$00E0
@@ -2113,8 +2966,10 @@ draw_meter_cursors:
         ASL #2
         TAY
         LDA [!statusbar_layout_ptr],Y
-        BEQ .done
-        ASL #3
+        BNE +
+        JMP .done
+        
+      + ASL #3
         CMP #$88 ; $7E memory viewer
         BEQ +
         CMP #$90 ; $7F memory viewer
@@ -2142,10 +2997,14 @@ draw_meter_cursors:
         STA $0A
         LDA [!statusbar_layout_ptr],Y
         CMP #$01 ; item box
-        BNE +
-        LDA #$08
+        BEQ +
+        CMP #$15 ; vanilla hud
+        BNE +++
+        LDA #$10
         BRA ++
-      + INY #3
+      + LDA #$08
+        BRA ++
+    +++ INY #3
         LDA [!statusbar_layout_ptr],Y
         DEY #3
         AND #$E0
@@ -2153,7 +3012,7 @@ draw_meter_cursors:
      ++ CLC
         REP #$20
         AND #$00FF
-        ADC #$00DF
+        ADC #$00FF
         SEC
         SBC $24
         CMP #$00E0
@@ -2162,10 +3021,14 @@ draw_meter_cursors:
         PHA
         LDA [!statusbar_layout_ptr],Y
         CMP #$01 ; item box
-        BNE +
-        LDA #$68
+        BEQ +
+        CMP #$15 ; vanilla hud
+        BNE +++
+        LDA #$08
         BRA ++
-      + INY #3
+      + LDA #$68
+        BRA ++
+    +++ INY #3
         LDA [!statusbar_layout_ptr],Y
         AND #$1F
         DEC A
@@ -2178,7 +3041,7 @@ draw_meter_cursors:
         RTL
 
 meter_subtype_counts:
-        db $01,$01,$01,$01,$02,$03,$03,$01,$03,$03,$03,$02,$03,$01,$05,$05,$02,$FF,$FF,$03
+        db $01,$01,$01,$01,$02,$03,$03,$01,$03,$03,$03,$02,$03,$01,$05,$05,$02,$FF,$FF,$03,$01,$01
 meter_widths:
         db $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
         db $04,$FF,$FF,$FF,$FF,$FF,$FF,$FF
@@ -2200,6 +3063,8 @@ meter_widths:
         db $02,$FF,$FF,$FF,$FF,$FF,$FF,$FF
         db $02,$FF,$FF,$FF,$FF,$FF,$FF,$FF
         db $05,$04,$04,$FF,$FF,$FF,$FF,$FF
+        db $07,$FF,$FF,$FF,$FF,$FF,$FF,$FF
+        db $1C,$FF,$FF,$FF,$FF,$FF,$FF,$FF
 meter_heights:
         db $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
         db $04,$FF,$FF,$FF,$FF,$FF,$FF,$FF
@@ -2221,10 +3086,12 @@ meter_heights:
         db $01,$FF,$FF,$FF,$FF,$FF,$FF,$FF
         db $01,$FF,$FF,$FF,$FF,$FF,$FF,$FF
         db $01,$01,$01,$FF,$FF,$FF,$FF,$FF
+        db $01,$FF,$FF,$FF,$FF,$FF,$FF,$FF
+        db $02,$FF,$FF,$FF,$FF,$FF,$FF,$FF
 
 draw_meter_names:
         PHP
-        LDA #$98 ; bank of text
+        LDA.b #bank(meter_names) ; bank of text
         STA $02
         REP #$30
         
@@ -2232,7 +3099,7 @@ draw_meter_names:
       - TXA
         ASL #5
         CLC
-        ADC #$5462
+        ADC #$58E2
         CPX #$000C
         BCC +
         SEC
@@ -2291,7 +3158,7 @@ draw_meter_text:
         CLC
         ADC $00
         STA $00
-        LDA #$9898 ; bank of text
+        LDA.W #bank(meter_description) ; bank of text
         STA $02
         LDA !text_timer
         AND #$00FF
@@ -2299,7 +3166,7 @@ draw_meter_text:
         SBC #$0008
         ASL #2
         CLC
-        ADC #$5300
+        ADC #$5380
         XBA
         TAY
         LDX #$0020
@@ -2311,7 +3178,7 @@ draw_meter_text:
         
         LDA.L $7F837B
         TAX
-        LDA #$6052
+        LDA #$E052
         STA.L $7F837D,X
         LDA #$3F42
         STA.L $7F837F,X
@@ -2334,9 +3201,9 @@ draw_meter_text:
         CLC
         ADC #meter_names
         STA $00
-        LDA #$9898 ; bank of text
+        LDA.W #bank(meter_names) ; bank of text
         STA $02
-        LDY #$C552
+        LDY #$4553
         LDX #$000E
         LDA #$3434
         JSL draw_text_string  
@@ -2363,9 +3230,9 @@ draw_meter_text:
         CLC
         ADC $00
         STA $00
-        LDA #$9898 ; bank of text
+        LDA.W #bank(meter_types) ; bank of text
         STA $02
-        LDY #$D452
+        LDY #$5453
         LDX #$000A
         LDA #$3434
         JSL draw_text_string
@@ -2400,7 +3267,7 @@ draw_meter_text:
         STA $00
         LDA #$7E7E ; bank of $7E00B6
         STA $02
-        LDY #$D852
+        LDY #$5853
         LDX #$0006
         LDA #$3434
         JSL draw_text_string
@@ -2419,7 +3286,7 @@ draw_edited_status_bar:
         ADC #$0144
         STA.L $7F837B
         
-        LDA #$A053 ; w$53A0
+        LDA #$2058 ; w$5820
         STA.L $7F837D,X
         LDA #$3F01 ; $0140 bytes
         STA.L $7F837F,X
@@ -2451,7 +3318,7 @@ draw_edited_status_bar:
       - LDA [!statusbar_layout_ptr],Y
         AND #$00FF
         BEQ +
-        CMP #$0014
+        CMP #$0016
         BCS +
         INY #3
         LDA [!statusbar_layout_ptr],Y
@@ -2498,6 +3365,8 @@ draw_edited_status_bar:
         dw .edited_memory_7e
         dw .edited_memory_7f
         dw .edited_rng
+        dw .edited_score
+        dw .edited_vanilla_hud
         
     .edited_item_box:
         LDA $03
@@ -3058,7 +3927,7 @@ draw_edited_status_bar:
         dw .rng_types_index
         dw .rng_types_value
         dw .rng_types_seed
-    .rng_types_index
+    .rng_types_index:
         LDA #$3801
         STA [$00],Y
         INY #2
@@ -3074,8 +3943,8 @@ draw_edited_status_bar:
         LDA #$3805
         STA [$00],Y
         RTS
-    .rng_types_value
-    .rng_types_seed
+    .rng_types_value:
+    .rng_types_seed:
         LDA #$3800
         STA [$00],Y
         INY #2
@@ -3083,6 +3952,95 @@ draw_edited_status_bar:
         INY #2
         STA [$00],Y
         INY #2
+        STA [$00],Y
+        RTS
+
+    .edited_score:
+        LDA #$3801
+        STA [$00],Y
+        INY #2
+        LDA #$3802
+        STA [$00],Y
+        INY #2
+        LDA #$3803
+        STA [$00],Y
+        INY #2
+        LDA #$3804
+        STA [$00],Y
+        INY #2
+        LDA #$3805
+        STA [$00],Y
+        INY #2
+        LDA #$3806
+        STA [$00],Y
+        INY #2
+        LDA #$3800
+        STA [$00],Y
+        RTS
+
+    .edited_vanilla_hud:
+        LDA $03
+        CLC
+        ADC #$0084
+        STA $00
+        LDA #$2830
+        STA [$00],Y
+        INY #2
+        LDA #$2831
+        STA [$00],Y
+        INY #2
+        LDA #$2832
+        STA [$00],Y
+        INY #2
+        LDA #$2833
+        STA [$00],Y
+        INY #2
+        LDA #$2834
+        STA [$00],Y
+        TYA
+        CLC
+        ADC #$000E
+        TAY
+        LDA #$38B7
+        STA [$00],Y
+        TYA
+        CLC
+        ADC #$000C
+        TAY
+        LDA #$3C3D
+        STA [$00],Y
+        INY #2
+        LDA #$3C3E
+        STA [$00],Y
+        INY #2
+        LDA #$3C3F
+        STA [$00],Y
+        INY #8
+        LDA #$3C2E
+        STA [$00],Y
+        INY #2
+        LDA #$38DC
+        STA [$00],Y
+        INY #2
+        LDA #$38FC
+        STA [$00],Y
+        TYA
+        CLC
+        ADC #$0010
+        TAY
+        LDA #$38DC
+        STA [$00],Y
+        INY #4
+        LDA #$3805
+        STA [$00],Y
+        INY #8
+        LDA #$2864
+        STA [$00],Y
+        INY #2
+        LDA #$38DC
+        STA [$00],Y
+        INY #6
+        LDA #$38C3
         STA [$00],Y
         RTS
 

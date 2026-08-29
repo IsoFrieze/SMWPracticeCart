@@ -1,3 +1,8 @@
+; use better flag for detecting to enter a level on the overworld
+ORG !_F+$049150
+        LDA !level_enter_flag
+        NOP #4
+
 ; point game mode 8 to start game
 ; this will skip all file and player menuing
 ORG !_F+$009339
@@ -31,7 +36,7 @@ ORG !_F+$00D0D8
 
 ; fix sprite loading table
 ORG !_F+$02ABF3
-		db $7F
+        db $7F
 
 ; disable midway points
 ORG !_F+$00CA2C
@@ -283,3 +288,19 @@ ORG !_F+$03B4F3
         db $05
 ORG !_F+$03B4F9
         db $18
+
+; check midway flag for fast routing to start from midway
+ORG !_F+$05D9D7
+        LDA !midway_enable_flag
+        NOP #2
+; check midway flag to build midway tape
+ORG !_F+$0DA691
+        LDA !midway_enable_flag
+        NOP #3
+
+; Always allow Start+Select. Even if submap/translevel is wrong and in a level that is not counted as beaten     
+ORG !_F+$00A267
+        db $80,$07 ; BRA +7
+; remove old death marker
+ORG !_F+$00D0CB
+        NOP #5

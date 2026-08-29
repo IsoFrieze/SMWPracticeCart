@@ -369,7 +369,7 @@ go_save_state:
         ; mirrored wram
         LDX #$1FFF
       - LDA $7E0000,X
-        STA $7023A0,X
+        STA !loram_savestate_location,X
         DEX
         BPL -
         
@@ -652,7 +652,7 @@ go_load_state:
         BPL -
         
         LDX #$1FFF
-      - LDA $7023A0,X
+      - LDA !loram_savestate_location,X
         STA $7E0000,X
         DEX
         BPL -

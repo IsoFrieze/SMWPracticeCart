@@ -100,4 +100,6 @@ check_kill:
         BRK #$C8
       + RTS
 
+incsrc "fast_mode.asm"
+
 print "inserted ", bytes, "/32768 bytes into bank $17"

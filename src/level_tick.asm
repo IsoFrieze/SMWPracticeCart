@@ -59,6 +59,13 @@ level_tick:
     .done:
         PLB
         PLP
+
+        LDA !level_loaded         ;
+        BEQ +                     ;
+        STZ !level_loaded         ; Restore from hijack
+        JSL level_mario_appear    ;
+      + JSL test_last_frame       ;
+        LDA $1426                 ;
         RTL
 
 ; these routines are called on both level tick and level fade tick
@@ -116,8 +123,23 @@ display_meters_wrapper:
 display_meters:
         PHP
         SEP #$30
+        LDA !statusbar_layout_ptr
+        PHA
+        LDA !statusbar_layout_ptr+1
+        PHA
+        LDA !statusbar_layout_ptr+2
+        PHA
         
-        LDA #$7E
+        LDA !fast_mode_start_play
+        BEQ +
+        LDA.B #bank(meterset_vanilla)
+        STA !statusbar_layout_ptr+2
+        LDA.B #meterset_vanilla>>8
+        STA !statusbar_layout_ptr+1
+        LDA.B #meterset_vanilla
+        STA !statusbar_layout_ptr
+        
+      + LDA #$7E
         STA $02
         LDA #$1F
         STA $01
@@ -126,7 +148,7 @@ display_meters:
         
       - LDA [!statusbar_layout_ptr],Y
         BEQ ++
-        CMP #$14
+        CMP #$16 ; number of meters
         BCS ++
         INY #3
         LDA [!statusbar_layout_ptr],Y
@@ -153,6 +175,13 @@ display_meters:
      ++ DEY #4
         BPL -
         
+        SEP #$30
+        PLA
+        STA !statusbar_layout_ptr+2
+        PLA
+        STA !statusbar_layout_ptr+1
+        PLA
+        STA !statusbar_layout_ptr
         PLP
     .nothing:
         RTS
@@ -178,6 +207,8 @@ display_meters:
         dw meter_memory_7e
         dw meter_memory_7f
         dw meter_rng
+        dw meter_score
+        dw meter_vanilla_hud
     
     .meter_fade:
         dw .nothing
@@ -200,6 +231,8 @@ display_meters:
         dw meter_memory_7e
         dw meter_memory_7f
         dw meter_rng
+        dw .nothing
+        dw .nothing
 
 ; draw the item box meter (fixed position)
 meter_item_box:
@@ -532,16 +565,7 @@ meter_timer_all:
         STA $00
         LDA [$03]
         DEC $03
-        TAX
-        PHX
-        LDA.L !status_region
-        CMP #$02
-        BCS .pal
-        LDA.L fractional_seconds,X
-        BRA +
-    .pal:
-        LDA.L fractional_seconds_pal,X
-      + PLX
+        JSL convert_frames_to_centiseconds
         JSL !_F+$00974C ; hex2dec
         STA [$00]
         DEC $00
@@ -643,6 +667,21 @@ meter_timer_all:
         PLY
         
         RTS
+
+; input in A
+; output in A, old input in X
+convert_frames_to_centiseconds:
+        TAX
+        PHX
+        LDA.L !status_region
+        CMP #$02
+        BCS .pal
+        LDA.L fractional_seconds,X
+        BRA +
+    .pal:
+        LDA.L fractional_seconds_pal,X
+      + PLX
+        RTL
         
 frames_in_a_second:
         db $3C,$3C,$32,$32
@@ -1143,6 +1182,118 @@ meter_rng:
         PLA
         AND #$0F
         STA [$00]
+        RTS
+
+meter_score:
+        PHP
+        PHY
+        REP #$20
+        LDA $00
+        PHA
+        PHA
+        SEP #$20
+        LDA $0F36 ; score 3
+        STA $03
+        STZ $04
+        LDA $0F35 ; score 2
+        STA $06
+        LDA $0F34 ; score 1
+        STA $05
+        
+        ; basically ripped from vanilla
+        LDY #$00
+     -- SEP #$20
+        LDA #$00
+        STA [$00]
+        
+      - REP #$20
+        LDA $05
+        SEC
+        SBC score_places+2,Y
+        STA $09
+        LDA $03
+        SBC score_places,Y
+        STA $07
+        BCC +
+        LDA $09
+        STA $05
+        LDA $07
+        STA $03
+        SEP #$20
+        LDA [$00]
+        INC A
+        STA [$00]
+        BRA -
+        
+      + INC $00
+        INY #4
+        CPY #4*6
+        BNE --
+        
+        PLA
+        STA $00
+        SEP #$20
+      - LDA [$00]
+        BNE +
+        LDA #$FC
+        STA [$00]
+        INC $00
+        BRA -
+        
+      + REP #$20
+        PLA
+        CLC
+        ADC #$0006
+        STA $00
+        SEP #$20
+        LDA #$00
+        STA [$00]
+        
+        PLY        
+        PLP
+        RTS
+        
+score_places:
+        dw $0001,$86A0
+        dw $0000,$2710
+        dw $0000,$03E8
+        dw $0000,$0064
+        dw $0000,$000A
+        dw $0000,$0001
+        
+meter_vanilla_hud:
+        LDA #$30
+        STA !status_bar+$42
+        INC A
+        STA !status_bar+$43
+        INC A
+        STA !status_bar+$44
+        INC A
+        STA !status_bar+$45
+        INC A
+        STA !status_bar+$46
+        LDA #$3D
+        STA !status_bar+$53
+        INC A
+        STA !status_bar+$54
+        INC A
+        STA !status_bar+$55
+        LDA #$B7
+        STA !status_bar+$4D
+        LDA #$C3
+        STA !status_bar+$6D
+        LDA #$2E
+        STA !status_bar+$59
+        LDA #$FC
+        STA !status_bar+$5B
+        LDA #$05
+        STA !status_bar+$65
+        LDA #$64
+        STA !status_bar+$69
+        LDA #$26
+        STA !status_bar+$63
+        STA !status_bar+$6A
+        STA !status_bar+$5A
         RTS
         
 ; slow down the game depending on how large the slowdown number is
@@ -1789,11 +1940,11 @@ test_savestate:
         AND #%00100000
         BEQ .no_load
         
-        LDA $705000+!in_record_mode ; save state was in movie
+        LDA !loram_savestate_location+!in_record_mode ; save state was in movie
         CMP !in_record_mode
         BNE .make_sound
         
-        LDA $705000+$13BF ; save state translevel
+        LDA !loram_savestate_location+$13BF ; save state translevel
         CMP $13BF
         BEQ .go
         
@@ -2075,6 +2226,43 @@ out_of_time:
         LDA.L !status_timedeath
       + RTL
 
+
+; runs the frame start+select exiting the level is triggered
+on_start_select:
+        LDA #$81 ; new start+select marker
+        STA $0DD5
+        
+        LDA !fast_mode_start_play
+        BEQ +
+        
+        JSL add_additional_exit_time
+        JSL accumulate_fastmode_time
+        JSL display_fastmode_run_time
+        
+      + RTL
+
+; runs the frame mario dies
+on_mario_death:
+        LDA #$82 ; new death marker
+        STA $0DD5
+        LDA #$3E
+        STA $13E0 ; restore routine
+        
+        LDA !fast_mode_start_play
+        BEQ +
+        
+        STZ $1496 ; instant fade out
+        JSL add_additional_exit_time
+        JSL accumulate_fastmode_time
+        JSL display_fastmode_run_time
+        RTL
+        
+      + LDA $13 ; frame counter
+        AND #$03
+        BNE +
+        DEC $1496
+      + RTL
+
 ; display a score sprite only if sprite slot numbers are disabled
 ; return A = 0 if enabled
 check_score_sprites:
@@ -2247,7 +2435,11 @@ layer_3_y:
         STZ $2112
         RTL
         
-      + LDA $24
+      + LDA $22 ; update the x position while we're at it
+        STA $2111
+        LDA $23
+        STA $2111
+        LDA $24
         STA $2112
         LDA $25
         STA $2112

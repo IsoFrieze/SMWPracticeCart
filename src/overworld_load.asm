@@ -4,6 +4,7 @@ reset bytes
 
 ; this code is run once on overworld load
 overworld_load:
+
         LDA !spliced_run
         BNE .done_saving
         LDA !save_timer_address+2
@@ -13,9 +14,10 @@ overworld_load:
         
         ; if you used an orb to complete the level, you must let the parade play out for it to count
         LDA $0DD5 ; level exit type
-        CMP #$80 ; type = death or start/select
+        CMP #$81 ; type = start/select
         BEQ .done_saving
-        
+        CMP #$82  ;type = death 
+        BEQ .done_saving
         ; failsafe: if level was beaten in under 1 second, just discard the time, it was probably a glitch
       + LDA !level_timer_minutes
         ORA !level_timer_seconds
@@ -87,7 +89,7 @@ overworld_load:
         STZ !in_playback_mode
         
         ; restore settings
-        LDX #$1F
+        LDX #!number_of_options
       - LDA.L !backup_status_table,X
         STA.L !status_table,X
         DEX
@@ -115,6 +117,9 @@ overworld_load:
 ; this code is run once on overworld load, but after everything else has loaded already
 late_overworld_load:
         PHP
+        SEP #$30
+        JSL reload_layer3_graphics
+        
         SEP #$20
         REP #$10
         
@@ -133,7 +138,7 @@ late_overworld_load:
         PHK
         PLA ; #bank of overworld_layer_3_tiles
         LDX #overworld_layer_3_tiles+$150
-        LDY #$0030
+        LDY #$0040
         JSL load_vram
 
         LDX #$4200
@@ -164,7 +169,7 @@ late_overworld_load:
         STX $2116 ; vram address
         PHK
         PLA ; #bank of overworld_layer_3_tiles
-        LDX #overworld_layer_3_tiles+$180
+        LDX #overworld_layer_3_tiles+$460
         LDY #$0010
         JSL load_vram
 
@@ -198,6 +203,41 @@ late_overworld_load:
         LDX #sprite_slots_graphics
         LDY #$02A0
         JSL load_vram
+        
+        PLP
+        RTL
+        
+; reload the layer 3 graphics on overworld load
+; basically taken from vanilla game
+reload_layer3_graphics:
+        PHP
+        REP #$30
+        LDA #$4800
+        STA $2116 ; vram address
+        LDA #$012A ; upload 2 files, $2A and $2B
+        STA $0E
+        SEP #$30
+        
+     -- LDA $0E
+        TAY
+        JSL !_F+$00BA28 ; prepare graphics file
+        REP #$30
+        LDX #$03FF
+        LDY #$0000
+      - LDA [$00],Y
+        STA $2118 ; vram data
+        INY #2
+        DEX
+        BPL -
+        
+        SEP #$30
+        INC $0E
+        DEC $0F
+        BPL --
+        
+        LDA #$14 ; file $14 for animated tiles
+        TAY
+        JSL !_F+$00BA28 ; prepare graphics file
         
         PLP
         RTL
@@ -288,22 +328,73 @@ attempt_timer_save:
 
 ; this will run when exiting the title screen
 prepare_file:
-        JSR set_overworld_position
+        JSL set_overworld_position
         JSL restore_basic_settings
         JSR check_for_rtc
         JSL check_for_pal_music
+        
+        LDA #$FF
+        STA !total_frames ; don't show the finish time if there is none
+        
+        LDA !status_fast_mode 
+        BEQ .done ; fast mode enabled
+        LDA !util_byetudlr_hold
+        AND #$30
+        BNE .done ; pressed start or select
+        
+        JSL retrieve_current_header
+        LDA !fast_mode_save_current_header+0
+        BEQ .done ; header of route exists
+        
+        LDA #$01
+        STA !fast_mode_start_play ; start fast mode!
+        
+        STZ !total_frames
+        STZ !total_seconds
+        STZ !total_minutes
+        STZ !total_hours
+        
+        LDA !restore_status_from_backup
+        BNE .done
+        
+        ; save the current settings
+        LDX #!number_of_options
+      - LDA.L !status_table,X
+        STA.L !backup_status_table,X
+        DEX
+        BPL -
+
+        ; default settings for fast mode
+        LDA #$01
+        STA.L !restore_status_from_backup
+        STA.L !status_lrreset
+        STA.L !status_slowdown
+        LDA #$00
+        STA.L !status_states
+        STA.L !status_pause
+        STA.L !status_slots
+        STA.L !status_lagometer
+        STA.L !status_timedeath
+    .done:
         RTL
 
 ; initialize mario on the overworld
 set_overworld_position:
         LDA !save_data_exists
-        CMP #$BD
-        BEQ +
+        CMP #!version_beta_code
+        BEQ .load_data
+        CMP #!version_alpha_code
+        BNE .reset_data
+        JSL migrate_data_alpha_to_beta
+        BRA .load_data
+        
+    .reset_data:
         JSL delete_all_data
         JSR set_defaults
         BRA .reset
         
-      + LDA.L !save_overworld_submap
+    .load_data:
+        LDA.L !save_overworld_submap
         CMP #$07
         BCS .reset
         STA $1F11
@@ -326,7 +417,7 @@ set_overworld_position:
         
     .reset:
         JSL set_position_to_yoshis_house
-      + RTS
+      + RTL
 
 ; set default settings for all the overworld menu options
 set_defaults:
@@ -356,6 +447,8 @@ set_defaults:
         STA.L !status_moviesave
         STA.L !status_movieload
         STA.L !status_region
+        STA.L !status_lagometer
+        STA.L !status_fast_mode
         LDA #$01
         STA.L !status_scorelag
         STA.L !status_states
@@ -380,7 +473,7 @@ set_defaults:
 
 ; set marios position on the overworld to yoshi's house
 set_position_to_yoshis_house:
-        LDA #$BD
+        LDA #!version_beta_code
         STA.L !save_data_exists
         LDA #$01
         STA.L !save_overworld_submap
@@ -413,6 +506,37 @@ update_ow_position_pointers:
         DEX #2
         BPL -
         SEP #$20
+        RTL
+        
+; convert from old save data format (v3.-.9 and previous)
+; to new save data format (v3.-.10 onwards)
+migrate_data_alpha_to_beta:
+        PHP
+        SEP #$30
+        
+        LDA #$00
+        STA.L !restore_status_from_backup
+        
+        LDX #$FF
+      - STA.L !backup_status_table,X
+        STA.L !status_table,X
+        DEX
+        CPX #$1E ; alpha amount of settings
+        BNE -
+        
+      - LDA.L $7006C0,X ; alpha location of backup status table
+        STA.L !backup_status_table,X
+        LDA.L $700320,X ; alpha location of main status table
+        STA.L !status_table,X
+        DEX
+        BPL -
+        
+        ;; TODO initialize new route data
+        
+        LDA #!version_beta_code
+        STA.L !save_data_exists
+        
+        PLP
         RTL
 
 ; check if realtime clock is available on this system
@@ -549,14 +673,22 @@ shadow_palette_hdma:
         dw $0D0D,$573B
         db $01
         dw $0E0E,$551E
-        db $28
+        db $01
         dw $0F0F,$0000
+        db $01
+        dw $1D1D,$573B
+        db $26
+        dw $1F1F,$0000
         db $01
         dw $0D0D,$3E75
         db $01
         dw $0E0E,$3212
         db $01
         dw $0F0F,$25AF
+        db $01
+        dw $1D1D,$0000
+        db $01
+        dw $1F1F,$47F1
         db $00
 
 print "inserted ", bytes, "/32768 bytes into bank $11"

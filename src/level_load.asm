@@ -11,6 +11,7 @@ level_load:
         SEP #$20
         
         JSR check_lagless
+        JSR check_midway
         JSR check_pal
         JSR check_midway_entrance
         
@@ -38,9 +39,16 @@ level_load:
         LDA #$FF
         STA !save_timer_address+2
         
-        PLB
-        PLP
+        LDA !fast_mode_start_play
+        BNE +
+        STZ $0F34 ; score
+        STZ $0F35
+        STZ $0F36
         
+      + PLB
+        PLP
+        STZ $4200               ;restore from hijack
+        INC !level_loaded       ;
         RTL
         
 l_r_functions:
@@ -48,6 +56,14 @@ l_r_functions:
         dw setup_level_reset
         dw setup_room_advance
         
+; if entered via midway, disable saving a time
+check_midway:
+        LDA.L !midway_enable_flag
+        BEQ +
+        LDA #$01
+        STA.L !spliced_run
+      + RTS
+
 ; if lag is disabled, disable saving a time
 check_lagless:
         LDA.L !status_scorelag
@@ -723,7 +739,23 @@ init_statusbar_properties:
         PHB
         SEP #$30
         
-        LDX #$A0
+        LDA !statusbar_layout_ptr
+        PHA
+        LDA !statusbar_layout_ptr+1
+        PHA
+        LDA !statusbar_layout_ptr+2
+        PHA
+        
+        LDA !fast_mode_start_play
+        BEQ +
+        LDA.B #bank(meterset_vanilla)
+        STA !statusbar_layout_ptr+2
+        LDA.B #meterset_vanilla>>8
+        STA !statusbar_layout_ptr+1
+        LDA.B #meterset_vanilla
+        STA !statusbar_layout_ptr
+        
+      + LDX #$A0
         LDA #$38
       - STA $0904,X
         DEX
@@ -743,7 +775,7 @@ init_statusbar_properties:
         STA $00
         
         LDA [!statusbar_layout_ptr],Y
-        CMP #$14
+        CMP #$16
         BCS +
         ASL A
         TAX
@@ -752,6 +784,15 @@ init_statusbar_properties:
         DEY
       + DEY
         BPL -
+        
+
+    .continue:
+        PLA
+        STA !statusbar_layout_ptr+2
+        PLA
+        STA !statusbar_layout_ptr+1
+        PLA
+        STA !statusbar_layout_ptr
         
         PHK
         PLB
@@ -824,6 +865,8 @@ init_statusbar_properties:
         dw .memory_7e
         dw .memory_7f
         dw .rng
+        dw .score
+        dw .vanilla_hud
         
     .mario_speed:
         LDA #$28 ; dark red (alt set)
@@ -929,6 +972,10 @@ init_statusbar_properties:
         PLP
         BEQ .store_5
         JMP .store_4
+        
+    .score:
+        LDA #$38
+        BRA .store_7
         
     .store_8:
         STA [$00]
@@ -1121,6 +1168,28 @@ init_statusbar_properties:
         STA $0905+$90
         LDA #$F8
         STA $0905+$91
+        RTS
+        
+    .vanilla_hud:
+        LDA #$28
+        STA $0905+$42
+        STA $0905+$43
+        STA $0905+$44
+        STA $0905+$45
+        STA $0905+$46
+        STA $0905+$69
+        LDA #$3C
+        STA $0905+$53
+        STA $0905+$54
+        STA $0905+$55
+        STA $0905+$59
+        LDA #$38
+        STA $0905+$4D
+        STA $0905+$6D
+        STA $0905+$5A
+        STA $0905+$63
+        STA $0905+$65
+        RTS
         
     .nothing:
         RTS
@@ -1437,6 +1506,10 @@ draw_title_screen_extras:
         STA.L $7F837B
         
     .done:
+        SEP #$20
+        LDA #$FF ; invalidate the total timer for fast mode
+        STA !total_frames
+        
         PLP
         RTS
 

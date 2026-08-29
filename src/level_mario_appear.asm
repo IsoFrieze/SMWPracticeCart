@@ -107,4 +107,8 @@ try_midway_advance:
         JSL activate_midway_entrance
       + RTS
 
+; the text for option titles and descriptions
+        incsrc "option_text.asm"
+
+
 print "inserted ", bytes, "/32768 bytes into bank $10"

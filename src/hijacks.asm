@@ -32,6 +32,7 @@ m7_boss_hijack:
         JSR $995B
         RTL
 
+
 ; run on every frame
 ORG !_F+$008072
         JSR every_frame_hijack
@@ -62,17 +63,17 @@ ORG !_F+$00A1DA
 ORG !_F+$00F9F5
 level_hijack:
         JSL level_tick
-        LDA !level_loaded
-        BEQ +
-        STZ !level_loaded
-        JSL level_mario_appear
-      + JSL test_last_frame
-        LDA $1426
         RTS
 level_load_hijack:
         JSL level_load
-        STZ $4200
-        INC !level_loaded
+        RTS
+pre_level_load_hijack:
+        JSL pre_level_loading
+        JSR $85FA
+        RTS
+fade_to_overworld_hijack:
+        JSL fade_to_overworld
+        JSR $A1A6
         RTS
 ; run on loading graphics from save state
 ORG !_F+$00CDD0
@@ -125,41 +126,21 @@ ORG !_F+$008449
         JSL update_lagometer
         NOP
         
-; test if level completed this frame
-; X = 0 for normal exit, 1 for secret exit
-; return 1 in A for finished, 0 for not finished
+
 ORG !_F+$00CC68
         JMP $CCBB
-test_last_frame:
-        LDA !level_finished
-        BNE .exit
-        LDX $141C ; secret flag
-        LDA $9E ; sprite id
-        CMP #$C5
-        BNE +
-        LDX #$01
-      + LDA $1493 ; end level timer
-        BNE .trigger
-        LDA $190D ; bowser dead
-        BNE .trigger
-        LDX #$01
-        LDA $1434 ; keyhole timer
-        BNE .trigger
-        LDA $1B95 ; wings flag
-        BEQ .exit
-        LDA $0DD5 ; exit level flag
-        CMP #$01
-        BNE .exit
-        LDX #$00
-        BRA .trigger
-    .exit:
-        LDA #$00
-        RTL
-        
-    .trigger:
-        JSL level_finish
-        LDA #$01
-        RTL
+nmi_draw_hijack:
+        LDA !in_overworld_menu
+        BEQ +
+        JSL menu_nmi_draw_tiles
+        RTS
+      + JSR $A4E3
+        JSR $A300
+        RTS
+
+ORG !_F+$008237
+        JSR nmi_draw_hijack
+        NOP #3
        
 ; hijack drawing titlescreen
 ORG !_F+$009A97
@@ -402,7 +383,17 @@ process_layer_3_position:
         JSR $C40C
         PLB
         RTL
-
+        
+; run routine on start select
+ORG !_F+$00A270 
+        JSL on_start_select
+        JMP $A281
+        
+; run routine on mario death
+ORG !_F+$00D0B8
+        JSL on_mario_death
+        JMP $D0C6
+        
 ;;;;;;;;;;;;; REGION DIFFERENCES ;;;;;;;;;;;;;
 
 ; ldadDolphin
@@ -609,3 +600,8 @@ ORG !_F+$05BF42
         JSL pal_l2_3
 ORG !_F+$05C5ED
         JSL pal_l2_4
+
+ORG !_F+$00A093
+        JSR fade_to_overworld_hijack
+ORG !_F+$00968E
+        JSR pre_level_load_hijack

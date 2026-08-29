@@ -1,71 +1,412 @@
 incsrc "../text_table.txt"
 
 option_title:
-        db "     YELLOW SWITCH BLOCKS       "
-        db "     GREEN SWITCH BLOCKS        "
-        db "     RED SWITCH BLOCKS          "
-        db "     BLUE SWITCH BLOCKS         "
-        db "     SPECIAL WORLD EFFECTS      "
-        db "     MARIO POWERUP STATUS       "
-        db "     ITEM IN RESERVE BOX        "
-        db "     YOSHI COLOR                "
-        db "     RESET ENEMY STATES         "
-        db "     DELETE SAVE DATA           "
-        db "     SPRITE SLOT NUMBERS        "
-        db "     SECOND CONTROLLER          "
-        db "     FRAME ADVANCE              "
-        db "     TIME UP DEATH              "
-        db "     MUSIC                      "
-        db "     HOTKEY INTERFERENCE        "
-        db "     SAVE STATES                "
-        db "     SAVE STATE DELAY           "
-        db "     DYNAMIC METER DISPLAY      "
-        db "     SLOW MOTION                "
-        db "     EDIT STATUS BAR            "
-        db "     L-R RESET                  "
-        db "     SCORE LAG                  "
-        db "     LAG-O-METER                "
-        db "     SAVE MOVIE TO S-RAM        "
-        db "     LOAD MOVIE                 "
-        db "     PLAYER NAME                "
-        db "     PLAYER NAME                "
-        db "     PLAYER NAME                "
-        db "     PLAYER NAME                "
-        db "     REGION                     "
-        
+	db "     YELLOW SWITCH BLOCKS       "
+	db "     GREEN SWITCH BLOCKS        "
+	db "     RED SWITCH BLOCKS          "
+	db "     BLUE SWITCH BLOCKS         "
+	db "     SPECIAL WORLD EFFECTS      "
+	db "     MARIO POWERUP STATUS       "
+	db "     ITEM IN RESERVE BOX        "
+	db "     YOSHI COLOR                "
+	db "     RESET ENEMY STATES         "
+	db "     DELETE SAVE DATA           "
+	db "     SPRITE SLOT NUMBERS        "
+	db "     SECOND CONTROLLER          "
+	db "     FRAME ADVANCE              "
+	db "     TIME UP DEATH              "
+	db "     MUSIC                      "
+	db "     HOTKEY INTERFERENCE        "
+	db "     SAVE STATES                "
+	db "     SAVE STATE DELAY           "
+	db "     DYNAMIC METER DISPLAY      "
+	db "     SLOW MOTION                "
+	db "     EDIT STATUS BAR            "
+	db "     L-R RESET                  "
+	db "     SCORE LAG                  "
+	db "     LAG-O-METER                "
+	db "     SAVE MOVIE TO S-RAM        "
+	db "     LOAD MOVIE                 "
+	db "     PLAYER NAME                "
+	db "     PLAYER NAME                "
+	db "     PLAYER NAME                "
+	db "     PLAYER NAME                "
+	db "     REGION                     "
+	db "     FAST MODE SAVE             "
+	db "     YELLOW SWITCH BLOCKS       "
+	db "     GREEN SWITCH BLOCKS        "
+	db "     RED SWITCH BLOCKS          "
+	db "     BLUE SWITCH BLOCKS         "
+	db "     SPECIAL WORLD EFFECTS      "
+	db "     START POWERUP STATUS       "
+	db "     START ITEMBOX              "
+	db "     START YOSHI COLOR          "
+	db "     END POWERUP STATUS         "
+	db "     END ITEMBOX                "
+	db "     END YOSHI COLOR            "
+	db "     MIDWAY ENABLE              "
+	db "     EXIT TYPE                  "
+	db "     DISPLAY TIMER              "
+	db "     SHOW RESTRICTIONS          "
+	db "     MODIFY ROUTE               "
+option_description:
+	db "  TURN THE YELLOW               "
+	db "  SWITCH PALACE BLOCKS          "
+	db "  ON OR OFF                     "
+	db "                                "
+	db "                                "
+	db "                                "
+	db "  TURN THE GREEN                "
+	db "  SWITCH PALACE BLOCKS          "
+	db "  ON OR OFF                     "
+	db "                                "
+	db "                                "
+	db "                                "
+	db "  TURN THE RED                  "
+	db "  SWITCH PALACE BLOCKS          "
+	db "  ON OR OFF                     "
+	db "                                "
+	db "                                "
+	db "                                "
+	db "  TURN THE BLUE                 "
+	db "  SWITCH PALACE BLOCKS          "
+	db "  ON OR OFF                     "
+	db "                                "
+	db "                                "
+	db "                                "
+	db "  TOGGLE THE VARIOUS EFFECTS    "
+	db "  THAT OCCUR WHEN SPECIAL       "
+	db "  WORLD IS COMPLETED            "
+	db "  SUCH AS DIFFERENT             "
+	db "  KOOPA SHELL COLORS            "
+	db "                                "
+	db "  PICK WHICH POWERUP            "
+	db "  MARIO CURRENTLY HAS           "
+	db "                                "
+	db "                                "
+	db "                                "
+	db "                                "
+	db "  PICK WHAT ITEM IS CURRENTLY   "
+	db "  IN THE ITEM RESERVE BOX       "
+	db "                                "
+	db "                                "
+	db "                                "
+	db "                                "
+	db "  PICK WHAT COLOR OF YOSHI      "
+	db "  MARIO IS CURRENTLY RIDING     "
+	db "                                "
+	db "                                "
+	db "                                "
+	db "                                "
+	db "  REINITIALIZE ENEMIES THAT     "
+	db "  REMEMBER THE LAST STATE       "
+	db "  THAT THEY WERE IN             "
+	db "  SUCH AS BOO CLOUDS            "
+	db "  AND BOO RINGS                 "
+	db "                                "
+	db "  REMOVE ALL SAVED TIMES        "
+	db "  OR JUST SAVED TIMES FOR       "
+	db "  THE LEVEL MARIO IS CURRENTLY  "
+	db "  STANDING ON OR ONLY A         "
+	db "  PARTICULAR SAVED TIME         "
+	db "                                "
+	db "  DISPLAY WHICH SLOT            "
+	db "  EACH SPRITE IS CURRENTLY      "
+	db "  SPAWNED WITHIN                "
+	db "                                "
+	db "                                "
+	db "                                "
+	db "  DISABLE CONTROLLER 2          "
+	db "  OR ALLOW IT TO ONLY CONTROL   "
+	db "  MARIO OR ALLOW IT TO          "
+	db "  CONTROL ANYTHING              "
+	db "                                "
+	db "                                "
+	db "  USE R WHILE PAUSED TO         "
+	db "  ADVANCE A SINGLE FRAME        "
+	db "  REMOVES PAUSE COOLDOWN        "
+	db "  AND ALLOWS BUFFERING OF       "
+	db "  INPUTS UPON UNPAUSE ALSO      "
+	db "                                "
+	db "  TOGGLE THE HURRY UP SOUND     "
+	db "  AND TIME UP DEATH             "
+	db "                                "
+	db "                                "
+	db "                                "
+	db "                                "
+	db "  TOGGLE THE BACKGROUND MUSIC   "
+	db "                                "
+	db "                                "
+	db "                                "
+	db "                                "
+	db "                                "
+	db "  DISABLE THE START AND         "
+	db "  SELECT BUTTONS WHILE          "
+	db "  L OR R ARE BEING HELD         "
+	db "  TO RESOLVE SOME               "
+	db "  FUNCTIONALITY CONFLICT        "
+	db "                                "
+	db "  USE R-SELECT TO CREATE        "
+	db "  A SAVE STATE AND THEN         "
+	db "  USE L-SELECT TO RELOAD        "
+	db "  THAT STATE                    "
+	db "  OPTIONALLY RANDOMIZE RNG      "
+	db "  AND GLOBAL FRAME COUNTERS     "
+	db "  PICK HOW QUICKLY              "
+	db "  IT TAKES FOR A                "
+	db "  SAVE STATE TO LOAD            "
+	db "                                "
+	db "                                "
+	db "                                "
+	db "  SHOW INFORMATION ABOUT        "
+	db "  AN OBJECT THAT FOLLOWS        "
+	db "  IT AS IT MOVES AROUND         "
+	db "  SUCH AS SPEED OR              "
+	db "  SUBPIXEL VALUES               "
+	db "                                "
+	db "  USE R-START TO GRADUALLY      "
+	db "  INCREASE THE SLOWDOWN         "
+	db "  EFFECT AND USE L-START        "
+	db "  TO RETURN TO NORMAL SPEED     "
+	db "                                "
+	db "                                "
+	db "  CHANGE WHICH METERS ARE       "
+	db "  SHOWN ON THE STATUS BAR       "
+	db "  D - DEFAULT SET               "
+	db "  L - LAG CALIBRATED            "
+	db "  E - EMPTY                     "
+	db "  C - CUSTOM                    "
+	db "  USE L-R TO RESET THE CURRENT  "
+	db "  ROOM AND A-B-L-R TO RESET     "
+	db "  THE ENTIRE LEVEL AND          "
+	db "  X-Y-L-R TO ADVANCE ONE ROOM   "
+	db "                                "
+	db "                                "
+	db "  OPTIONALLY EMULATE            "
+	db "  SCORE LAG BY SELECTING        "
+	db "  THE SUM OF THE DIGITS OF      "
+	db "  THE SCORE HERE                "
+	db "                                "
+	db "                                "
+	db "  DISPLAY A DOT ON THE          "
+	db "  SCREEN THAT SHOWS             "
+	db "  HOW MUCH GAME CODE            "
+	db "  WAS EXECUTED EACH FRAME       "
+	db "                                "
+	db "                                "
+	db "  PICK A SAVE SLOT TO SAVE      "
+	db "  EXPORT THE CURRENTLY          "
+	db "  LOADED MOVIE IN SAVE RAM      "
+	db "  TO SHARE WITH OTHERS          "
+	db "                                "
+	db "                                "
+	db "  PICK A SAVE SLOT TO LOAD      "
+	db "  A MOVIE FROM SAVE RAM         "
+	db "  OR LOAD A DEMO MOVIE          "
+	db "  OF THIS LEVEL                 "
+	db "                                "
+	db "                                "
+	db "  YOUR NAME                     "
+	db "                                "
+	db "                                "
+	db "                                "
+	db "  OR REALLY WHATEVER TEXT       "
+	db "  YOU WANT TO PUT HERE          "
+	db "  YOUR NAME                     "
+	db "                                "
+	db "                                "
+	db "                                "
+	db "  OR REALLY WHATEVER TEXT       "
+	db "  YOU WANT TO PUT HERE          "
+	db "  YOUR NAME                     "
+	db "                                "
+	db "                                "
+	db "                                "
+	db "  OR REALLY WHATEVER TEXT       "
+	db "  YOU WANT TO PUT HERE          "
+	db "  YOUR NAME                     "
+	db "                                "
+	db "                                "
+	db "                                "
+	db "  OR REALLY WHATEVER TEXT       "
+	db "  YOU WANT TO PUT HERE          "
+	db "  THIS WILL AFFECT REGION       "
+	db "  DIFFERENCES SUCH AS           "
+	db "  LEVEL LAYOUT AND              "
+	db "  MECHANICS CHANGES             "
+	db "                                "
+	db "                                "
+	db "  CHOOSE WHICH SAVE             "
+	db "  TO START FAST MODE            "
+	db "                                "
+	db "                                "
+	db "                                "
+	db "                                "
+	db "  TURN THE YELLOW               "
+	db "  SWITCH PALACE BLOCKS          "
+	db "  ON OR OFF FOR THIS LEVEL      "
+	db "                                "
+	db "                                "
+	db "                                "
+	db "  TURN THE GREEN                "
+	db "  SWITCH PALACE BLOCKS          "
+	db "  ON OR OFF FOR THIS LEVEL      "
+	db "                                "
+	db "                                "
+	db "                                "
+	db "  TURN THE RED                  "
+	db "  SWITCH PALACE BLOCKS          "
+	db "  ON OR OFF FOR THIS LEVEL      "
+	db "                                "
+	db "                                "
+	db "                                "
+	db "  TURN THE BLUE                 "
+	db "  SWITCH PALACE BLOCKS          "
+	db "  ON OR OFF FOR THIS LEVEL      "
+	db "                                "
+	db "                                "
+	db "                                "
+	db "  TOGGLE THE VARIOUS EFFECTS    "
+	db "  THAT OCCUR WHEN SPECIAL       "
+	db "  WORLD IS COMPLETED            "
+	db "  FOR THIS LEVEL                "
+	db "                                "
+	db "                                "
+	db "  PICK WHICH POWERUP            "
+	db "  MARIO STARTS WITH             "
+	db "  FOR THIS LEVEL                "
+	db "                                "
+	db "                                "
+	db "                                "
+	db "  PICK WHAT ITEM STARTS         "
+	db "  IN THE ITEM RESERVE BOX       "
+	db "  FOR THIS LEVEL                "
+	db "                                "
+	db "                                "
+	db "                                "
+	db "  PICK WHAT COLOR OF YOSHI      "
+	db "  MARIO STARTS WITH             "
+	db "  FOR THIS LEVEL                "
+	db "                                "
+	db "                                "
+	db "                                "
+	db "  PICK WHICH POWERUP            "
+	db "  MARIO SHOULD END THIS         "
+	db "  LEVEL WITH                    "
+	db "                                "
+	db "                                "
+	db "                                "
+	db "  PICK WHAT ITEM SHOULD BE      "
+	db "  IN THE ITEM RESERVE BOX       "
+	db "  AT THE END OF THIS LEVEL      "
+	db "                                "
+	db "                                "
+	db "                                "
+	db "  PICK WHAT COLOR OF YOSHI      "
+	db "  MARIO SHOULD END THIS         "
+	db "  LEVEL WITH                    "
+	db "                                "
+	db "                                "
+	db "                                "
+	db "  PICK IF MARIO SHOULD          "
+	db "  START AT THE MIDWAY           "
+	db "  POINT FOR THIS LEVEL          "
+	db "                                "
+	db "                                "
+	db "                                "
+	db "  PICK WHICH EXIT MARIO         "
+	db "  SHOULD TAKE FOR THIS LEVEL    "
+	db "                                "
+	db "                                "
+	db "                                "
+	db "                                "
+	db "  PICK WHETHER A RUN TIMER      "
+	db "  SHOULD BE DISPLAYED           "
+	db "                                "
+	db "                                "
+	db "                                "
+	db "                                "
+	db "  PICK WHETHER THE LEVEL        "
+	db "  RESTRICTIONS SHOULD BE        "
+	db "  DISPLAYED IF THERE ARE ANY    "
+	db "                                "
+	db "                                "
+	db "                                "
+	db "  REMOVE OR ADD LEVELS          "
+	db "                                "
+	db "                                "
+	db "                                "
+	db "                                "
+	db "                                "
 option_value_lists:
-        dw option_off_on
-        dw option_off_on
-        dw option_off_on
-        dw option_off_on
-        dw option_off_on
-        dw option_powerups&$7FFF
-        dw option_sprites
-        dw option_yoshi_color&$7FFF
-        dw $0000
-        dw option_delete_saves
-        dw option_slot_numbers
-        dw option_player_2
-        dw option_frame_advance
-        dw option_time_up
-        dw option_on_off
-        dw option_enabled_disabled
-        dw option_save_states
-        dw $0000
-        dw option_dynmeter
-        dw option_enabled_disabled
-        dw $0000
-        dw option_enabled_disabled
-        dw $0000
-        dw option_off_on
-        dw option_save_movie
-        dw option_load_movie
-        dw $0000
-        dw $0000
-        dw $0000
-        dw $0000
-        dw option_region
-        
+	dw option_off_on                   ;00
+	dw option_off_on                   ;01
+	dw option_off_on                   ;02
+	dw option_off_on                   ;03
+	dw option_off_on                   ;04
+	dw option_powerups&$7FFF           ;05
+	dw option_sprites                  ;06
+	dw option_yoshi_color&$7FFF        ;07
+	dw $0000                           ;08
+	dw option_delete_saves             ;09
+	dw option_slot_numbers             ;0A
+	dw option_player_2                 ;0B
+	dw option_frame_advance            ;0C
+	dw option_time_up                  ;0D
+	dw option_on_off                   ;0E
+	dw option_enabled_disabled         ;0F
+	dw option_save_states              ;10
+	dw $0000                           ;11
+	dw option_dynmeter                 ;12
+	dw option_enabled_disabled         ;13
+	dw $0000                           ;14
+	dw option_enabled_disabled         ;15
+	dw $0000                           ;16
+	dw option_off_on                   ;17
+	dw option_save_movie               ;18
+	dw option_load_movie               ;19
+	dw $0000                           ;1A
+	dw $0000                           ;1B
+	dw $0000                           ;1C
+	dw $0000                           ;1D
+	dw option_region                   ;1E
+	dw option_fast_mode                ;1F
+	dw option_off_on                   ;20
+	dw option_off_on                   ;21
+	dw option_off_on                   ;22
+	dw option_off_on                   ;23
+	dw option_off_on                   ;24
+	dw option_powerups&$7FFF           ;25
+	dw option_sprites                  ;26
+	dw option_yoshi_color&$7FFF        ;27
+	dw option_powerups&$7FFF           ;28
+	dw option_sprites                  ;29
+	dw option_yoshi_color&$7FFF        ;2A
+	dw option_off_on                   ;2B
+	dw option_exit_type                ;2C
+	dw option_fast_timer               ;2D
+	dw option_fast_heads_up            ;2E
+	dw option_route_delete             ;2F
+    
+option_exit_type:
+        db "      NORMAL                    "
+        db "      SECRET                    "
+        db "      START SELECT              "
+        db "      DEATH                     "
+
+option_fast_timer:
+        db "      DISABLED                  "
+        db "      ONLY AT LEVEL END         "
+        db "      ALWAYS ON                 "
+
+option_fast_heads_up:
+        db "      DISABLED                  "
+        db "      EXIT TYPE ONLY            "
+        db "      ALL RESTRICTIONS          "
+
+option_route_delete:
+        db "      REMOVE LEVEL              "
+        db "      ADD LEVEL                 "
         
 option_on_off:
         db "      ON                        "
@@ -163,6 +504,13 @@ option_region:
         db "      NORTH AMERICAN            "
         db "      PAL V 1.0                 "
         db "      PAL V 1.1                 "
+        
+option_fast_mode:
+        db "      DISABLED                  "
+        db "      CUSTOM ROUTE 1            "
+        db "      CUSTOM ROUTE 2            "
+        db "      CUSTOM ROUTE 3            "
+        db "      ALL CASTLES               "
         
 option_sprites:
         db "      EMPTY                     ";00
@@ -421,6 +769,103 @@ option_sprites:
         db "      POKEY                     "
         db "      SUPER KOOPA RED           "
         db "      SUPER KOOPA YELLOW        "
+
+level_names:
+        db $00,$00,$00,$B4,$B5,$B6,$00,$00,$00,$00,0,0,0,0,0,0
+        db $00,$40,$41,$42,$43,$44,$45,$46,$02,$00,0,0,0,0,0,0 ; vs2
+        db $00,$40,$41,$42,$43,$44,$45,$46,$03,$00,0,0,0,0,0,0 ; vs3
+        db $00,$60,$61,$44,$45,$46,$06,$07,$00,$00,0,0,0,0,0,0 ; tsa
+        db $20,$21,$22,$62,$63,$64,$65,$66,$67,$00,0,0,0,0,0,0 ; dgh
+        db $00,$20,$21,$22,$23,$24,$25,$03,$00,$00,0,0,0,0,0,0 ; dp3
+        db $00,$20,$21,$22,$23,$24,$25,$04,$00,$00,0,0,0,0,0,0 ; dp4
+        db $1B,$1C,$1D,$1E,$1F,$7C,$7D,$7E,$7F,$00,0,0,0,0,0,0 ; c2
+        db $75,$76,$77,$90,$91,$92,$93,$94,$95,$00,0,0,0,0,0,0 ; gsp
+        db $00,$20,$21,$22,$23,$24,$25,$02,$00,$00,0,0,0,0,0,0 ; dp2
+        db $00,$20,$21,$22,$44,$45,$46,$01,$00,$00,0,0,0,0,0,0 ; ds1
+        db $00,$40,$41,$42,$43,$53,$54,$55,$56,$00,0,0,0,0,0,0 ; vf
+        db $00,$00,$50,$51,$52,$13,$14,$15,$01,$00,0,0,0,0,0,0 ; bb1
+        db $00,$00,$50,$51,$52,$13,$14,$15,$02,$00,0,0,0,0,0,0 ; bb2
+        db $0C,$3C,$3D,$3E,$3F,$7C,$7D,$7E,$7F,$00,0,0,0,0,0,0 ; c4
+        db $00,$18,$19,$1A,$13,$14,$15,$06,$07,$00,0,0,0,0,0,0 ; cba
+        db $00,$80,$81,$82,$83,$84,$85,$86,$00,$00,0,0,0,0,0,0 ; cm
+        db $00,$00,$00,$68,$69,$6A,$6B,$00,$00,$00,0,0,0,0,0,0 ; sl
+        db $00,$00,$00,$B4,$B5,$B6,$00,$00,$00,$00,0,0,0,0,0,0
+        db $20,$21,$22,$44,$45,$46,$65,$66,$67,$00,0,0,0,0,0,0 ; dsh
+        db $8D,$8E,$8F,$90,$91,$92,$93,$94,$95,$00,0,0,0,0,0,0 ; ysp
+        db $00,$20,$21,$22,$23,$24,$25,$01,$00,$00,0,0,0,0,0,0 ; dp1
+        db $00,$00,$00,$B4,$B5,$B6,$00,$00,$00,$00,0,0,0,0,0,0
+        db $00,$00,$00,$B4,$B5,$B6,$00,$00,$00,$00,0,0,0,0,0,0
+        db $00,$70,$71,$72,$62,$63,$64,$73,$74,$00,0,0,0,0,0,0 ; sgs
+        db $00,$00,$00,$B4,$B5,$B6,$00,$00,$00,$00,0,0,0,0,0,0
+        db $0C,$5C,$5D,$5E,$5F,$7C,$7D,$7E,$7F,$00,0,0,0,0,0,0 ; c6
+        db $47,$48,$49,$4A,$4B,$53,$54,$55,$56,$00,0,0,0,0,0,0 ; cf
+        db $47,$48,$49,$4A,$4B,$10,$11,$12,$05,$00,0,0,0,0,0,0 ; ci5
+        db $47,$48,$49,$4A,$4B,$10,$11,$12,$04,$00,0,0,0,0,0,0 ; ci4
+        db $00,$00,$00,$B4,$B5,$B6,$00,$00,$00,$00,0,0,0,0,0,0
+        db $00,$00,$30,$31,$32,$53,$54,$55,$56,$00,0,0,0,0,0,0 ; ff
+        db $00,$4C,$4D,$4E,$4F,$7C,$7D,$7E,$7F,$00,0,0,0,0,0,0 ; c5
+        db $47,$48,$49,$62,$63,$64,$65,$66,$67,$00,0,0,0,0,0,0 ; cgh
+        db $47,$48,$49,$4A,$4B,$10,$11,$12,$01,$00,0,0,0,0,0,0 ; ci1
+        db $47,$48,$49,$4A,$4B,$10,$11,$12,$03,$00,0,0,0,0,0,0 ; ci3
+        db $47,$48,$49,$4A,$4B,$10,$11,$12,$02,$00,0,0,0,0,0,0 ; ci2
+        db $00,$0C,$0D,$0E,$0F,$7C,$7D,$7E,$7F,$00,0,0,0,0,0,0 ; c1
+        db $00,$08,$09,$0A,$0B,$10,$11,$12,$04,$00,0,0,0,0,0,0 ; yi4
+        db $00,$08,$09,$0A,$0B,$10,$11,$12,$03,$00,0,0,0,0,0,0 ; yi3
+        db $00,$08,$09,$0A,$0B,$65,$66,$67,$00,$00,0,0,0,0,0,0 ; yh
+        db $00,$08,$09,$0A,$0B,$10,$11,$12,$01,$00,0,0,0,0,0,0 ; yi1
+        db $00,$08,$09,$0A,$0B,$10,$11,$12,$02,$00,0,0,0,0,0,0 ; yi2
+        db $40,$41,$42,$43,$62,$63,$64,$65,$66,$67,0,0,0,0,0,0 ; vgh
+        db $00,$00,$00,$B4,$B5,$B6,$00,$00,$00,$00,0,0,0,0,0,0
+        db $00,$40,$41,$42,$43,$44,$45,$46,$01,$00,0,0,0,0,0,0 ; vs1
+        db $00,$40,$41,$42,$43,$26,$27,$28,$03,$00,0,0,0,0,0,0 ; vd3
+        db $00,$20,$21,$22,$44,$45,$46,$02,$00,$00,0,0,0,0,0,0 ; ds2
+        db $00,$00,$00,$B4,$B5,$B6,$00,$00,$00,$00,0,0,0,0,0,0
+        db $00,$00,$87,$88,$89,$8A,$8B,$8C,$00,$00,0,0,0,0,0,0 ; fd
+        db $00,$00,$00,$16,$17,$8A,$8B,$8C,$00,$00,0,0,0,0,0,0 ; bd
+        db $29,$2A,$2B,$33,$38,$39,$3A,$3B,$04,$00,0,0,0,0,0,0 ; vob4
+        db $4C,$6C,$6D,$6E,$6F,$7C,$7D,$7E,$7F,$00,0,0,0,0,0,0 ; c7
+        db $00,$29,$2A,$2B,$53,$54,$55,$56,$00,$00,0,0,0,0,0,0 ; vobf
+        db $00,$00,$00,$B4,$B5,$B6,$00,$00,$00,$00,0,0,0,0,0,0
+        db $29,$2A,$2B,$33,$38,$39,$3A,$3B,$03,$00,0,0,0,0,0,0 ; vob3
+        db $29,$2A,$2B,$62,$63,$64,$65,$66,$67,$00,0,0,0,0,0,0 ; vobgh
+        db $29,$2A,$2B,$33,$38,$39,$3A,$3B,$02,$00,0,0,0,0,0,0 ; vob2
+        db $29,$2A,$2B,$33,$38,$39,$3A,$3B,$01,$00,0,0,0,0,0,0 ; vob1
+        db $00,$47,$48,$49,$4A,$4B,$44,$45,$46,$00,0,0,0,0,0,0 ; cs
+        db $00,$40,$41,$42,$43,$26,$27,$28,$02,$00,0,0,0,0,0,0 ; vd2
+        db $00,$40,$41,$42,$43,$26,$27,$28,$04,$00,0,0,0,0,0,0 ; vd4
+        db $00,$40,$41,$42,$43,$26,$27,$28,$01,$00,0,0,0,0,0,0 ; vd1
+        db $00,$78,$79,$90,$91,$92,$93,$94,$95,$00,0,0,0,0,0,0 ; rsp
+        db $0C,$2C,$2D,$2E,$2F,$7C,$7D,$7E,$7F,$00,0,0,0,0,0,0 ; c3
+        db $00,$30,$31,$32,$62,$63,$64,$65,$66,$67,0,0,0,0,0,0 ; fgh
+        db $00,$30,$31,$32,$33,$34,$35,$36,$37,$01,0,0,0,0,0,0 ; foi1
+        db $00,$30,$31,$32,$33,$34,$35,$36,$37,$04,0,0,0,0,0,0 ; foi4
+        db $00,$30,$31,$32,$33,$34,$35,$36,$37,$02,0,0,0,0,0,0 ; foi2
+        db $00,$7A,$7B,$90,$91,$92,$93,$94,$95,$00,0,0,0,0,0,0 ; bsp
+        db $00,$30,$31,$32,$44,$45,$46,$06,$07,$00,0,0,0,0,0,0 ; fsa
+        db $00,$30,$31,$32,$33,$34,$35,$36,$37,$03,0,0,0,0,0,0 ; foi3
+        db $00,$00,$00,$B4,$B5,$B6,$00,$00,$00,$00,0,0,0,0,0,0
+        db $00,$00,$00,$AD,$AE,$AF,$00,$00,$00,$00,0,0,0,0,0,0 ; sp8
+        db $00,$00,$A8,$A9,$AA,$AB,$AC,$00,$00,$00,0,0,0,0,0,0 ; sp7
+        db $00,$00,$00,$9D,$9E,$9F,$00,$00,$00,$00,0,0,0,0,0,0 ; sp6
+        db $00,$00,$00,$B0,$B1,$B2,$B3,$00,$00,$00,0,0,0,0,0,0 ; sp5
+        db $00,$00,$00,$B4,$B5,$B6,$00,$00,$00,$00,0,0,0,0,0,0
+        db $00,$00,$00,$96,$97,$98,$00,$00,$00,$00,0,0,0,0,0,0 ; sp1
+        db $00,$00,$00,$99,$9A,$9B,$9C,$00,$00,$00,0,0,0,0,0,0 ; sp2
+        db $00,$00,$00,$A0,$A1,$A2,$A3,$00,$00,$00,0,0,0,0,0,0 ; sp3
+        db $00,$00,$00,$A4,$A5,$A6,$A7,$00,$00,$00,0,0,0,0,0,0 ; sp4
+        db $00,$00,$00,$B4,$B5,$B6,$00,$00,$00,$00,0,0,0,0,0,0
+        db $00,$00,$00,$B4,$B5,$B6,$00,$00,$00,$00,0,0,0,0,0,0
+        db $00,$00,$57,$58,$59,$5A,$5B,$02,$00,$00,0,0,0,0,0,0 ; sw2
+        db $00,$00,$00,$B4,$B5,$B6,$00,$00,$00,$00,0,0,0,0,0,0
+        db $00,$00,$57,$58,$59,$5A,$5B,$03,$00,$00,0,0,0,0,0,0 ; sw3
+        db $00,$00,$00,$B4,$B5,$B6,$00,$00,$00,$00,0,0,0,0,0,0
+        db $00,$00,$57,$58,$59,$5A,$5B,$01,$00,$00,0,0,0,0,0,0 ; sw1
+        db $00,$00,$57,$58,$59,$5A,$5B,$04,$00,$00,0,0,0,0,0,0 ; sw4
+        db $00,$00,$57,$58,$59,$5A,$5B,$05,$00,$00,0,0,0,0,0,0 ; sw5
+        db $00,$00,$00,$B4,$B5,$B6,$00,$00,$00,$00,0,0,0,0,0,0
+        db $00,$00,$00,$B4,$B5,$B6,$00,$00,$00,$00,0,0,0,0,0,0
+level_names_empty:
+        db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,0,0,0,0,0,0
         
 option_values:
         db "     YELLOW SWITCH BLOCKS       "
@@ -455,194 +900,6 @@ option_values:
         db "     PLAYER NAME                "
         db "     REGION                     "
 
-option_description:
-        db "  TURN THE YELLOW               "
-        db "  SWITCH PALACE BLOCKS          "
-        db "  ON OR OFF                     "
-        db "                                "
-        db "                                "
-        db "                                "
-        db "  TURN THE GREEN                "
-        db "  SWITCH PALACE BLOCKS          "
-        db "  ON OR OFF                     "
-        db "                                "
-        db "                                "
-        db "                                "
-        db "  TURN THE RED                  "
-        db "  SWITCH PALACE BLOCKS          "
-        db "  ON OR OFF                     "
-        db "                                "
-        db "                                "
-        db "                                "
-        db "  TURN THE BLUE                 "
-        db "  SWITCH PALACE BLOCKS          "
-        db "  ON OR OFF                     "
-        db "                                "
-        db "                                "
-        db "                                "
-        db "  TOGGLE THE VARIOUS EFFECTS    "
-        db "  THAT OCCUR WHEN SPECIAL       "
-        db "  WORLD IS COMPLETED            "
-        db "  SUCH AS DIFFERENT             "
-        db "  KOOPA SHELL COLORS            "
-        db "                                "
-        db "  PICK WHICH POWERUP            "
-        db "  MARIO CURRENTLY HAS           "
-        db "                                "
-        db "                                "
-        db "                                "
-        db "                                "
-        db "  PICK WHAT ITEM IS CURRENTLY   "
-        db "  IN THE ITEM RESERVE BOX       "
-        db "                                "
-        db "                                "
-        db "                                "
-        db "                                "
-        db "  PICK WHAT COLOR OF YOSHI      "
-        db "  MARIO IS CURRENTLY RIDING     "
-        db "                                "
-        db "                                "
-        db "                                "
-        db "                                "
-        db "  REINITIALIZE ENEMIES THAT     "
-        db "  REMEMBER THE LAST STATE       "
-        db "  THAT THEY WERE IN             "
-        db "  SUCH AS BOO CLOUDS            "
-        db "  AND BOO RINGS                 "
-        db "                                "
-        db "  REMOVE ALL SAVED TIMES        "
-        db "  OR JUST SAVED TIMES FOR       "
-        db "  THE LEVEL MARIO IS CURRENTLY  "
-        db "  STANDING ON OR ONLY A         "
-        db "  PARTICULAR SAVED TIME         "
-        db "                                "
-        db "  DISPLAY WHICH SLOT            "
-        db "  EACH SPRITE IS CURRENTLY      "
-        db "  SPAWNED WITHIN                "
-        db "                                "
-        db "                                "
-        db "                                "
-        db "  DISABLE CONTROLLER 2          "
-        db "  OR ALLOW IT TO ONLY CONTROL   "
-        db "  MARIO OR ALLOW IT TO          "
-        db "  CONTROL ANYTHING              "
-        db "                                "
-        db "                                "
-        db "  USE R WHILE PAUSED TO         "
-        db "  ADVANCE A SINGLE FRAME        "
-        db "  REMOVES PAUSE COOLDOWN        "
-        db "  AND ALLOWS BUFFERING OF       "
-        db "  INPUTS UPON UNPAUSE ALSO      "
-        db "                                "
-        db "  TOGGLE THE HURRY UP SOUND     "
-        db "  AND TIME UP DEATH             "
-        db "                                "
-        db "                                "
-        db "                                "
-        db "                                "
-        db "  TOGGLE THE BACKGROUND MUSIC   "
-        db "                                "
-        db "                                "
-        db "                                "
-        db "                                "
-        db "                                "
-        db "  DISABLE THE START AND         "
-        db "  SELECT BUTTONS WHILE          "
-        db "  L OR R ARE BEING HELD         "
-        db "  TO RESOLVE SOME               "
-        db "  FUNCTIONALITY CONFLICT        "
-        db "                                "
-        db "  USE R-SELECT TO CREATE        "
-        db "  A SAVE STATE AND THEN         "
-        db "  USE L-SELECT TO RELOAD        "
-        db "  THAT STATE                    "
-        db "  OPTIONALLY RANDOMIZE RNG      "
-        db "  AND GLOBAL FRAME COUNTERS     "
-        db "  PICK HOW QUICKLY              "
-        db "  IT TAKES FOR A                "
-        db "  SAVE STATE TO LOAD            "
-        db "                                "
-        db "                                "
-        db "                                "
-        db "  SHOW INFORMATION ABOUT        "
-        db "  AN OBJECT THAT FOLLOWS        "
-        db "  IT AS IT MOVES AROUND         "
-        db "  SUCH AS SPEED OR              "
-        db "  SUBPIXEL VALUES               "
-        db "                                "
-        db "  USE R-START TO GRADUALLY      "
-        db "  INCREASE THE SLOWDOWN         "
-        db "  EFFECT AND USE L-START        "
-        db "  TO RETURN TO NORMAL SPEED     "
-        db "                                "
-        db "                                "
-        db "  CHANGE WHICH METERS ARE       "
-        db "  SHOWN ON THE STATUS BAR       "
-        db "    D - DEFAULT SET             "
-        db "    L - LAG CALIBRATED          "
-        db "    E - EMPTY                   "
-        db "    C - CUSTOM                  "
-        db "  USE L-R TO RESET THE CURRENT  "
-        db "  ROOM AND A-B-L-R TO RESET     "
-        db "  THE ENTIRE LEVEL AND          "
-        db "  X-Y-L-R TO ADVANCE ONE ROOM   "
-        db "                                "
-        db "                                "
-        db "  OPTIONALLY EMULATE            "
-        db "  SCORE LAG BY SELECTING        "
-        db "  THE SUM OF THE DIGITS OF      "
-        db "  THE SCORE HERE                "
-        db "                                "
-        db "                                "
-        db "  DISPLAY A DOT ON THE          "
-        db "  SCREEN THAT SHOWS             "
-        db "  HOW MUCH GAME CODE            "
-        db "  WAS EXECUTED EACH FRAME       "
-        db "                                "
-        db "                                "
-        db "  PICK A SAVE SLOT TO SAVE      "
-        db "  EXPORT THE CURRENTLY          "
-        db "  LOADED MOVIE IN SAVE RAM      "
-        db "  TO SHARE WITH OTHERS          "
-        db "                                "
-        db "                                "
-        db "  PICK A SAVE SLOT TO LOAD      "
-        db "  A MOVIE FROM SAVE RAM         "
-        db "  OR LOAD A DEMO MOVIE          "
-        db "  OF THIS LEVEL                 "
-        db "                                "
-        db "                                "
-        db "  YOUR NAME                     "
-        db "                                "
-        db "                                "
-        db "                                "
-        db "  OR REALLY WHATEVER TEXT       "
-        db "  YOU WANT TO PUT HERE          "
-        db "  YOUR NAME                     "
-        db "                                "
-        db "                                "
-        db "                                "
-        db "  OR REALLY WHATEVER TEXT       "
-        db "  YOU WANT TO PUT HERE          "
-        db "  YOUR NAME                     "
-        db "                                "
-        db "                                "
-        db "                                "
-        db "  OR REALLY WHATEVER TEXT       "
-        db "  YOU WANT TO PUT HERE          "
-        db "  YOUR NAME                     "
-        db "                                "
-        db "                                "
-        db "                                "
-        db "  OR REALLY WHATEVER TEXT       "
-        db "  YOU WANT TO PUT HERE          "
-        db "  THIS WILL AFFECT REGION       "
-        db "  DIFFERENCES SUCH AS           "
-        db "  LEVEL LAYOUT AND              "
-        db "  MECHANICS CHANGES             "
-        db "                                "
-        db "                                "
-
 meter_names:
         db "EMPTY           "
         db "ITEM BOX        "
@@ -664,6 +921,8 @@ meter_names:
         db "MEMORY VIEWER   "
         db "MEMORY VIEWER   "
         db "RANDOM NUMBER   "
+        db "SCORE           "
+        db "VANILLA HUD     "
 
 meter_types:
         dw meter_text_none
@@ -686,6 +945,8 @@ meter_types:
         dw meter_text_none
         dw meter_text_none
         dw meter_text_rng
+        dw meter_text_none
+        dw meter_text_none
         
 meter_text_none:
         db "                "
@@ -808,3 +1069,11 @@ meter_description:
         db "  HELD VALUE ON THE             "
         db "  RANDOM NUMBER GENERATOR       "
         db "  OR INDEX OF THE VALUE         "
+        db "  DISPLAYS SCORE ACHIEVED       "
+        db "  IN THE CURRENT LEVEL          "
+        db "                                "
+        db "                                "
+        db "  DISPLAYS THE VANILLA HUD      "
+        db "                                "
+        db "                                "
+        db "                                "

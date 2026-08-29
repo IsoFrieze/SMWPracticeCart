@@ -18,7 +18,7 @@ overworld_tick:
         JSR test_for_time_toggle
         JSR draw_times
         JSR save_marios_position
-;       JSR test_for_enter_level
+        JSR test_for_enter_level
         JSR draw_movie_slots
         
         LDA #$40
@@ -28,6 +28,28 @@ overworld_tick:
         PLP
         RTL
 
+test_for_enter_level:
+        LDA !util_axlr_frame
+        ORA !util_byetudlr_frame
+        AND #$C0
+        BEQ .done_no_start
+        AND #$80
+        BNE .done_start
+        LDA !status_fast_mode
+        BEQ .done_start
+        LDX #$00
+        LDA !util_axlr_frame
+        AND #$40
+        BEQ +
+        LDX #$01
+        
+      + STX $00
+        JSL FastMode_add_level
+        BRA .done_no_start
+    .done_start:
+        INC !level_enter_flag
+    .done_no_start:
+        RTS
 ; set the translevel of the tile mario is currently standing on
 ; (code taken from $05D850)
 update_potential_translevel:
@@ -159,7 +181,7 @@ test_main_enter_level:
         LDA !util_byetudlr_frame
         AND #$80
         BEQ .exit
-        
+      
         ; if level is no-yoshi level, temporarily remove yoshi
         STZ !give_yoshi_back
         LDX #$12
@@ -202,7 +224,7 @@ test_main_enter_level:
         SEP #$30
         
         ; backup settings
-        LDX #$1F
+        LDX #!number_of_options
       - LDA.L !status_table,X
         STA.L !backup_status_table,X
         DEX
@@ -431,6 +453,7 @@ draw_times:
         RTS
         
     .start:
+        JSL display_fast_mode_finish_time
         PHB
         PHK
         PLB
